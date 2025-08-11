@@ -44,13 +44,16 @@ export const authConfig = {
   ],
   callbacks: {
     async session({ session, user }) {
-      // when using database strategy, user is loaded from adapter
-      const dbUser = await prisma.user.findUnique({ where: { id: user.id as any } })
-      if (session.user && dbUser) {
-        session.user.id = dbUser.id
-        session.user.email = dbUser.email
-        session.user.role = dbUser.role as any
-        session.user.name = dbUser.fullName
+      if (session.user) {
+        const dbUser = await prisma.user.findUnique({ 
+          where: { id: parseInt(user.id) } 
+        })
+        if (dbUser) {
+          session.user.id = dbUser.id
+          session.user.email = dbUser.email || ""
+          session.user.role = dbUser.role
+          session.user.name = dbUser.fullName
+        }
       }
       return session
     },

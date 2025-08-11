@@ -13,16 +13,27 @@ enum VersionStatus { draft in_review approved rejected }
 enum AuditAction { create update delete }
 
 model User {
-  id           Int        @id @default(autoincrement())
-  email        String?    @unique
-  username     String     @unique
-  fullName     String?
-  passwordHash String
-  role         GlobalRole @default(viewer)
-  isActive     Boolean    @default(true)
-  createdAt    DateTime   @default(now())
-  emailVerified DateTime?
-  matrices     Matrix[]
+  id                    Int        @id @default(autoincrement())
+  email                 String?    @unique
+  username              String     @unique
+  fullName              String?
+  passwordHash          String
+  role                  GlobalRole @default(viewer)
+  isActive              Boolean    @default(true)
+  createdAt             DateTime   @default(now())
+  emailVerified         DateTime?
+  
+  // Relations
+  ownedMatrices         Matrix[]
+  matrixPermissions     MatrixPermission[]
+  createdVersions       MatrixVersion[] @relation("CreatedBy")
+  approvedVersions      MatrixVersion[] @relation("ApprovedBy") 
+  versionApprovals      MatrixVersionApproval[]
+  auditLogs             AuditLog[]
+  accounts              Account[]
+  sessions              Session[]
+
+  @@map("users")
 }
 
 model Matrix {
@@ -32,20 +43,23 @@ model Matrix {
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
   ownerId             Int?
+  publishedVersionId  Int?                @unique
+  requiredApprovals   Int                 @default(1)
+  webhookUrl          String?
+  
+  // Relations
   owner               User?               @relation(fields: [ownerId], references: [id])
-  publishedVersionId  Int?
   publishedVersion    MatrixVersion?      @relation("PublishedVersion", fields: [publishedVersionId], references: [id])
   entries             FlowEntry[]
   permissions         MatrixPermission[]
-  requiredApprovals   Int                 @default(1)
-  webhookUrl          String?
-  versions            MatrixVersion[]
+  versions            MatrixVersion[]     @relation("MatrixVersions")
+
+  @@map("matrices")
 }
 
 model FlowEntry {
   id                Int      @id @default(autoincrement())
   matrixId          Int
-  matrix            Matrix   @relation(fields: [matrixId], references: [id], onDelete: Cascade)
   request_type      String?
   rule_status       String?
   rule_name         String?
@@ -65,6 +79,11 @@ model FlowEntry {
   comment           String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+  
+  // Relations
+  matrix            Matrix   @relation(fields: [matrixId], references: [id], onDelete: Cascade)
+
+  @@map("flow_entries")
 }
 
 model MatrixPermission {
@@ -72,16 +91,18 @@ model MatrixPermission {
   matrixId Int
   userId   Int
   role     MatrixRole @default(viewer)
+  
+  // Relations
   matrix   Matrix     @relation(fields: [matrixId], references: [id], onDelete: Cascade)
   user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([matrixId, userId], name: "uq_matrix_user")
+  @@map("matrix_permissions")
 }
 
 model MatrixVersion {
   id                 Int             @id @default(autoincrement())
   matrixId           Int
-  matrix             Matrix          @relation(fields: [matrixId], references: [id], onDelete: Cascade)
   version            Int
   status             VersionStatus   @default(draft)
   note               String?
@@ -91,7 +112,16 @@ model MatrixVersion {
   approvedById       Int?
   approvedAt         DateTime?
   requiredApprovals  Int             @default(1)
+  
+  // Relations
+  matrix             Matrix          @relation("MatrixVersions", fields: [matrixId], references: [id], onDelete: Cascade)
+  createdBy          User?           @relation("CreatedBy", fields: [createdById], references: [id])
+  approvedBy         User?           @relation("ApprovedBy", fields: [approvedById], references: [id])
   approvals          MatrixVersionApproval[]
+  publishedMatrix    Matrix?         @relation("PublishedVersion")
+
+  @@unique([matrixId, version])
+  @@map("matrix_versions")
 }
 
 model MatrixVersionApproval {
@@ -99,10 +129,13 @@ model MatrixVersionApproval {
   versionId Int
   userId    Int
   createdAt DateTime @default(now())
+  
+  // Relations
   version   MatrixVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
   user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([versionId, userId], name: "uq_version_user")
+  @@map("matrix_version_approvals")
 }
 
 model AuditLog {
@@ -114,8 +147,14 @@ model AuditLog {
   action    AuditAction
   changes   Json
   at        DateTime   @default(now())
+  
+  // Relations
+  user      User?      @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
 }
 
+// NextAuth tables
 model Account {
   id                Int       @id @default(autoincrement())
   userId            Int
@@ -129,9 +168,12 @@ model Account {
   scope             String?
   id_token          String?   @db.Text
   session_state     String?
+  
+  // Relations
   user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@map("accounts")
 }
 
 model Session {
@@ -139,7 +181,11 @@ model Session {
   sessionToken String   @unique
   userId       Int
   expires      DateTime
+  
+  // Relations
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
 }
 
 model VerificationToken {
@@ -148,4 +194,5 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+  @@map("verification_tokens")
 }
