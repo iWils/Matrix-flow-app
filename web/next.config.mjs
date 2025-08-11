@@ -1,8 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   reactStrictMode: true,
   experimental: {
-    serverActions: { allowedOrigins: ['*'] }
+    serverComponentsExternalPackages: ['@prisma/client']
+  },
+  images: {
+    remotePatterns: []
   }
 }
+
 export default nextConfig

@@ -1,3 +1,4 @@
+// web/prisma/schema.prisma
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -7,10 +8,30 @@ generator client {
   provider = "prisma-client-js"
 }
 
-enum GlobalRole { admin user viewer }
-enum MatrixRole { owner editor viewer }
-enum VersionStatus { draft in_review approved rejected }
-enum AuditAction { create update delete }
+enum GlobalRole { 
+  admin 
+  user 
+  viewer 
+}
+
+enum MatrixRole { 
+  owner 
+  editor 
+  viewer 
+}
+
+enum VersionStatus { 
+  draft 
+  in_review 
+  approved 
+  rejected 
+}
+
+enum AuditAction { 
+  create 
+  update 
+  delete 
+}
 
 model User {
   id                    Int        @id @default(autoincrement())
