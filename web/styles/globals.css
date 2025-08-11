@@ -1,0 +1,10 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { @apply bg-slate-50 text-slate-900; }
+.card { @apply rounded-2xl bg-white p-6 shadow border; }
+.btn { @apply rounded bg-slate-900 text-white px-3 py-2 text-sm; }
+.btn-outline { @apply rounded border px-3 py-2 text-sm; }
+.link { @apply text-sky-700 hover:underline; }
