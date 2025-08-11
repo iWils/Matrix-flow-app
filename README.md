@@ -12,4 +12,3 @@ Voir le dossier `web/` pour l’application Next.js (App Router) avec NextAuth, 
 
 ## Déploiement production
 - Fichier **docker-compose.prod.yml** fourni + `web/.env.production` à compléter.
-- Pas d’OpenAPI ni de champs personnels exposés.
