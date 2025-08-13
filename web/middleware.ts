@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 export default function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+  const { pathname, search } = request.nextUrl
 
   // Pages publiques qui ne nécessitent pas d'authentification
   const publicPaths = ['/login', '/api/auth']
@@ -17,8 +17,14 @@ export default function middleware(request: NextRequest) {
                       request.cookies.get('__Secure-authjs.session-token')
 
   if (!sessionToken) {
-    const loginUrl = new URL('/login', request.url)
-    loginUrl.searchParams.set('callbackUrl', request.url)
+    // Créer l'URL de redirection en préservant le pathname et les paramètres
+    const loginUrl = request.nextUrl.clone()
+    loginUrl.pathname = '/login'
+    
+    // Stocker l'URL complète demandée comme callback
+    const callbackUrl = pathname + search
+    loginUrl.searchParams.set('callbackUrl', callbackUrl)
+    
     return NextResponse.redirect(loginUrl)
   }
 
