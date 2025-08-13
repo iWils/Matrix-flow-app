@@ -83,12 +83,11 @@ export function DataTable<T extends Record<string, any>>({
         <TableHeader>
           <TableRow>
             {columns.map(column => (
-              <TableHead
-                key={String(column.key)}
-                className={column.sortable ? 'cursor-pointer hover:bg-slate-100' : ''}
-                onClick={() => column.sortable && handleSort(column.key)}
-              >
-                <div className="flex items-center gap-1">
+              <TableHead key={String(column.key)}>
+                <div
+                  className={`flex items-center gap-1 ${column.sortable ? 'cursor-pointer hover:bg-slate-100 p-2 -m-2 rounded' : ''}`}
+                  onClick={() => column.sortable && handleSort(column.key)}
+                >
                   {column.label}
                   {column.sortable && sortKey === column.key && (
                     <span className="text-xs">
@@ -102,25 +101,28 @@ export function DataTable<T extends Record<string, any>>({
         </TableHeader>
         <TableBody>
           {sortedData.map((item, index) => (
-            <TableRow
-              key={index}
-              className={onRowClick ? 'cursor-pointer' : ''}
-              onClick={() => onRowClick?.(item)}
-            >
-              {columns.map(column => (
-                <TableCell key={String(column.key)}>
-                  {column.render 
-                    ? column.render(item[column.key], item)
-                    : String(item[column.key] || '-')
-                  }
-                </TableCell>
-              ))}
+            <TableRow key={index}>
+              <div
+                className={`contents ${onRowClick ? 'cursor-pointer hover:bg-slate-50' : ''}`}
+                onClick={() => onRowClick?.(item)}
+              >
+                {columns.map(column => (
+                  <TableCell key={String(column.key)}>
+                    {column.render
+                      ? column.render(item[column.key], item)
+                      : String(item[column.key] || '-')
+                    }
+                  </TableCell>
+                ))}
+              </div>
             </TableRow>
           ))}
           {sortedData.length === 0 && (
             <TableRow>
-              <TableCell colSpan={columns.length} className="text-center py-8 text-slate-500">
-                Aucune donnée trouvée
+              <TableCell className="text-center py-8 text-slate-500">
+                <div style={{ gridColumn: `1 / ${columns.length + 1}` }}>
+                  Aucune donnée trouvée
+                </div>
               </TableCell>
             </TableRow>
           )}
