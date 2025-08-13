@@ -3,43 +3,58 @@ FROM node:22-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk add --no-cache libc6-compat openssl
-WORKDIR /app
 
-# npm à la dernière version (optionnel mais propre)
+# npm à la dernière version
 RUN npm install -g npm@latest
 
-# Install dependencies
-COPY package.json package.json* ./
-# COPY package-lock.json package-lock.json* ./
+RUN apk add --no-cache \
+    libc6-compat \
+    openssl \
+    openssl-dev \
+    python3 \
+    make \
+    g++
 
-# Copie le schéma AVANT l'install pour que postinstall ne casse pas
+WORKDIR /app
+
+# Copier package.json
+COPY package.json ./
+
+# Copie le schéma Prisma AVANT l'install
 COPY prisma ./prisma
 
-# RUN npm ci --only=production && npm cache clean --force
-RUN npm install --no-audit --no-fund --legacy-peer-deps 
-# && npm cache clean --force
+# Installer TOUTES les dépendances
+RUN npm install --legacy-peer-deps && npm cache clean --force
 
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
 
-# npm à la dernière version (optionnel mais propre)
+# npm à la dernière version
 RUN npm install -g npm@latest
 
-# Generate Prisma client
+# Installer les dépendances système pour le runtime
+RUN apk add --no-cache openssl openssl-dev
+
+# Copier node_modules complet depuis deps
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copier TOUS les fichiers source
+COPY . .
+
+# Générer le client Prisma
 RUN npx prisma generate
 
 # Build the application
 ENV NEXT_TELEMETRY_DISABLED 1
-
 RUN npm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
+
+# Installer OpenSSL et netcat pour le runtime
+RUN apk add --no-cache openssl netcat-openbsd
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
@@ -49,12 +64,17 @@ RUN adduser --system --uid 1001 nextjs
 
 # Copy necessary files
 COPY --from=builder /app/public ./public
-# COPY --from=builder /app/prisma ./prisma
-# COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/node_modules ./node_modules
+COPY start.sh ./start.sh
 
 # Copy built application
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Rendre le script exécutable
+RUN chmod +x ./start.sh
 
 USER nextjs
 
@@ -63,4 +83,4 @@ EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-CMD ["node", "server.js"]
+CMD ["./start.sh"]

@@ -1,6 +1,6 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
-import { PrismaAdapter } from "@next-auth/prisma-adapter"
+import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/db"
 import bcrypt from "bcryptjs"
 
@@ -13,19 +13,18 @@ declare module "next-auth" {
       name?: string | null
     }
   }
-  
-  interface User {
-    id: string
-    email: string
+}
+
+declare module "@auth/core/adapters" {
+  interface AdapterUser {
     role: "admin" | "user" | "viewer"
-    name?: string | null
   }
 }
 
-export const authConfig = {
-  adapter: PrismaAdapter(prisma),
-  session: { 
-    strategy: "database" as const,
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  trustHost: true, // Nécessaire pour Docker et les environnements de production
+  session: {
+    strategy: "jwt", // Utiliser JWT pour les credentials
     maxAge: 12 * 60 * 60 // 12 hours
   },
   providers: [
@@ -41,15 +40,15 @@ export const authConfig = {
         const user = await prisma.user.findFirst({
           where: {
             OR: [
-              { username: credentials.username },
-              { email: credentials.username }
+              { username: credentials.username as string },
+              { email: credentials.username as string }
             ]
           }
         })
         
         if (!user || !user.isActive) return null
         
-        const isValid = await bcrypt.compare(credentials.password, user.passwordHash)
+        const isValid = await bcrypt.compare(credentials.password as string, user.passwordHash)
         if (!isValid) return null
         
         return {
@@ -62,26 +61,22 @@ export const authConfig = {
     })
   ],
   callbacks: {
-    async session({ session, user }) {
-      if (session.user && user) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: parseInt(user.id) }
-        })
-        
-        if (dbUser) {
-          session.user.id = dbUser.id
-          session.user.role = dbUser.role
-          session.user.email = dbUser.email || dbUser.username
-          session.user.name = dbUser.fullName
-        }
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = (user as any).role;
       }
-      return session
+      return token;
+    },
+    async session({ session, token }) {
+      if (token) {
+        (session.user as any).id = parseInt(token.id as string);
+        (session.user as any).role = token.role;
+      }
+      return session;
     }
   },
   pages: {
     signIn: "/login"
-  },
-  trustHost: true
-}
-
-export const { handlers, auth, signIn, signOut } = NextAuth(authConfig)
+  }
+})

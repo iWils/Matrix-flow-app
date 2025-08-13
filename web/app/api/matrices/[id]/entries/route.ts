@@ -4,19 +4,17 @@ import { auth } from '@/auth'
 import { auditLog } from '@/lib/audit'
 import { canEditMatrix } from '@/lib/rbac'
 
-interface RouteParams {
-  params: {
-    id: string
-  }
-}
-
-export async function POST(req: NextRequest, { params }: RouteParams) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const session = await auth()
   if (!session?.user) {
     return new NextResponse('Unauthorized', { status: 401 })
   }
 
-  const matrixId = parseInt(params.id)
+  const resolvedParams = await params
+  const matrixId = parseInt(resolvedParams.id)
   if (isNaN(matrixId)) {
     return new NextResponse('Invalid matrix ID', { status: 400 })
   }
