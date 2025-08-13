@@ -335,9 +335,9 @@ export default function MatrixDetailPage() {
                         >
                           Modifier
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant="destructive"
+                        <Button
+                          size="sm"
+                          variant="danger"
                           onClick={() => deleteEntry(entry.id)}
                         >
                           Suppr

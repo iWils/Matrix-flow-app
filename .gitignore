@@ -1,10 +1,11 @@
 # Logs
 logs
 *.log
-web/npm-debug.log*
-web/yarn-debug.log*
-web/yarn-error.log*
-web/pnpm-debug.log*
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
 # Runtime data
 pids
@@ -13,8 +14,8 @@ pids
 *.pid.lock
 
 # Dependency directories
-web/node_modules/
-web/jspm_packages/
+node_modules/
+jspm_packages/
 
 # Build output
 dist/
@@ -22,19 +23,21 @@ build/
 .tmp/
 
 # Optional npm cache directory
-web/.npm
+.npm
 
 # Optional eslint cache
-web/.eslintcache
+.eslintcache
 
 # Optional stylelint cache
-web/.stylelintcache
+.stylelintcache
 
 # Optional REPL history
-web/.node_repl_history
+.node_repl_history
 
-# Environment files
-.env
+# # Environment files
+# .env
+# .env.test
+# .env.production
 
 # Coverage directory
 coverage/
@@ -47,8 +50,8 @@ coverage/
 .cache
 
 # Next.js
-web/.next
-web/out
+.next
+out
 
 # Serverless
 .serverless/
