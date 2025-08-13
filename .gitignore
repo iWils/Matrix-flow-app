@@ -33,10 +33,12 @@ build/
 # Optional REPL history
 .node_repl_history
 
-# # Environment files
-# .env
-# .env.test
-# .env.production
+# Environment files
+#.env
+.env.local
+.env.test
+.env.production
+.env.*.local
 
 # Coverage directory
 coverage/
@@ -57,3 +59,29 @@ out
 
 # VSCode
 .vscode/
+
+# IDE files
+.idea/
+*.sublime-*
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.old
+*.orig
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+
+# Docker volumes
+postgres-data/
+redis-data/
