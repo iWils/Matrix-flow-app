@@ -57,3 +57,8 @@ out
 
 # VSCode
 .vscode/
+
+web/node_modules/
+web/.next/
+web/dist/
+web/build/
