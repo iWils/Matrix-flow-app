@@ -4,21 +4,18 @@ import { auth } from '@/auth'
 import { auditLog } from '@/lib/audit'
 import { canEditMatrix } from '@/lib/rbac'
 
-interface RouteParams {
-  params: {
-    id: string
-    entryId: string
-  }
-}
-
-export async function PUT(req: NextRequest, { params }: RouteParams) {
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string; entryId: string }> }
+) {
   const session = await auth()
   if (!session?.user) {
     return new NextResponse('Unauthorized', { status: 401 })
   }
 
-  const matrixId = parseInt(params.id)
-  const entryId = parseInt(params.entryId)
+  const resolvedParams = await params
+  const matrixId = parseInt(resolvedParams.id)
+  const entryId = parseInt(resolvedParams.entryId)
   
   if (isNaN(matrixId) || isNaN(entryId)) {
     return new NextResponse('Invalid IDs', { status: 400 })
@@ -58,14 +55,18 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: RouteParams) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string; entryId: string }> }
+) {
   const session = await auth()
   if (!session?.user) {
     return new NextResponse('Unauthorized', { status: 401 })
   }
 
-  const matrixId = parseInt(params.id)
-  const entryId = parseInt(params.entryId)
+  const resolvedParams = await params
+  const matrixId = parseInt(resolvedParams.id)
+  const entryId = parseInt(resolvedParams.entryId)
   
   if (isNaN(matrixId) || isNaN(entryId)) {
     return new NextResponse('Invalid IDs', { status: 400 })
