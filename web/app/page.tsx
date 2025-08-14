@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { useLanguage } from '@/components/providers/LanguageProvider'
 
 type DashboardStats = {
   totalMatrices: number
@@ -25,6 +26,7 @@ type DashboardStats = {
 
 export default function DashboardPage() {
   const { data: session } = useSession()
+  const { t } = useLanguage()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -59,10 +61,10 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gradient mb-2">Tableau de bord</h1>
+          <h1 className="text-3xl font-bold text-gradient mb-2">{t('dashboard')}</h1>
           <p className="text-slate-600 flex items-center gap-2">
             <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-            Bienvenue, {session?.user?.name || session?.user?.email}
+            {t('welcome')}, {session?.user?.name || session?.user?.email}
           </p>
         </div>
         <div className="flex items-center gap-3 text-sm text-slate-500">
@@ -88,9 +90,9 @@ export default function DashboardPage() {
               </svg>
             </div>
             <div className="ml-4 flex-1">
-              <div className="text-slate-500 text-sm font-medium">Matrices</div>
+              <div className="text-slate-500 text-sm font-medium">{t('matricesCount')}</div>
               <div className="text-2xl font-bold text-slate-900">{stats?.totalMatrices || 0}</div>
-              <div className="text-xs text-green-600 font-medium">+12% ce mois</div>
+              <div className="text-xs text-green-600 font-medium">+12% {t('thisMonth')}</div>
             </div>
           </div>
         </Card>
@@ -103,9 +105,9 @@ export default function DashboardPage() {
               </svg>
             </div>
             <div className="ml-4 flex-1">
-              <div className="text-slate-500 text-sm font-medium">Entrées de flux</div>
+              <div className="text-slate-500 text-sm font-medium">{t('flowEntries')}</div>
               <div className="text-2xl font-bold text-slate-900">{stats?.totalEntries || 0}</div>
-              <div className="text-xs text-green-600 font-medium">+8% ce mois</div>
+              <div className="text-xs text-green-600 font-medium">+8% {t('thisMonth')}</div>
             </div>
           </div>
         </Card>
@@ -118,9 +120,9 @@ export default function DashboardPage() {
               </svg>
             </div>
             <div className="ml-4 flex-1">
-              <div className="text-slate-500 text-sm font-medium">Utilisateurs</div>
+              <div className="text-slate-500 text-sm font-medium">{t('usersCount')}</div>
               <div className="text-2xl font-bold text-slate-900">{stats?.totalUsers || 0}</div>
-              <div className="text-xs text-blue-600 font-medium">Actifs</div>
+              <div className="text-xs text-blue-600 font-medium">{t('activeUsers')}</div>
             </div>
           </div>
         </Card>
@@ -133,11 +135,11 @@ export default function DashboardPage() {
               </svg>
             </div>
             <div className="ml-4 flex-1">
-              <div className="text-slate-500 text-sm font-medium">Sécurité RBAC</div>
-              <div className="text-lg font-bold text-slate-900">Actif</div>
+              <div className="text-slate-500 text-sm font-medium">{t('rbacSecurity')}</div>
+              <div className="text-lg font-bold text-slate-900">{t('activeUsers')}</div>
               <div className="text-xs text-green-600 font-medium flex items-center gap-1">
                 <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                Opérationnel
+                {t('operational')}
               </div>
             </div>
           </div>
@@ -153,7 +155,7 @@ export default function DashboardPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
-            <h2 className="text-lg font-semibold text-slate-900">Actions rapides</h2>
+            <h2 className="text-lg font-semibold text-slate-900">{t('quickActions')}</h2>
           </div>
           <div className="space-y-3">
             <Link
@@ -166,8 +168,8 @@ export default function DashboardPage() {
                 </svg>
               </div>
               <div className="flex-1">
-                <div className="font-medium text-slate-900">Créer une matrice</div>
-                <div className="text-sm text-slate-600">Nouvelle matrice de flux réseau</div>
+                <div className="font-medium text-slate-900">{t('createMatrix')}</div>
+                <div className="text-sm text-slate-600">{t('newNetworkFlowMatrix')}</div>
               </div>
               <svg className="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -185,8 +187,8 @@ export default function DashboardPage() {
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <div className="font-medium text-slate-900">Ajouter un utilisateur</div>
-                  <div className="text-sm text-slate-600">Créer un nouveau compte</div>
+                  <div className="font-medium text-slate-900">{t('addUser')}</div>
+                  <div className="text-sm text-slate-600">{t('createNewAccount')}</div>
                 </div>
                 <svg className="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -204,8 +206,8 @@ export default function DashboardPage() {
                 </svg>
               </div>
               <div className="flex-1">
-                <div className="font-medium text-slate-900">Parcourir les matrices</div>
-                <div className="text-sm text-slate-600">Voir toutes les matrices</div>
+                <div className="font-medium text-slate-900">{t('browseMatrices')}</div>
+                <div className="text-sm text-slate-600">{t('viewAllMatrices')}</div>
               </div>
               <svg className="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -222,7 +224,7 @@ export default function DashboardPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h2 className="text-lg font-semibold text-slate-900">Fonctionnalités</h2>
+            <h2 className="text-lg font-semibold text-slate-900">{t('features')}</h2>
           </div>
           <div className="space-y-4">
             <div className="flex items-center gap-4 p-3 bg-green-50 rounded-xl border border-green-100">
@@ -232,8 +234,8 @@ export default function DashboardPage() {
                 </svg>
               </div>
               <div className="flex-1">
-                <div className="font-medium text-slate-900">Contrôle d'accès (RBAC)</div>
-                <div className="text-sm text-slate-600">Permissions par matrice</div>
+                <div className="font-medium text-slate-900">{t('accessControl')}</div>
+                <div className="text-sm text-slate-600">{t('matrixPermissions')}</div>
               </div>
             </div>
             
@@ -244,8 +246,8 @@ export default function DashboardPage() {
                 </svg>
               </div>
               <div className="flex-1">
-                <div className="font-medium text-slate-900">Import/Export CSV</div>
-                <div className="text-sm text-slate-600">Gestion des données en masse</div>
+                <div className="font-medium text-slate-900">{t('importExportCsv')}</div>
+                <div className="text-sm text-slate-600">{t('bulkDataManagement')}</div>
               </div>
             </div>
             
@@ -256,8 +258,8 @@ export default function DashboardPage() {
                 </svg>
               </div>
               <div className="flex-1">
-                <div className="font-medium text-slate-900">Versioning & Audit</div>
-                <div className="text-sm text-slate-600">Suivi des modifications</div>
+                <div className="font-medium text-slate-900">{t('versioningAudit')}</div>
+                <div className="text-sm text-slate-600">{t('changeTracking')}</div>
               </div>
             </div>
             
@@ -268,8 +270,8 @@ export default function DashboardPage() {
                 </svg>
               </div>
               <div className="flex-1">
-                <div className="font-medium text-slate-900">Workflow d'approbation</div>
-                <div className="text-sm text-slate-600">Validation des changements</div>
+                <div className="font-medium text-slate-900">{t('approvalWorkflow')}</div>
+                <div className="text-sm text-slate-600">{t('changeValidation')}</div>
               </div>
             </div>
           </div>
@@ -283,7 +285,7 @@ export default function DashboardPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h2 className="text-lg font-semibold text-slate-900">Activité récente</h2>
+            <h2 className="text-lg font-semibold text-slate-900">{t('recentActivity')}</h2>
           </div>
           <div className="space-y-3">
             {stats?.recentActivity && stats.recentActivity.length > 0 ? (
@@ -299,17 +301,17 @@ export default function DashboardPage() {
                   <div className="flex-1 min-w-0">
                     <div className="text-sm">
                       <span className="font-medium text-slate-900">
-                        {activity.user?.fullName || activity.user?.username || 'Système'}
+                        {activity.user?.fullName || activity.user?.username || t('system')}
                       </span>
                       <span className="text-slate-600">
                         {' '}
-                        {activity.action === 'create' && 'a créé'}
-                        {activity.action === 'update' && 'a modifié'}
-                        {activity.action === 'delete' && 'a supprimé'}
+                        {activity.action === 'create' && t('created')}
+                        {activity.action === 'update' && t('updated')}
+                        {activity.action === 'delete' && t('deleted')}
                         {' '}
-                        {activity.entity === 'Matrix' && 'une matrice'}
-                        {activity.entity === 'FlowEntry' && 'une entrée'}
-                        {activity.entity === 'User' && 'un utilisateur'}
+                        {activity.entity === 'Matrix' && t('matrixEntity')}
+                        {activity.entity === 'FlowEntry' && t('entryEntity')}
+                        {activity.entity === 'User' && t('userEntity')}
                       </span>
                     </div>
                     <div className="text-xs text-slate-500 mt-1">
@@ -325,7 +327,7 @@ export default function DashboardPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <div className="text-sm text-slate-500">Aucune activité récente</div>
+                <div className="text-sm text-slate-500">{t('noRecentActivity')}</div>
               </div>
             )}
           </div>
@@ -336,7 +338,7 @@ export default function DashboardPage() {
                 href="/admin/audit"
                 className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
               >
-                Voir tous les logs d'audit
+                {t('viewAllAuditLogs')}
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -356,9 +358,9 @@ export default function DashboardPage() {
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-slate-900 mb-1">Besoin d'aide ?</h2>
+              <h2 className="text-xl font-semibold text-slate-900 mb-1">{t('needHelp')}</h2>
               <p className="text-slate-600">
-                Consultez la documentation ou contactez l'équipe support
+                {t('consultDocumentation')}
               </p>
             </div>
           </div>
@@ -367,13 +369,13 @@ export default function DashboardPage() {
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
-              Documentation
+              {t('documentation')}
             </button>
             <button className="btn-primary">
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
-              Support
+              {t('support')}
             </button>
           </div>
         </div>
