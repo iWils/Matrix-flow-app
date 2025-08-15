@@ -27,10 +27,22 @@ enum VersionStatus {
   rejected 
 }
 
-enum AuditAction { 
-  create 
-  update 
-  delete 
+enum AuditAction {
+  create
+  update
+  delete
+}
+
+enum ChangeRequestType {
+  create_entry
+  update_entry
+  delete_entry
+}
+
+enum ChangeRequestStatus {
+  pending
+  approved
+  rejected
 }
 
 model User {
@@ -42,6 +54,7 @@ model User {
   role                  GlobalRole @default(viewer)
   isActive              Boolean    @default(true)
   createdAt             DateTime   @default(now())
+  lastPasswordChange    DateTime   @default(now())
   emailVerified         DateTime?
   
   // Relations
@@ -51,6 +64,9 @@ model User {
   approvedVersions      MatrixVersion[] @relation("ApprovedBy") 
   versionApprovals      MatrixVersionApproval[]
   auditLogs             AuditLog[]
+  requestedChanges      ChangeRequest[]       @relation("RequestedBy")
+  reviewedChanges       ChangeRequest[]       @relation("ReviewedBy")
+  groupMemberships      UserGroupMember[]
   accounts              Account[]
   sessions              Session[]
 
@@ -74,6 +90,7 @@ model Matrix {
   entries             FlowEntry[]
   permissions         MatrixPermission[]
   versions            MatrixVersion[]     @relation("MatrixVersions")
+  changeRequests      ChangeRequest[]
 
   @@map("matrices")
 }
@@ -102,7 +119,8 @@ model FlowEntry {
   updatedAt         DateTime @updatedAt
   
   // Relations
-  matrix            Matrix   @relation(fields: [matrixId], references: [id], onDelete: Cascade)
+  matrix            Matrix          @relation(fields: [matrixId], references: [id], onDelete: Cascade)
+  changeRequests    ChangeRequest[]
 
   @@map("flow_entries")
 }
@@ -175,6 +193,29 @@ model AuditLog {
   @@map("audit_logs")
 }
 
+model ChangeRequest {
+  id              Int                   @id @default(autoincrement())
+  matrixId        Int
+  entryId         Int?                  // Pour les modifications/suppressions
+  requestType     ChangeRequestType
+  status          ChangeRequestStatus   @default(pending)
+  description     String
+  requestedData   Json                  // Données de la demande (nouveau flux, modifications, etc.)
+  requestedById   Int
+  requestedAt     DateTime              @default(now())
+  reviewedById    Int?
+  reviewedAt      DateTime?
+  reviewComment   String?
+  
+  // Relations
+  matrix          Matrix                @relation(fields: [matrixId], references: [id], onDelete: Cascade)
+  entry           FlowEntry?            @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  requestedBy     User                  @relation("RequestedBy", fields: [requestedById], references: [id])
+  reviewedBy      User?                 @relation("ReviewedBy", fields: [reviewedById], references: [id])
+
+  @@map("change_requests")
+}
+
 // NextAuth tables
 model Account {
   id                Int       @id @default(autoincrement())
@@ -216,4 +257,74 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+// Tables pour le panneau d'administration
+
+model SystemSetting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     Json
+  category  String
+  description String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("system_settings")
+}
+
+model UserGroup {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  permissions Json     @default("{}")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  members     UserGroupMember[]
+
+  @@map("user_groups")
+}
+
+model UserGroupMember {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  groupId   Int
+  createdAt DateTime @default(now())
+  
+  // Relations
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group     UserGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+  @@map("user_group_members")
+}
+
+model AuthProvider {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  type        String   // 'ldap', 'oidc', 'saml'
+  config      Json
+  isActive    Boolean  @default(false)
+  priority    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("auth_providers")
+}
+
+model EmailTemplate {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  subject     String
+  htmlContent String   @db.Text
+  textContent String?  @db.Text
+  variables   Json     @default("[]")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("email_templates")
 }

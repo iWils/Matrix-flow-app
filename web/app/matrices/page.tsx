@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
+import { useGlobalPermissions } from '@/hooks/usePermissions'
 
 type Matrix = {
   id: number
@@ -30,6 +31,7 @@ type Matrix = {
 
 export default function MatricesPage() {
   const { data: session } = useSession()
+  const permissions = useGlobalPermissions()
   const [matrices, setMatrices] = useState<Matrix[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -101,17 +103,21 @@ export default function MatricesPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold">Matrices de flux</h1>
-        <Button onClick={() => setShowCreateModal(true)}>
-          Nouvelle matrice
-        </Button>
+        {permissions.canCreateMatrix && (
+          <Button onClick={() => setShowCreateModal(true)}>
+            Nouvelle matrice
+          </Button>
+        )}
       </div>
 
       {matrices.length === 0 ? (
         <Card className="text-center py-12">
           <div className="text-slate-500 mb-4">Aucune matrice trouvée</div>
-          <Button onClick={() => setShowCreateModal(true)}>
-            Créer votre première matrice
-          </Button>
+          {permissions.canCreateMatrix && (
+            <Button onClick={() => setShowCreateModal(true)}>
+              Créer votre première matrice
+            </Button>
+          )}
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -133,7 +139,7 @@ export default function MatricesPage() {
                     </p>
                   )}
                 </div>
-                {session?.user?.role === 'admin' && (
+                {permissions.isAdmin && (
                   <button
                     onClick={() => deleteMatrix(matrix.id)}
                     className="text-slate-400 hover:text-red-500 text-sm p-1"
@@ -175,19 +181,21 @@ export default function MatricesPage() {
               </div>
 
               <div className="flex gap-2 mt-3">
-                <Link 
+                <Link
                   href={`/matrices/${matrix.id}`}
                   className="btn-outline flex-1 text-center"
                 >
                   Ouvrir
                 </Link>
-                <Link 
-                  href={`/matrices/${matrix.id}/export`}
-                  className="btn-outline px-3"
-                  title="Exporter CSV"
-                >
-                  ↓
-                </Link>
+                {permissions.isAuthenticated && (
+                  <Link
+                    href={`/matrices/${matrix.id}/export`}
+                    className="btn-outline px-3"
+                    title="Exporter CSV"
+                  >
+                    ↓
+                  </Link>
+                )}
               </div>
             </Card>
           ))}

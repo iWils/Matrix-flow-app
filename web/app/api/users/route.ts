@@ -17,7 +17,8 @@ export async function GET() {
         fullName: true,
         role: true,
         isActive: true,
-        createdAt: true
+        createdAt: true,
+        lastPasswordChange: true
       },
       orderBy: {
         createdAt: 'desc'

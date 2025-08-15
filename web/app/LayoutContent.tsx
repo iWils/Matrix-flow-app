@@ -33,7 +33,7 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
     return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">{children}</div>
   }
 
-  const navigationItems = [
+  const allNavigationItems = [
     {
       href: '/',
       label: t('dashboard'),
@@ -54,15 +54,44 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
       )
     },
     {
+      href: '/workflow',
+      label: 'Workflow',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      )
+    },
+    {
       href: '/users',
       label: t('users'),
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
         </svg>
-      )
+      ),
+      adminOnly: true
+    },
+    {
+      href: '/admin',
+      label: 'Administration',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      ),
+      adminOnly: true
     }
   ]
+
+  // Filtrer les éléments de navigation selon le rôle de l'utilisateur
+  const navigationItems = allNavigationItems.filter(item => {
+    if (item.adminOnly) {
+      return session.user?.role === 'admin'
+    }
+    return true
+  })
   
   // Utilisateur authentifié, afficher avec sidebar
   return (
@@ -162,8 +191,10 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
               <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
                 {pathname === '/' && t('dashboard')}
                 {pathname === '/matrices' && t('matrixManagement')}
+                {pathname === '/workflow' && 'Workflow de changement'}
                 {pathname === '/users' && t('userManagement')}
                 {pathname.startsWith('/matrices/') && t('matrixDetails')}
+                {pathname.startsWith('/admin') && 'Administration'}
               </h2>
             </div>
             

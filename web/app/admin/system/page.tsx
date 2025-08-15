@@ -1,0 +1,548 @@
+'use client'
+import React, { useEffect, useState } from 'react'
+import { useSession } from 'next-auth/react'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { Badge } from '@/components/ui/Badge'
+
+type SystemSettings = {
+  general: {
+    appName: string
+    appDescription: string
+    defaultLanguage: string
+    timezone: string
+    maintenanceMode: boolean
+  }
+  security: {
+    sessionTimeout: number
+    passwordMinLength: number
+    passwordRequireSpecialChars: boolean
+    maxLoginAttempts: number
+    lockoutDuration: number
+  }
+  audit: {
+    retentionDays: number
+    logLevel: 'error' | 'warn' | 'info' | 'debug'
+    enableFileLogging: boolean
+    maxLogFileSize: number
+  }
+  backup: {
+    autoBackup: boolean
+    backupFrequency: 'daily' | 'weekly' | 'monthly'
+    retentionCount: number
+    backupLocation: string
+  }
+}
+
+export default function SystemPage() {
+  const { data: session } = useSession()
+  const [settings, setSettings] = useState<SystemSettings>({
+    general: {
+      appName: 'Matrix Flow',
+      appDescription: 'Gestion des matrices de flux réseau',
+      defaultLanguage: 'fr',
+      timezone: 'Europe/Paris',
+      maintenanceMode: false
+    },
+    security: {
+      sessionTimeout: 720, // 12 heures en minutes
+      passwordMinLength: 8,
+      passwordRequireSpecialChars: true,
+      maxLoginAttempts: 5,
+      lockoutDuration: 15 // en minutes
+    },
+    audit: {
+      retentionDays: 90,
+      logLevel: 'info',
+      enableFileLogging: true,
+      maxLogFileSize: 100 // en MB
+    },
+    backup: {
+      autoBackup: false,
+      backupFrequency: 'daily',
+      retentionCount: 7,
+      backupLocation: '/backups'
+    }
+  })
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [activeTab, setActiveTab] = useState<'general' | 'security' | 'audit' | 'backup'>('general')
+
+  useEffect(() => {
+    if (session?.user?.role === 'admin') {
+      loadSystemSettings()
+    }
+  }, [session])
+
+  async function loadSystemSettings() {
+    try {
+      const res = await fetch('/api/admin/system/settings')
+      if (res.ok) {
+        const data = await res.json()
+        setSettings(data)
+      }
+    } catch (error) {
+      console.error('Error loading system settings:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function saveSettings() {
+    setSaving(true)
+    try {
+      const res = await fetch('/api/admin/system/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings)
+      })
+      
+      if (res.ok) {
+        alert('Paramètres sauvegardés avec succès')
+      } else {
+        alert('Erreur lors de la sauvegarde')
+      }
+    } catch (error) {
+      console.error('Error saving settings:', error)
+      alert('Erreur lors de la sauvegarde')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function createBackup() {
+    try {
+      const res = await fetch('/api/admin/system/backup', {
+        method: 'POST'
+      })
+      
+      if (res.ok) {
+        alert('Sauvegarde créée avec succès')
+      } else {
+        alert('Erreur lors de la création de la sauvegarde')
+      }
+    } catch (error) {
+      console.error('Error creating backup:', error)
+      alert('Erreur lors de la création de la sauvegarde')
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <LoadingSpinner size="lg" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="animate-fade-in">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-white mb-2">Paramètres Système</h1>
+        <p className="text-slate-300">
+          Configuration générale, sécurité, audit et sauvegarde
+        </p>
+      </div>
+
+      {/* Tabs */}
+      <div className="mb-6">
+        <div className="border-b border-slate-700">
+          <nav className="-mb-px flex space-x-8">
+            {[
+              { key: 'general', label: 'Général' },
+              { key: 'security', label: 'Sécurité' },
+              { key: 'audit', label: 'Audit' },
+              { key: 'backup', label: 'Sauvegarde' }
+            ].map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key as any)}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === tab.key
+                    ? 'border-blue-500 text-blue-400'
+                    : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+      </div>
+
+      {/* General Settings */}
+      {activeTab === 'general' && (
+        <Card>
+          <div className="p-6">
+            <h3 className="text-lg font-semibold text-white mb-6">Paramètres généraux</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-200 mb-1">
+                  Nom de l'application
+                </label>
+                <Input
+                  value={settings.general.appName}
+                  onChange={(e) => setSettings({
+                    ...settings,
+                    general: { ...settings.general, appName: e.target.value }
+                  })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-200 mb-1">
+                  Description
+                </label>
+                <Input
+                  value={settings.general.appDescription}
+                  onChange={(e) => setSettings({
+                    ...settings,
+                    general: { ...settings.general, appDescription: e.target.value }
+                  })}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-200 mb-1">
+                    Langue par défaut
+                  </label>
+                  <select
+                    value={settings.general.defaultLanguage}
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      general: { ...settings.general, defaultLanguage: e.target.value }
+                    })}
+                    className="w-full px-3 py-2 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-700 text-white"
+                  >
+                    <option value="fr">Français</option>
+                    <option value="en">English</option>
+                    <option value="es">Español</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-200 mb-1">
+                    Fuseau horaire
+                  </label>
+                  <select
+                    value={settings.general.timezone}
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      general: { ...settings.general, timezone: e.target.value }
+                    })}
+                    className="w-full px-3 py-2 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-700 text-white"
+                  >
+                    <option value="Europe/Paris">Europe/Paris</option>
+                    <option value="UTC">UTC</option>
+                    <option value="America/New_York">America/New_York</option>
+                    <option value="Asia/Tokyo">Asia/Tokyo</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 p-4 bg-orange-900/20 border border-orange-700 rounded-lg">
+                <input
+                  type="checkbox"
+                  id="maintenanceMode"
+                  checked={settings.general.maintenanceMode}
+                  onChange={(e) => setSettings({
+                    ...settings,
+                    general: { ...settings.general, maintenanceMode: e.target.checked }
+                  })}
+                  className="rounded border-slate-300"
+                />
+                <div>
+                  <label htmlFor="maintenanceMode" className="text-sm font-medium text-orange-200">
+                    Mode maintenance
+                  </label>
+                  <p className="text-xs text-orange-300">
+                    Empêche les utilisateurs non-admin d'accéder à l'application
+                  </p>
+                </div>
+                {settings.general.maintenanceMode && (
+                  <Badge variant="warning">Actif</Badge>
+                )}
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Security Settings */}
+      {activeTab === 'security' && (
+        <Card>
+          <div className="p-6">
+            <h3 className="text-lg font-semibold text-white mb-6">Paramètres de sécurité</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-200 mb-1">
+                  Timeout de session (minutes)
+                </label>
+                <Input
+                  type="number"
+                  value={settings.security.sessionTimeout}
+                  onChange={(e) => setSettings({
+                    ...settings,
+                    security: { ...settings.security, sessionTimeout: parseInt(e.target.value) || 720 }
+                  })}
+                />
+                <p className="text-xs text-slate-400 mt-1">
+                  Durée avant déconnexion automatique (défaut: 720 minutes = 12h)
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-200 mb-1">
+                    Longueur minimale du mot de passe
+                  </label>
+                  <Input
+                    type="number"
+                    min="6"
+                    max="32"
+                    value={settings.security.passwordMinLength}
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      security: { ...settings.security, passwordMinLength: parseInt(e.target.value) || 8 }
+                    })}
+                  />
+                </div>
+
+                <div className="flex items-center gap-3 pt-6">
+                  <input
+                    type="checkbox"
+                    id="requireSpecialChars"
+                    checked={settings.security.passwordRequireSpecialChars}
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      security: { ...settings.security, passwordRequireSpecialChars: e.target.checked }
+                    })}
+                    className="rounded border-slate-300"
+                  />
+                  <label htmlFor="requireSpecialChars" className="text-sm font-medium text-slate-200">
+                    Exiger des caractères spéciaux
+                  </label>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-200 mb-1">
+                    Tentatives de connexion max
+                  </label>
+                  <Input
+                    type="number"
+                    min="3"
+                    max="10"
+                    value={settings.security.maxLoginAttempts}
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      security: { ...settings.security, maxLoginAttempts: parseInt(e.target.value) || 5 }
+                    })}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-200 mb-1">
+                    Durée de verrouillage (minutes)
+                  </label>
+                  <Input
+                    type="number"
+                    min="5"
+                    max="60"
+                    value={settings.security.lockoutDuration}
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      security: { ...settings.security, lockoutDuration: parseInt(e.target.value) || 15 }
+                    })}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Audit Settings */}
+      {activeTab === 'audit' && (
+        <Card>
+          <div className="p-6">
+            <h3 className="text-lg font-semibold text-white mb-6">Paramètres d'audit</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-200 mb-1">
+                  Rétention des logs (jours)
+                </label>
+                <Input
+                  type="number"
+                  min="7"
+                  max="365"
+                  value={settings.audit.retentionDays}
+                  onChange={(e) => setSettings({
+                    ...settings,
+                    audit: { ...settings.audit, retentionDays: parseInt(e.target.value) || 90 }
+                  })}
+                />
+                <p className="text-xs text-slate-400 mt-1">
+                  Les logs plus anciens seront automatiquement supprimés
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-200 mb-1">
+                  Niveau de log
+                </label>
+                <select
+                  value={settings.audit.logLevel}
+                  onChange={(e) => setSettings({
+                    ...settings,
+                    audit: { ...settings.audit, logLevel: e.target.value as any }
+                  })}
+                  className="w-full px-3 py-2 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-700 text-white"
+                >
+                  <option value="error">Error</option>
+                  <option value="warn">Warning</option>
+                  <option value="info">Info</option>
+                  <option value="debug">Debug</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="enableFileLogging"
+                  checked={settings.audit.enableFileLogging}
+                  onChange={(e) => setSettings({
+                    ...settings,
+                    audit: { ...settings.audit, enableFileLogging: e.target.checked }
+                  })}
+                  className="rounded border-slate-300"
+                />
+                <label htmlFor="enableFileLogging" className="text-sm font-medium text-slate-200">
+                  Activer les logs fichier
+                </label>
+              </div>
+
+              {settings.audit.enableFileLogging && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-200 mb-1">
+                    Taille max des fichiers de log (MB)
+                  </label>
+                  <Input
+                    type="number"
+                    min="10"
+                    max="1000"
+                    value={settings.audit.maxLogFileSize}
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      audit: { ...settings.audit, maxLogFileSize: parseInt(e.target.value) || 100 }
+                    })}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Backup Settings */}
+      {activeTab === 'backup' && (
+        <Card>
+          <div className="p-6">
+            <h3 className="text-lg font-semibold text-white mb-6">Paramètres de sauvegarde</h3>
+            
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="autoBackup"
+                  checked={settings.backup.autoBackup}
+                  onChange={(e) => setSettings({
+                    ...settings,
+                    backup: { ...settings.backup, autoBackup: e.target.checked }
+                  })}
+                  className="rounded border-slate-300"
+                />
+                <label htmlFor="autoBackup" className="text-sm font-medium text-slate-200">
+                  Sauvegarde automatique
+                </label>
+              </div>
+
+              {settings.backup.autoBackup && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-200 mb-1">
+                      Fréquence
+                    </label>
+                    <select
+                      value={settings.backup.backupFrequency}
+                      onChange={(e) => setSettings({
+                        ...settings,
+                        backup: { ...settings.backup, backupFrequency: e.target.value as any }
+                      })}
+                      className="w-full px-3 py-2 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-700 text-white"
+                    >
+                      <option value="daily">Quotidienne</option>
+                      <option value="weekly">Hebdomadaire</option>
+                      <option value="monthly">Mensuelle</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-200 mb-1">
+                      Nombre de sauvegardes à conserver
+                    </label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="30"
+                      value={settings.backup.retentionCount}
+                      onChange={(e) => setSettings({
+                        ...settings,
+                        backup: { ...settings.backup, retentionCount: parseInt(e.target.value) || 7 }
+                      })}
+                    />
+                  </div>
+                </>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-slate-200 mb-1">
+                  Répertoire de sauvegarde
+                </label>
+                <Input
+                  value={settings.backup.backupLocation}
+                  onChange={(e) => setSettings({
+                    ...settings,
+                    backup: { ...settings.backup, backupLocation: e.target.value }
+                  })}
+                  placeholder="/backups"
+                />
+              </div>
+
+              <div className="border-t pt-4">
+                <Button onClick={createBackup} variant="outline">
+                  Créer une sauvegarde maintenant
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Save Button */}
+      <div className="flex justify-end mt-6">
+        <Button onClick={saveSettings} disabled={saving}>
+          {saving ? 'Sauvegarde...' : 'Sauvegarder les paramètres'}
+        </Button>
+      </div>
+    </div>
+  )
+}

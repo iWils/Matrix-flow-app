@@ -41,8 +41,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Récupérer l'utilisateur
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: session.user.email },
+          { username: session.user.email }
+        ]
+      },
       select: { id: true, fullName: true }
     })
 

@@ -91,7 +91,8 @@ export default function DashboardPage() {
             </div>
             <div className="ml-4 flex-1">
               <div className="text-slate-500 text-sm font-medium">{t('matricesCount')}</div>
-              <div className="text-2xl font-bold text-slate-900">{stats?.totalMatrices || 0}</div>
+              {/* <div className="text-2xl font-bold text-slate-900">{stats?.totalMatrices || 0}</div> */}
+              <div className="text-2xl font-bold">{stats?.totalMatrices || 0}</div>
               <div className="text-xs text-green-600 font-medium">+12% {t('thisMonth')}</div>
             </div>
           </div>
@@ -106,7 +107,8 @@ export default function DashboardPage() {
             </div>
             <div className="ml-4 flex-1">
               <div className="text-slate-500 text-sm font-medium">{t('flowEntries')}</div>
-              <div className="text-2xl font-bold text-slate-900">{stats?.totalEntries || 0}</div>
+              {/* <div className="text-2xl font-bold text-slate-900">{stats?.totalEntries || 0}</div> */}
+              <div className="text-2xl font-bold">{stats?.totalEntries || 0}</div>
               <div className="text-xs text-green-600 font-medium">+8% {t('thisMonth')}</div>
             </div>
           </div>
@@ -121,7 +123,8 @@ export default function DashboardPage() {
             </div>
             <div className="ml-4 flex-1">
               <div className="text-slate-500 text-sm font-medium">{t('usersCount')}</div>
-              <div className="text-2xl font-bold text-slate-900">{stats?.totalUsers || 0}</div>
+              {/* <div className="text-2xl font-bold text-slate-900">{stats?.totalUsers || 0}</div> */}
+              <div className="text-2xl font-bold">{stats?.totalUsers || 0}</div>
               <div className="text-xs text-blue-600 font-medium">{t('activeUsers')}</div>
             </div>
           </div>
@@ -136,7 +139,8 @@ export default function DashboardPage() {
             </div>
             <div className="ml-4 flex-1">
               <div className="text-slate-500 text-sm font-medium">{t('rbacSecurity')}</div>
-              <div className="text-lg font-bold text-slate-900">{t('activeUsers')}</div>
+              {/* <div className="text-lg font-bold text-slate-900">{t('activeUsers')}</div> */}
+              <div className="text-lg font-bold">{t('activeUsers')}</div>
               <div className="text-xs text-green-600 font-medium flex items-center gap-1">
                 <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
                 {t('operational')}
@@ -155,7 +159,8 @@ export default function DashboardPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
-            <h2 className="text-lg font-semibold text-slate-900">{t('quickActions')}</h2>
+            {/* <h2 className="text-lg font-semibold text-slate-500">{t('quickActions')}</h2> */}
+            <h2 className="text-lg font-semibold mb-4">{t('quickActions')}</h2>
           </div>
           <div className="space-y-3">
             <Link
@@ -224,7 +229,8 @@ export default function DashboardPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h2 className="text-lg font-semibold text-slate-900">{t('features')}</h2>
+            {/* <h2 className="text-lg font-semibold text-slate-500">{t('features')}</h2> */}
+            <h2 className="text-lg font-semibold mb-4">{t('features')}</h2>
           </div>
           <div className="space-y-4">
             <div className="flex items-center gap-4 p-3 bg-green-50 rounded-xl border border-green-100">
@@ -285,7 +291,8 @@ export default function DashboardPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h2 className="text-lg font-semibold text-slate-900">{t('recentActivity')}</h2>
+            {/* <h2 className="text-lg font-semibold text-slate-500">{t('recentActivity')}</h2> */}
+            <h2 className="text-lg font-semibold mb-4">{t('recentActivity')}</h2> 
           </div>
           <div className="space-y-3">
             {stats?.recentActivity && stats.recentActivity.length > 0 ? (
@@ -358,7 +365,8 @@ export default function DashboardPage() {
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-slate-900 mb-1">{t('needHelp')}</h2>
+              {/* <h2 className="text-xl font-semibold text-slate-900 mb-1">{t('needHelp')}</h2> */}
+              <h2 className="text-lg font-semibold mb-4">{t('needHelp')}</h2>
               <p className="text-slate-600">
                 {t('consultDocumentation')}
               </p>
