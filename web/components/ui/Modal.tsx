@@ -38,22 +38,22 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
       
       {/* Modal */}
       <div className={cn(
-        'relative bg-white rounded-xl shadow-xl border max-w-md w-full mx-4 max-h-[90vh] overflow-auto',
+        'relative bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 max-w-md w-full mx-4 max-h-[90vh] overflow-auto',
         className
       )}>
         {title && (
-          <div className="flex items-center justify-between p-6 border-b">
-            <h2 className="text-lg font-semibold">{title}</h2>
+          <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-slate-600 text-xl leading-none"
+              className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-xl leading-none transition-colors"
             >
               ×
             </button>
           </div>
         )}
         
-        <div className="p-6">
+        <div className="p-6 text-slate-900 dark:text-slate-100">
           {children}
         </div>
       </div>

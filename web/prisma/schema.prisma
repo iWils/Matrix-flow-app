@@ -42,6 +42,7 @@ model User {
   role                  GlobalRole @default(viewer)
   isActive              Boolean    @default(true)
   createdAt             DateTime   @default(now())
+  lastPasswordChange    DateTime   @default(now())
   emailVerified         DateTime?
   
   // Relations

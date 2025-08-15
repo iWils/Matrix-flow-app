@@ -33,8 +33,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Récupérer l'utilisateur avec son mot de passe
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: session.user.email },
+          { username: session.user.email }
+        ]
+      },
       select: { id: true, passwordHash: true }
     })
 
@@ -61,7 +66,10 @@ export async function POST(request: NextRequest) {
     // Mettre à jour le mot de passe
     await prisma.user.update({
       where: { id: user.id },
-      data: { passwordHash: hashedNewPassword }
+      data: {
+        passwordHash: hashedNewPassword,
+        lastPasswordChange: new Date()
+      }
     })
 
     return NextResponse.json(

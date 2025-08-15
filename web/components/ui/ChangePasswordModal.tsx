@@ -74,17 +74,17 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
     <Modal isOpen={isOpen} onClose={handleClose} title="Changer le mot de passe">
       {success ? (
         <div className="text-center py-4">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <p className="text-green-600 font-medium">Mot de passe changé avec succès !</p>
+          <p className="text-green-600 dark:text-green-400 font-medium">Mot de passe changé avec succès !</p>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="currentPassword" className="block text-sm font-medium text-slate-700 mb-1">
+            <label htmlFor="currentPassword" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Mot de passe actuel
             </label>
             <Input
@@ -98,7 +98,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
           </div>
 
           <div>
-            <label htmlFor="newPassword" className="block text-sm font-medium text-slate-700 mb-1">
+            <label htmlFor="newPassword" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Nouveau mot de passe
             </label>
             <Input
@@ -113,7 +113,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-1">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Confirmer le nouveau mot de passe
             </label>
             <Input
@@ -128,8 +128,8 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="text-red-600 text-sm">{error}</p>
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+              <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
             </div>
           )}
 
