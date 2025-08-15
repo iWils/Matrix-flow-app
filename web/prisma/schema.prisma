@@ -27,10 +27,22 @@ enum VersionStatus {
   rejected 
 }
 
-enum AuditAction { 
-  create 
-  update 
-  delete 
+enum AuditAction {
+  create
+  update
+  delete
+}
+
+enum ChangeRequestType {
+  create_entry
+  update_entry
+  delete_entry
+}
+
+enum ChangeRequestStatus {
+  pending
+  approved
+  rejected
 }
 
 model User {
@@ -52,6 +64,8 @@ model User {
   approvedVersions      MatrixVersion[] @relation("ApprovedBy") 
   versionApprovals      MatrixVersionApproval[]
   auditLogs             AuditLog[]
+  requestedChanges      ChangeRequest[]       @relation("RequestedBy")
+  reviewedChanges       ChangeRequest[]       @relation("ReviewedBy")
   accounts              Account[]
   sessions              Session[]
 
@@ -75,6 +89,7 @@ model Matrix {
   entries             FlowEntry[]
   permissions         MatrixPermission[]
   versions            MatrixVersion[]     @relation("MatrixVersions")
+  changeRequests      ChangeRequest[]
 
   @@map("matrices")
 }
@@ -103,7 +118,8 @@ model FlowEntry {
   updatedAt         DateTime @updatedAt
   
   // Relations
-  matrix            Matrix   @relation(fields: [matrixId], references: [id], onDelete: Cascade)
+  matrix            Matrix          @relation(fields: [matrixId], references: [id], onDelete: Cascade)
+  changeRequests    ChangeRequest[]
 
   @@map("flow_entries")
 }
@@ -174,6 +190,29 @@ model AuditLog {
   user      User?      @relation(fields: [userId], references: [id])
 
   @@map("audit_logs")
+}
+
+model ChangeRequest {
+  id              Int                   @id @default(autoincrement())
+  matrixId        Int
+  entryId         Int?                  // Pour les modifications/suppressions
+  requestType     ChangeRequestType
+  status          ChangeRequestStatus   @default(pending)
+  description     String
+  requestedData   Json                  // Données de la demande (nouveau flux, modifications, etc.)
+  requestedById   Int
+  requestedAt     DateTime              @default(now())
+  reviewedById    Int?
+  reviewedAt      DateTime?
+  reviewComment   String?
+  
+  // Relations
+  matrix          Matrix                @relation(fields: [matrixId], references: [id], onDelete: Cascade)
+  entry           FlowEntry?            @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  requestedBy     User                  @relation("RequestedBy", fields: [requestedById], references: [id])
+  reviewedBy      User?                 @relation("ReviewedBy", fields: [reviewedById], references: [id])
+
+  @@map("change_requests")
 }
 
 // NextAuth tables

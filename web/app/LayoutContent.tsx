@@ -54,6 +54,15 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
       )
     },
     {
+      href: '/workflow',
+      label: 'Workflow',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      )
+    },
+    {
       href: '/users',
       label: t('users'),
       icon: (
@@ -171,6 +180,7 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
               <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
                 {pathname === '/' && t('dashboard')}
                 {pathname === '/matrices' && t('matrixManagement')}
+                {pathname === '/workflow' && 'Workflow de changement'}
                 {pathname === '/users' && t('userManagement')}
                 {pathname.startsWith('/matrices/') && t('matrixDetails')}
               </h2>

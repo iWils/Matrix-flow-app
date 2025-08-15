@@ -103,7 +103,7 @@ export default function MatricesPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold">Matrices de flux</h1>
-        {permissions.isAuthenticated && (
+        {permissions.canCreateMatrix && (
           <Button onClick={() => setShowCreateModal(true)}>
             Nouvelle matrice
           </Button>
@@ -113,7 +113,7 @@ export default function MatricesPage() {
       {matrices.length === 0 ? (
         <Card className="text-center py-12">
           <div className="text-slate-500 mb-4">Aucune matrice trouvée</div>
-          {permissions.isAuthenticated && (
+          {permissions.canCreateMatrix && (
             <Button onClick={() => setShowCreateModal(true)}>
               Créer votre première matrice
             </Button>

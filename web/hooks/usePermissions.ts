@@ -93,6 +93,7 @@ export function usePermissions({ matrixId, matrixOwnerId, matrixPermissions }: U
       canViewMatrix,
       canEditMatrix,
       canOwnMatrix,
+      canCreateMatrix: isAdmin || isUser, // Seuls les admins et users peuvent créer des matrices
       canDeleteMatrix: isAdmin, // Seuls les admins peuvent supprimer
       canManageUsers: isAdmin,
       canViewAudit: isAdmin,
@@ -130,6 +131,7 @@ export function useGlobalPermissions() {
       isAdmin,
       isUser: userRole === 'user',
       isViewer: userRole === 'viewer',
+      canCreateMatrix: isAdmin || userRole === 'user', // Seuls les admins et users peuvent créer des matrices
       canManageUsers: isAdmin,
       canViewAudit: isAdmin
     }
