@@ -2,9 +2,13 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import { ResetPasswordModal } from '@/components/ui/ResetPasswordModal'
 import { ToggleUserStatusModal } from '@/components/ui/ToggleUserStatusModal'
 import { Button } from '@/components/ui/Button'
+import { Alert } from '@/components/ui/Alert'
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { useGlobalPermissions } from '@/hooks/usePermissions'
 
 type User = {
   id: number
@@ -19,7 +23,11 @@ type User = {
 
 export default function Users(){
   const { data: session } = useSession()
+  const router = useRouter()
+  const permissions = useGlobalPermissions()
   const [items, setItems] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [fullName, setFullName] = useState('')
@@ -36,17 +44,63 @@ export default function Users(){
     user: null
   })
 
-  const isAdmin = session?.user?.role === 'admin'
-
   async function load(){
-    const res = await fetch('/api/users')
-    if(res.ok) setItems(await res.json())
+    try {
+      const res = await fetch('/api/users')
+      if (res.ok) {
+        setItems(await res.json())
+        setError('')
+      } else if (res.status === 401) {
+        setError('Accès non autorisé. Seuls les administrateurs peuvent voir cette page.')
+      } else {
+        setError('Erreur lors du chargement des utilisateurs')
+      }
+    } catch (err) {
+      setError('Erreur de connexion')
+    } finally {
+      setLoading(false)
+    }
   }
-  useEffect(()=>{ load() }, [])
+
+  useEffect(() => {
+    if (session === null) {
+      // Session non chargée encore
+      return
+    }
+    if (!permissions.isAuthenticated) {
+      router.push('/login')
+      return
+    }
+    if (!permissions.canManageUsers) {
+      setError('Accès refusé. Seuls les administrateurs peuvent accéder à cette page.')
+      setLoading(false)
+      return
+    }
+    load()
+  }, [session, permissions, router])
 
   async function create(){
-    const res = await fetch('/api/auth/register', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ username, email, fullName, password, role }) })
-    if(res.ok){ setUsername(''); setEmail(''); setFullName(''); setPassword(''); setRole('viewer'); load() }
+    if (!permissions.canManageUsers) return
+    
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify({ username, email, fullName, password, role })
+      })
+      if(res.ok){
+        setUsername('');
+        setEmail('');
+        setFullName('');
+        setPassword('');
+        setRole('viewer');
+        load()
+      } else {
+        setError('Erreur lors de la création de l\'utilisateur')
+      }
+    } catch (err) {
+      setError('Erreur lors de la création de l\'utilisateur')
+    }
   }
 
   const formatDate = (dateString: string) => {
@@ -67,11 +121,56 @@ export default function Users(){
     setToggleStatusModal({ isOpen: true, user })
   }
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <LoadingSpinner size="lg" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <Alert variant="error">
+        {error}
+        {!permissions.canManageUsers && (
+          <Button
+            variant="outline"
+            className="ml-4"
+            onClick={() => router.push('/')}
+          >
+            Retour à l'accueil
+          </Button>
+        )}
+      </Alert>
+    )
+  }
+
+  if (!permissions.canManageUsers) {
+    return (
+      <Alert variant="error">
+        Accès refusé. Seuls les administrateurs peuvent accéder à cette page.
+        <Button
+          variant="outline"
+          className="ml-4"
+          onClick={() => router.push('/')}
+        >
+          Retour à l'accueil
+        </Button>
+      </Alert>
+    )
+  }
+
   return (
     <div>
-      <h1 className="text-2xl font-semibold mb-4">Utilisateurs</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-semibold">Gestion des utilisateurs</h1>
+        <div className="text-sm text-slate-500">
+          {items.length} utilisateur(s)
+        </div>
+      </div>
       
-      {isAdmin && (
+      {permissions.canManageUsers && (
         <div className="card mb-6">
           <h2 className="text-lg font-medium mb-4">Créer un nouvel utilisateur</h2>
           <div className="grid md:grid-cols-6 gap-2">
@@ -99,7 +198,7 @@ export default function Users(){
                 <th>Statut</th>
                 <th>Créé le</th>
                 <th>Dernier changement MDP</th>
-                {isAdmin && <th>Actions</th>}
+                {permissions.canManageUsers && <th>Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -127,7 +226,7 @@ export default function Users(){
                   </td>
                   <td className="text-xs text-gray-500 dark:text-gray-400">{formatDate(u.createdAt)}</td>
                   <td className="text-xs text-gray-500 dark:text-gray-400">{formatDate(u.lastPasswordChange)}</td>
-                  {isAdmin && (
+                  {permissions.canManageUsers && (
                     <td>
                       <div className="flex space-x-1">
                         <Button

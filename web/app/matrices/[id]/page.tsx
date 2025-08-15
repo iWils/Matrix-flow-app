@@ -10,6 +10,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Modal } from '@/components/ui/Modal'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Alert } from '@/components/ui/Alert'
+import { usePermissions } from '@/hooks/usePermissions'
 
 type FlowEntry = {
   id: number
@@ -40,6 +41,7 @@ type Matrix = {
   description?: string
   createdAt: string
   updatedAt: string
+  ownerId?: number
   owner?: {
     username: string
     fullName?: string
@@ -56,7 +58,7 @@ type Matrix = {
     createdAt: string
   }>
   permissions: Array<{
-    role: string
+    role: 'owner' | 'editor' | 'viewer'
     user: {
       username: string
       fullName?: string
@@ -71,6 +73,13 @@ export default function MatrixDetailPage() {
   const matrixId = parseInt(params.id as string)
 
   const [matrix, setMatrix] = useState<Matrix | null>(null)
+  
+  // Permissions RBAC
+  const permissions = usePermissions({
+    matrixId: matrix?.id,
+    matrixOwnerId: matrix?.ownerId,
+    matrixPermissions: matrix?.permissions
+  })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showAddEntry, setShowAddEntry] = useState(false)
@@ -238,15 +247,21 @@ export default function MatrixDetailPage() {
         </div>
 
         <div className="flex gap-2">
-          <Button variant="outline" onClick={exportCSV}>
-            Exporter CSV
-          </Button>
-          <Button variant="outline" onClick={() => setShowImportCSV(true)}>
-            Importer CSV
-          </Button>
-          <Button onClick={() => setShowAddEntry(true)}>
-            Nouvelle entrée
-          </Button>
+          {permissions.canViewMatrix && (
+            <Button variant="outline" onClick={exportCSV}>
+              Exporter CSV
+            </Button>
+          )}
+          {permissions.canEditMatrix && (
+            <>
+              <Button variant="outline" onClick={() => setShowImportCSV(true)}>
+                Importer CSV
+              </Button>
+              <Button onClick={() => setShowAddEntry(true)}>
+                Nouvelle entrée
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -270,6 +285,31 @@ export default function MatrixDetailPage() {
         </Card>
       </div>
 
+      {/* Permissions Info */}
+      {matrix.permissions && matrix.permissions.length > 0 && (
+        <Card className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Permissions d'accès</h2>
+            <Badge variant={permissions.isMatrixOwner ? 'success' : permissions.isMatrixEditor ? 'warning' : 'default'}>
+              {permissions.userMatrixRole || 'Aucun accès'}
+            </Badge>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {matrix.permissions.map((perm, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                <div>
+                  <div className="font-medium text-sm">{perm.user.fullName || perm.user.username}</div>
+                  <div className="text-xs text-slate-500">@{perm.user.username}</div>
+                </div>
+                <Badge variant={perm.role === 'owner' ? 'success' : perm.role === 'editor' ? 'warning' : 'default'}>
+                  {perm.role}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
       {/* Entries Table */}
       <Card>
         <div className="flex items-center justify-between mb-4">
@@ -281,14 +321,16 @@ export default function MatrixDetailPage() {
 
         {matrix.entries.length === 0 ? (
           <div className="text-center py-8 text-slate-500">
-            Aucune entrée de flux. 
-            <Button 
-              variant="ghost" 
-              onClick={() => setShowAddEntry(true)}
-              className="ml-2"
-            >
-              Ajouter la première entrée
-            </Button>
+            Aucune entrée de flux.
+            {permissions.canEditMatrix && (
+              <Button
+                variant="ghost"
+                onClick={() => setShowAddEntry(true)}
+                className="ml-2"
+              >
+                Ajouter la première entrée
+              </Button>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -328,20 +370,29 @@ export default function MatrixDetailPage() {
                     <TableCell>{entry.rule_status}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => setEditingEntry(entry)}
-                        >
-                          Modifier
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="danger"
-                          onClick={() => deleteEntry(entry.id)}
-                        >
-                          Suppr
-                        </Button>
+                        {permissions.canEditMatrix && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setEditingEntry(entry)}
+                          >
+                            Modifier
+                          </Button>
+                        )}
+                        {permissions.canEditMatrix && (
+                          <Button
+                            size="sm"
+                            variant="danger"
+                            onClick={() => deleteEntry(entry.id)}
+                          >
+                            Suppr
+                          </Button>
+                        )}
+                        {!permissions.canEditMatrix && (
+                          <span className="text-sm text-slate-400 px-2 py-1">
+                            Lecture seule
+                          </span>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
