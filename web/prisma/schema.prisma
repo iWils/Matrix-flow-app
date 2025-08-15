@@ -66,6 +66,7 @@ model User {
   auditLogs             AuditLog[]
   requestedChanges      ChangeRequest[]       @relation("RequestedBy")
   reviewedChanges       ChangeRequest[]       @relation("ReviewedBy")
+  groupMemberships      UserGroupMember[]
   accounts              Account[]
   sessions              Session[]
 
@@ -256,4 +257,74 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+// Tables pour le panneau d'administration
+
+model SystemSetting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     Json
+  category  String
+  description String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("system_settings")
+}
+
+model UserGroup {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  permissions Json     @default("{}")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  members     UserGroupMember[]
+
+  @@map("user_groups")
+}
+
+model UserGroupMember {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  groupId   Int
+  createdAt DateTime @default(now())
+  
+  // Relations
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group     UserGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+  @@map("user_group_members")
+}
+
+model AuthProvider {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  type        String   // 'ldap', 'oidc', 'saml'
+  config      Json
+  isActive    Boolean  @default(false)
+  priority    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("auth_providers")
+}
+
+model EmailTemplate {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  subject     String
+  htmlContent String   @db.Text
+  textContent String?  @db.Text
+  variables   Json     @default("[]")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("email_templates")
 }
