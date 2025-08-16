@@ -1,5 +1,6 @@
 import { useSession } from 'next-auth/react'
 import { useMemo } from 'react'
+import { useUserGroups } from './useUserGroups'
 
 export type GlobalRole = 'admin' | 'user' | 'viewer'
 export type MatrixRole = 'owner' | 'editor' | 'viewer'
@@ -107,9 +108,10 @@ export function usePermissions({ matrixId, matrixOwnerId, matrixPermissions }: U
   return permissions
 }
 
-// Hook simplifié pour les permissions globales
+// Hook simplifié pour les permissions globales avec support RBAC
 export function useGlobalPermissions() {
   const { data: session } = useSession()
+  const { permissions: groupPermissions, hasPermission, loading } = useUserGroups()
 
   return useMemo(() => {
     if (!session?.user) {
@@ -119,21 +121,55 @@ export function useGlobalPermissions() {
         isUser: false,
         isViewer: false,
         canManageUsers: false,
-        canViewAudit: false
+        canViewAudit: false,
+        canCreateMatrix: false,
+        loading: false
       }
     }
 
     const userRole = session.user.role as GlobalRole
     const isAdmin = userRole === 'admin'
 
+    // Permissions de base selon le rôle
+    let canManageUsers = isAdmin
+    let canViewAudit = isAdmin
+    let canCreateMatrix = isAdmin || userRole === 'user'
+
+    // Ajouter les permissions des groupes RBAC
+    if (!loading) {
+      // Permissions utilisateurs : peut gérer les utilisateurs si a la permission 'manage_roles' sur 'users'
+      if (hasPermission('users', 'manage_roles') || hasPermission('users', 'create')) {
+        canManageUsers = true
+      }
+
+      // Permissions audit : peut voir l'audit si a la permission 'read' sur 'audit'
+      if (hasPermission('audit', 'read')) {
+        canViewAudit = true
+      }
+
+      // Permissions matrices : peut créer des matrices si a la permission 'create' sur 'matrices'
+      if (hasPermission('matrices', 'create')) {
+        canCreateMatrix = true
+      }
+    }
+
     return {
       isAuthenticated: true,
       isAdmin,
       isUser: userRole === 'user',
       isViewer: userRole === 'viewer',
-      canCreateMatrix: isAdmin || userRole === 'user', // Seuls les admins et users peuvent créer des matrices
-      canManageUsers: isAdmin,
-      canViewAudit: isAdmin
+      canCreateMatrix,
+      canManageUsers,
+      canViewAudit,
+      loading,
+      // Exposer les permissions des groupes pour usage avancé
+      groupPermissions,
+      hasPermission,
+      // Permissions spécifiques supplémentaires
+      canManageSystem: isAdmin || hasPermission('system', 'configure'),
+      canBackupSystem: isAdmin || hasPermission('system', 'backup'),
+      canExportAudit: isAdmin || hasPermission('audit', 'export'),
+      canConfigureAudit: isAdmin || hasPermission('audit', 'configure')
     }
-  }, [session])
+  }, [session, groupPermissions, hasPermission, loading])
 }

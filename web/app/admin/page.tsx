@@ -61,8 +61,8 @@ export default function AdminDashboard() {
     <div className="animate-fade-in">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">Dashboard Administration</h1>
-        <p className="text-slate-300">
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Dashboard Administration</h1>
+        <p className="text-slate-600 dark:text-slate-300">
           Vue d'ensemble du système et des activités récentes
         </p>
       </div>
@@ -72,8 +72,8 @@ export default function AdminDashboard() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-slate-300">Utilisateurs</p>
-              <p className="text-2xl font-bold text-white">{stats?.totalUsers || 0}</p>
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Utilisateurs</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats?.totalUsers || 0}</p>
               <p className="text-xs text-green-400">
                 {stats?.activeUsers || 0} actifs
               </p>

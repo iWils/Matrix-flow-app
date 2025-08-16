@@ -18,7 +18,20 @@ export async function GET() {
         role: true,
         isActive: true,
         createdAt: true,
-        lastPasswordChange: true
+        lastPasswordChange: true,
+        groupMemberships: {
+          select: {
+            group: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+                permissions: true,
+                isActive: true
+              }
+            }
+          }
+        }
       },
       orderBy: {
         createdAt: 'desc'

@@ -158,13 +158,33 @@ export default function RBACPage() {
     )
   }
 
+  // Vérification des permissions admin
+  if (!session?.user || session.user.role !== 'admin') {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <div className="text-center">
+          <div className="text-red-500 text-6xl mb-4">🚫</div>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+            Accès refusé
+          </h2>
+          <p className="text-slate-600 dark:text-slate-300">
+            Vous devez avoir le rôle administrateur pour accéder à cette page.
+          </p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
+            Rôle actuel: {session?.user?.role || 'Non connecté'}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="animate-fade-in">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Gestion RBAC</h1>
-          <p className="text-slate-300">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Gestion RBAC</h1>
+          <p className="text-slate-600 dark:text-slate-300">
             Configuration des rôles et permissions utilisateur
           </p>
         </div>
@@ -184,13 +204,13 @@ export default function RBACPage() {
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-lg font-semibold text-white">{group.name}</h3>
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{group.name}</h3>
                     <Badge variant={group.isActive ? 'success' : 'error'}>
                       {group.isActive ? 'Actif' : 'Inactif'}
                     </Badge>
                   </div>
-                  <p className="text-sm text-slate-300">{group.description}</p>
-                  <p className="text-xs text-slate-400 mt-1">
+                  <p className="text-sm text-slate-600 dark:text-slate-300">{group.description}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                     {group.memberCount} membre{group.memberCount !== 1 ? 's' : ''}
                   </p>
                 </div>
@@ -216,11 +236,11 @@ export default function RBACPage() {
 
               {/* Permissions */}
               <div className="space-y-3">
-                <h4 className="text-sm font-medium text-slate-200">Permissions</h4>
+                <h4 className="text-sm font-medium text-slate-700 dark:text-slate-200">Permissions</h4>
                 <div className="space-y-2">
                   {Object.entries(group.permissions || {}).map(([resource, actions]) => (
-                    <div key={resource} className="flex items-center justify-between p-2 bg-slate-700 rounded-lg">
-                      <span className="text-sm font-medium text-slate-200 capitalize">{resource}</span>
+                    <div key={resource} className="flex items-center justify-between p-2 bg-slate-100 dark:bg-slate-700 rounded-lg">
+                      <span className="text-sm font-medium text-slate-700 dark:text-slate-200 capitalize">{resource}</span>
                       <div className="flex gap-1">
                         {(actions as string[]).map(action => (
                           <Badge key={action} variant="default" className="text-xs">
@@ -231,7 +251,7 @@ export default function RBACPage() {
                     </div>
                   ))}
                   {Object.keys(group.permissions || {}).length === 0 && (
-                    <p className="text-sm text-slate-400 italic">Aucune permission définie</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 italic">Aucune permission définie</p>
                   )}
                 </div>
               </div>
@@ -248,7 +268,7 @@ export default function RBACPage() {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-200 mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
               Nom du groupe
             </label>
             <Input
@@ -259,7 +279,7 @@ export default function RBACPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-200 mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
               Description
             </label>
             <Input
@@ -270,16 +290,16 @@ export default function RBACPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-200 mb-3">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-3">
               Permissions
             </label>
             <div className="space-y-4">
               {availablePermissions.map(perm => (
                 <div key={perm.resource} className="border border-slate-600 rounded-lg p-3">
-                  <h4 className="font-medium text-white mb-2 capitalize">{perm.resource}</h4>
+                  <h4 className="font-medium text-slate-900 dark:text-white mb-2 capitalize">{perm.resource}</h4>
                   <div className="grid grid-cols-2 gap-2">
                     {perm.actions.map(action => (
-                      <label key={action} className="flex items-center gap-2 text-sm text-slate-200">
+                      <label key={action} className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
                         <input
                           type="checkbox"
                           checked={(newGroup.permissions as Record<string, string[]>)[perm.resource]?.includes(action) || false}
@@ -305,6 +325,107 @@ export default function RBACPage() {
           </div>
         </div>
       </Modal>
+
+      {/* Edit Group Modal */}
+      {showEditGroup && (
+        <Modal
+          isOpen={!!showEditGroup}
+          onClose={() => setShowEditGroup(null)}
+          title={`Modifier le groupe: ${showEditGroup.name}`}
+        >
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+                Nom du groupe
+              </label>
+              <Input
+                value={showEditGroup.name}
+                onChange={(e) => setShowEditGroup({ ...showEditGroup, name: e.target.value })}
+                placeholder="Ex: Éditeurs de matrices"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+                Description
+              </label>
+              <Input
+                value={showEditGroup.description}
+                onChange={(e) => setShowEditGroup({ ...showEditGroup, description: e.target.value })}
+                placeholder="Description du rôle de ce groupe"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+                Statut
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+                <input
+                  type="checkbox"
+                  checked={showEditGroup.isActive}
+                  onChange={(e) => setShowEditGroup({ ...showEditGroup, isActive: e.target.checked })}
+                  className="rounded border-slate-300 dark:border-slate-600"
+                />
+                Groupe actif
+              </label>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-3">
+                Permissions
+              </label>
+              <div className="space-y-4">
+                {availablePermissions.map(perm => (
+                  <div key={perm.resource} className="border border-slate-300 dark:border-slate-600 rounded-lg p-3">
+                    <h4 className="font-medium text-slate-900 dark:text-white mb-2 capitalize">{perm.resource}</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {perm.actions.map(action => (
+                        <label key={action} className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+                          <input
+                            type="checkbox"
+                            checked={(showEditGroup.permissions as Record<string, string[]>)[perm.resource]?.includes(action) || false}
+                            onChange={(e) => {
+                              const permissions = { ...showEditGroup.permissions } as Record<string, string[]>
+                              if (!permissions[perm.resource]) {
+                                permissions[perm.resource] = []
+                              }
+                              
+                              if (e.target.checked) {
+                                if (!permissions[perm.resource].includes(action)) {
+                                  permissions[perm.resource].push(action)
+                                }
+                              } else {
+                                permissions[perm.resource] = permissions[perm.resource].filter((a: string) => a !== action)
+                                if (permissions[perm.resource].length === 0) {
+                                  delete permissions[perm.resource]
+                                }
+                              }
+                              
+                              setShowEditGroup({ ...showEditGroup, permissions })
+                            }}
+                            className="rounded border-slate-300 dark:border-slate-600"
+                          />
+                          {action}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <Button variant="outline" onClick={() => setShowEditGroup(null)}>
+                Annuler
+              </Button>
+              <Button onClick={() => updateGroup(showEditGroup)} disabled={!showEditGroup.name.trim()}>
+                Sauvegarder
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   )
 }
