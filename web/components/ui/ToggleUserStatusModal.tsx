@@ -2,11 +2,12 @@
 import { useState } from 'react'
 import { Modal } from './Modal'
 import { Button } from './Button'
+import { User } from '@/types'
 
 interface ToggleUserStatusModalProps {
   isOpen: boolean
   onClose: () => void
-  user: { id: number; username: string; fullName?: string; isActive: boolean }
+  user: User
   onSuccess: () => void
 }
 

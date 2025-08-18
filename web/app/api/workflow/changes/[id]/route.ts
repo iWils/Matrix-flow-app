@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { auth } from '@/auth'
 import { auditLog } from '@/lib/audit'
+import { logger } from '@/lib/logger'
+import { ReviewChangeRequestSchema } from '@/lib/validate'
+import { ApiResponse, ChangeRequest } from '@/types'
 
 export async function PATCH(
   req: NextRequest,
@@ -9,54 +12,131 @@ export async function PATCH(
 ) {
   const session = await auth()
   if (!session?.user) {
-    return new NextResponse('Unauthorized', { status: 401 })
+    logger.warn('Unauthorized attempt to review change request', {
+      endpoint: '/api/workflow/changes/[id]',
+      method: 'PATCH',
+      ip: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip'),
+      userAgent: req.headers.get('user-agent')
+    })
+    return NextResponse.json<ApiResponse<null>>({
+      success: false,
+      message: 'Unauthorized'
+    }, { status: 401 })
   }
 
-  // Seuls les admins peuvent approuver/rejeter les demandes
+  // Only admins can approve/reject change requests
   if (session.user.role !== 'admin') {
-    return new NextResponse('Forbidden: Only admins can review change requests', { status: 403 })
+    logger.warn('Non-admin user attempted to review change request', {
+      userId: session.user.id,
+      userRole: session.user.role,
+      endpoint: '/api/workflow/changes/[id]',
+      method: 'PATCH'
+    })
+    return NextResponse.json<ApiResponse<null>>({
+      success: false,
+      message: 'Forbidden: Only admins can review change requests'
+    }, { status: 403 })
   }
 
   const resolvedParams = await params
   const requestId = parseInt(resolvedParams.id)
   if (isNaN(requestId)) {
-    return new NextResponse('Invalid request ID', { status: 400 })
+    logger.warn('Invalid change request ID provided', {
+      userId: session.user.id,
+      providedId: resolvedParams.id,
+      endpoint: '/api/workflow/changes/[id]'
+    })
+    return NextResponse.json<ApiResponse<null>>({
+      success: false,
+      message: 'Invalid request ID'
+    }, { status: 400 })
   }
 
   try {
-    const { action, reviewComment } = await req.json()
+    logger.info('Starting change request review', {
+      userId: session.user.id,
+      changeRequestId: requestId,
+      endpoint: '/api/workflow/changes/[id]',
+      method: 'PATCH'
+    })
 
-    if (!action || !['approve', 'reject'].includes(action)) {
-      return new NextResponse('Invalid action. Must be "approve" or "reject"', { status: 400 })
-    }
+    const body = await req.json()
+    const validatedData = ReviewChangeRequestSchema.parse(body)
 
-    // Récupérer la demande de changement
+    // Fetch the change request with all necessary relations
     const changeRequest = await prisma.changeRequest.findUnique({
       where: { id: requestId },
       include: {
-        matrix: true,
-        entry: true
+        matrix: {
+          select: {
+            id: true,
+            name: true,
+            requiredApprovals: true
+          }
+        },
+        entry: {
+          select: {
+            id: true,
+            rule_name: true
+          }
+        },
+        requestedBy: {
+          select: {
+            id: true,
+            username: true,
+            fullName: true
+          }
+        }
       }
     })
 
     if (!changeRequest) {
-      return new NextResponse('Change request not found', { status: 404 })
+      logger.warn('Change request not found', {
+        userId: session.user.id,
+        changeRequestId: requestId
+      })
+      return NextResponse.json<ApiResponse<null>>({
+        success: false,
+        message: 'Change request not found'
+      }, { status: 404 })
     }
 
     if (changeRequest.status !== 'pending') {
-      return new NextResponse('Change request already reviewed', { status: 400 })
+      logger.warn('Attempt to review already processed change request', {
+        userId: session.user.id,
+        changeRequestId: requestId,
+        currentStatus: changeRequest.status,
+        attemptedAction: validatedData.action
+      })
+      return NextResponse.json<ApiResponse<null>>({
+        success: false,
+        message: `Change request already ${changeRequest.status}`
+      }, { status: 409 })
     }
 
-    // Utiliser une transaction pour garantir la cohérence
-    const result = await prisma.$transaction(async (tx) => {
-      // Mettre à jour la demande de changement
+    // Prevent users from approving their own requests
+    if (changeRequest.requestedById === session.user.id) {
+      logger.warn('User attempted to review their own change request', {
+        userId: session.user.id,
+        changeRequestId: requestId,
+        requestedById: changeRequest.requestedById
+      })
+      return NextResponse.json<ApiResponse<null>>({
+        success: false,
+        message: 'Cannot review your own change request'
+      }, { status: 403 })
+    }
+
+    // Use transaction to ensure data consistency
+    const result = await prisma.$transaction(async (tx: any) => {
+      // Update the change request
       const updatedRequest = await tx.changeRequest.update({
         where: { id: requestId },
         data: {
-          status: action === 'approve' ? 'approved' : 'rejected',
+          status: validatedData.action === 'approve' ? 'approved' : 'rejected',
           reviewedById: session.user.id,
           reviewedAt: new Date(),
-          reviewComment: reviewComment || null
+          reviewComment: validatedData.reviewComment || null
         },
         include: {
           matrix: {
@@ -79,41 +159,70 @@ export async function PATCH(
         }
       })
 
-      // Si approuvé, appliquer les changements
-      if (action === 'approve') {
+      // If approved, apply the changes
+      if (validatedData.action === 'approve') {
         const requestedData = changeRequest.requestedData as any
+
+        logger.info('Applying approved change request', {
+          userId: session.user.id,
+          changeRequestId: requestId,
+          requestType: changeRequest.requestType,
+          matrixId: changeRequest.matrixId
+        })
 
         switch (changeRequest.requestType) {
           case 'create_entry':
-            // Créer une nouvelle entrée
-            await tx.flowEntry.create({
+            // Create new entry
+            const newEntry = await tx.flowEntry.create({
               data: {
                 matrixId: changeRequest.matrixId,
                 ...requestedData,
-                implementation_date: requestedData.implementation_date ? new Date(requestedData.implementation_date) : null
+                implementation_date: requestedData.implementation_date
+                  ? new Date(requestedData.implementation_date)
+                  : null
               }
+            })
+            logger.info('New flow entry created from change request', {
+              userId: session.user.id,
+              changeRequestId: requestId,
+              newEntryId: newEntry.id,
+              matrixId: changeRequest.matrixId
             })
             break
 
           case 'update_entry':
-            // Mettre à jour l'entrée existante
+            // Update existing entry
             if (changeRequest.entryId) {
               await tx.flowEntry.update({
                 where: { id: changeRequest.entryId },
                 data: {
                   ...requestedData,
-                  implementation_date: requestedData.implementation_date ? new Date(requestedData.implementation_date) : null,
+                  implementation_date: requestedData.implementation_date
+                    ? new Date(requestedData.implementation_date)
+                    : null,
                   updatedAt: new Date()
                 }
+              })
+              logger.info('Flow entry updated from change request', {
+                userId: session.user.id,
+                changeRequestId: requestId,
+                entryId: changeRequest.entryId,
+                matrixId: changeRequest.matrixId
               })
             }
             break
 
           case 'delete_entry':
-            // Supprimer l'entrée
+            // Delete entry
             if (changeRequest.entryId) {
               await tx.flowEntry.delete({
                 where: { id: changeRequest.entryId }
+              })
+              logger.info('Flow entry deleted from change request', {
+                userId: session.user.id,
+                changeRequestId: requestId,
+                deletedEntryId: changeRequest.entryId,
+                matrixId: changeRequest.matrixId
               })
             }
             break
@@ -123,23 +232,28 @@ export async function PATCH(
       return updatedRequest
     })
 
-    // Audit log
+    // Comprehensive audit log for change request review
     await auditLog({
       userId: session.user.id,
       matrixId: changeRequest.matrixId,
       entity: 'ChangeRequest',
       entityId: requestId,
       action: 'update',
-      changes: { action, reviewComment, applied: action === 'approve' }
+      changes: {
+        action: validatedData.action,
+        reviewComment: validatedData.reviewComment,
+        applied: validatedData.action === 'approve',
+        requestType: changeRequest.requestType,
+        requestedById: changeRequest.requestedById
+      }
     })
 
-    // Formater la réponse
-    const formattedResponse = {
+    const formattedResponse: ChangeRequest = {
       id: result.id,
-      matrixId: result.matrixId,
+      matrixId: result.matrixId.toString(),
       matrixName: result.matrix.name,
-      requestType: result.requestType,
-      status: result.status,
+      requestType: result.requestType as 'create_entry' | 'update_entry' | 'delete_entry',
+      status: result.status as 'pending' | 'approved' | 'rejected',
       requestedBy: {
         username: result.requestedBy.username,
         fullName: result.requestedBy.fullName
@@ -155,9 +269,33 @@ export async function PATCH(
       reviewComment: result.reviewComment
     }
 
-    return NextResponse.json(formattedResponse)
+    logger.info('Change request reviewed successfully', {
+      userId: session.user.id,
+      changeRequestId: requestId,
+      action: validatedData.action,
+      matrixId: changeRequest.matrixId,
+      matrixName: changeRequest.matrix.name,
+      requestType: changeRequest.requestType,
+      requestedBy: changeRequest.requestedBy.username
+    })
+
+    return NextResponse.json<ApiResponse<ChangeRequest>>({
+      success: true,
+      data: formattedResponse,
+      message: `Change request ${validatedData.action === 'approve' ? 'approved and applied' : 'rejected'} successfully`
+    })
+
   } catch (error) {
-    console.error('Error updating change request:', error)
-    return new NextResponse('Internal Server Error', { status: 500 })
+    logger.error('Error reviewing change request', error instanceof Error ? error : undefined, {
+      userId: session.user.id,
+      changeRequestId: requestId,
+      endpoint: '/api/workflow/changes/[id]',
+      method: 'PATCH'
+    })
+
+    return NextResponse.json<ApiResponse<null>>({
+      success: false,
+      message: 'Failed to review change request'
+    }, { status: 500 })
   }
 }

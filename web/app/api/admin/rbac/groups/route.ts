@@ -1,14 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
+import { CreateGroupSchema } from '@/lib/validate'
+import { UserGroupData, ApiResponse } from '@/types'
 
 export async function GET(request: NextRequest) {
+  const session = await auth()
+  
+  if (!session?.user || session.user.role !== 'admin') {
+    logger.warn('Unauthorized access attempt to user groups', {
+      userId: session?.user?.id,
+      userRole: session?.user?.role,
+      endpoint: '/api/admin/rbac/groups'
+    })
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
-    const session = await auth()
-    
-    if (!session?.user || session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    logger.info('Fetching user groups', {
+      userId: session.user.id,
+      userRole: session.user.role
+    })
 
     const userGroups = await prisma.userGroup.findMany({
       include: {
@@ -19,42 +32,82 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' }
     })
 
-    const formattedGroups = userGroups.map(group => ({
+    const formattedGroups: UserGroupData[] = userGroups.map(group => ({
       id: group.id,
       name: group.name,
       description: group.description,
-      permissions: group.permissions,
+      permissions: group.permissions as Record<string, string[]>,
       isActive: group.isActive,
       memberCount: group._count.members,
       createdAt: group.createdAt.toISOString()
     }))
 
-    return NextResponse.json(formattedGroups)
+    logger.info('User groups fetched successfully', {
+      userId: session.user.id,
+      groupCount: formattedGroups.length
+    })
+
+    const response: ApiResponse<UserGroupData[]> = {
+      success: true,
+      data: formattedGroups
+    }
+    
+    return NextResponse.json(response)
   } catch (error) {
-    console.error('Error fetching user groups:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    logger.error('Error fetching user groups', error as Error, {
+      userId: session.user.id,
+      endpoint: '/api/admin/rbac/groups'
+    })
+    
+    const errorResponse: ApiResponse = {
+      success: false,
+      error: 'Internal server error'
+    }
+    
+    return NextResponse.json(errorResponse, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
+  const session = await auth()
+  
+  if (!session?.user || session.user.role !== 'admin') {
+    logger.warn('Unauthorized access attempt to create user group', {
+      userId: session?.user?.id,
+      userRole: session?.user?.role,
+      endpoint: '/api/admin/rbac/groups'
+    })
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
-    const session = await auth()
+    const body = await request.json()
     
-    if (!session?.user || session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // Validation avec Zod
+    const validationResult = CreateGroupSchema.safeParse(body)
+    if (!validationResult.success) {
+      logger.warn('Invalid group creation data', {
+        userId: session.user.id,
+        errors: validationResult.error.errors,
+        body
+      })
+      
+      const errorResponse: ApiResponse = {
+        success: false,
+        error: 'Données invalides',
+        message: validationResult.error.errors[0]?.message
+      }
+      
+      return NextResponse.json(errorResponse, { status: 400 })
     }
 
-    const { name, description, permissions } = await request.json()
+    const { name, description, permissions } = validationResult.data
 
-    if (!name?.trim()) {
-      return NextResponse.json(
-        { error: 'Le nom du groupe est requis' },
-        { status: 400 }
-      )
-    }
+    logger.info('Creating new user group', {
+      userId: session.user.id,
+      groupName: name,
+      permissionsCount: Object.keys(permissions).length
+    })
 
     // Vérifier si le nom existe déjà
     const existingGroup = await prisma.userGroup.findUnique({
@@ -62,35 +115,63 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingGroup) {
-      return NextResponse.json(
-        { error: 'Un groupe avec ce nom existe déjà' },
-        { status: 400 }
-      )
+      logger.warn('Attempted to create group with existing name', {
+        userId: session.user.id,
+        groupName: name,
+        existingGroupId: existingGroup.id
+      })
+      
+      const errorResponse: ApiResponse = {
+        success: false,
+        error: 'Un groupe avec ce nom existe déjà'
+      }
+      
+      return NextResponse.json(errorResponse, { status: 400 })
     }
 
     const userGroup = await prisma.userGroup.create({
       data: {
         name: name.trim(),
         description: description?.trim() || '',
-        permissions: permissions || {},
+        permissions: permissions,
         isActive: true
       }
     })
 
-    return NextResponse.json({
+    logger.info('User group created successfully', {
+      userId: session.user.id,
+      groupId: userGroup.id,
+      groupName: userGroup.name
+    })
+
+    const newGroup: UserGroupData = {
       id: userGroup.id,
       name: userGroup.name,
       description: userGroup.description,
-      permissions: userGroup.permissions,
+      permissions: userGroup.permissions as Record<string, string[]>,
       isActive: userGroup.isActive,
       memberCount: 0,
       createdAt: userGroup.createdAt.toISOString()
-    })
+    }
+
+    const response: ApiResponse<UserGroupData> = {
+      success: true,
+      data: newGroup,
+      message: 'Groupe créé avec succès'
+    }
+
+    return NextResponse.json(response)
   } catch (error) {
-    console.error('Error creating user group:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    logger.error('Error creating user group', error as Error, {
+      userId: session.user.id,
+      endpoint: '/api/admin/rbac/groups'
+    })
+    
+    const errorResponse: ApiResponse = {
+      success: false,
+      error: 'Internal server error'
+    }
+    
+    return NextResponse.json(errorResponse, { status: 500 })
   }
 }

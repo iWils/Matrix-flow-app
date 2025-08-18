@@ -1,17 +1,10 @@
 import { useSession } from 'next-auth/react'
 import { useState, useEffect } from 'react'
-
-type UserGroup = {
-  id: number
-  name: string
-  description: string | null
-  permissions: Record<string, string[]>
-  isActive: boolean
-}
+import { UserGroupData, GroupPermissions } from '@/types'
 
 export function useUserGroups() {
   const { data: session } = useSession()
-  const [userGroups, setUserGroups] = useState<UserGroup[]>([])
+  const [userGroups, setUserGroups] = useState<UserGroupData[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -41,24 +34,26 @@ export function useUserGroups() {
   }
 
   // Calculer les permissions combinées de tous les groupes
-  const combinedPermissions = userGroups.reduce((acc, group) => {
+  const combinedPermissions = userGroups.reduce((acc: Record<string, Set<string>>, group: UserGroupData) => {
     if (!group.isActive) return acc
 
     Object.entries(group.permissions).forEach(([resource, actions]) => {
       if (!acc[resource]) {
         acc[resource] = new Set<string>()
       }
-      actions.forEach(action => acc[resource].add(action))
+      if (Array.isArray(actions)) {
+        actions.forEach((action: string) => acc[resource].add(action))
+      }
     })
 
     return acc
   }, {} as Record<string, Set<string>>)
 
   // Convertir les Sets en arrays pour faciliter l'utilisation
-  const permissions = Object.entries(combinedPermissions).reduce((acc, [resource, actionsSet]) => {
-    acc[resource] = Array.from(actionsSet)
-    return acc
-  }, {} as Record<string, string[]>)
+  const permissions: GroupPermissions = {}
+  Object.entries(combinedPermissions).forEach(([resource, actionsSet]) => {
+    permissions[resource] = Array.from(actionsSet as Set<string>)
+  })
 
   return {
     userGroups,

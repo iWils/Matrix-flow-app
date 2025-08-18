@@ -1,23 +1,7 @@
 import { useSession } from 'next-auth/react'
 import { useMemo } from 'react'
 import { useUserGroups } from './useUserGroups'
-
-export type GlobalRole = 'admin' | 'user' | 'viewer'
-export type MatrixRole = 'owner' | 'editor' | 'viewer'
-
-export interface MatrixPermission {
-  role: MatrixRole
-  user: {
-    username: string
-    fullName?: string
-  }
-}
-
-export interface UsePermissionsProps {
-  matrixId?: number
-  matrixOwnerId?: number
-  matrixPermissions?: MatrixPermission[]
-}
+import { GlobalRole, UserGroup, MatrixRole, MatrixPermission, UsePermissionsProps, RBACPermissions, GlobalPermissions } from '@/types'
 
 export function usePermissions({ matrixId, matrixOwnerId, matrixPermissions }: UsePermissionsProps = {}) {
   const { data: session } = useSession()

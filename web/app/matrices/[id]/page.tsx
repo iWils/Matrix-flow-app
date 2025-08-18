@@ -112,8 +112,10 @@ export default function MatrixDetailPage() {
     try {
       const res = await fetch(`/api/matrices/${matrixId}`)
       if (res.ok) {
-        const data = await res.json()
-        setMatrix(data)
+        const response = await res.json()
+        if (response.success && response.data) {
+          setMatrix(response.data)
+        }
       } else if (res.status === 404) {
         setError('Matrice non trouvée')
       } else {

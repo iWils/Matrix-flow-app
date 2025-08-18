@@ -3,6 +3,9 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/auth'
 import { auditLog } from '@/lib/audit'
 import { canEditMatrix } from '@/lib/rbac'
+import { logger } from '@/lib/logger'
+import { UpdateMatrixSchema } from '@/lib/validate'
+import { Matrix, ApiResponse } from '@/types'
 
 export async function GET(
   req: NextRequest,
@@ -10,16 +13,43 @@ export async function GET(
 ) {
   const session = await auth()
   if (!session?.user) {
-    return new NextResponse('Unauthorized', { status: 401 })
+    logger.warn('Unauthorized access attempt to matrix details', {
+      endpoint: `/api/matrices/[id]`,
+      method: 'GET'
+    })
+    
+    const errorResponse: ApiResponse = {
+      success: false,
+      error: 'Unauthorized'
+    }
+    
+    return NextResponse.json(errorResponse, { status: 401 })
   }
 
   const resolvedParams = await params
   const matrixId = parseInt(resolvedParams.id)
   if (isNaN(matrixId)) {
-    return new NextResponse('Invalid matrix ID', { status: 400 })
+    logger.warn('Invalid matrix ID provided', {
+      userId: session.user.id,
+      providedId: resolvedParams.id,
+      endpoint: `/api/matrices/[id]`
+    })
+    
+    const errorResponse: ApiResponse = {
+      success: false,
+      error: 'Invalid matrix ID'
+    }
+    
+    return NextResponse.json(errorResponse, { status: 400 })
   }
 
   try {
+    logger.info('Fetching matrix details', {
+      userId: session.user.id,
+      matrixId,
+      userRole: session.user.role
+    })
+
     const matrix = await prisma.matrix.findUnique({
       where: { id: matrixId },
       include: {
@@ -51,13 +81,47 @@ export async function GET(
     })
 
     if (!matrix) {
-      return new NextResponse('Matrix not found', { status: 404 })
+      logger.warn('Matrix not found', {
+        userId: session.user.id,
+        matrixId,
+        endpoint: `/api/matrices/${matrixId}`
+      })
+      
+      const errorResponse: ApiResponse = {
+        success: false,
+        error: 'Matrix not found'
+      }
+      
+      return NextResponse.json(errorResponse, { status: 404 })
     }
 
-    return NextResponse.json(matrix)
+    logger.info('Matrix details fetched successfully', {
+      userId: session.user.id,
+      matrixId,
+      matrixName: matrix.name,
+      entriesCount: matrix.entries.length,
+      versionsCount: matrix.versions.length
+    })
+
+    const response: ApiResponse<typeof matrix> = {
+      success: true,
+      data: matrix
+    }
+
+    return NextResponse.json(response)
   } catch (error) {
-    console.error('Error fetching matrix:', error)
-    return new NextResponse('Internal Server Error', { status: 500 })
+    logger.error('Error fetching matrix details', error as Error, {
+      userId: session.user.id,
+      matrixId,
+      endpoint: `/api/matrices/${matrixId}`
+    })
+    
+    const errorResponse: ApiResponse = {
+      success: false,
+      error: 'Internal Server Error'
+    }
+    
+    return NextResponse.json(errorResponse, { status: 500 })
   }
 }
 
@@ -67,28 +131,94 @@ export async function PUT(
 ) {
   const session = await auth()
   if (!session?.user) {
-    return new NextResponse('Unauthorized', { status: 401 })
+    logger.warn('Unauthorized access attempt to update matrix', {
+      endpoint: `/api/matrices/[id]`,
+      method: 'PUT'
+    })
+    
+    const errorResponse: ApiResponse = {
+      success: false,
+      error: 'Unauthorized'
+    }
+    
+    return NextResponse.json(errorResponse, { status: 401 })
   }
 
   const resolvedParams = await params
   const matrixId = parseInt(resolvedParams.id)
   if (isNaN(matrixId)) {
-    return new NextResponse('Invalid matrix ID', { status: 400 })
+    logger.warn('Invalid matrix ID provided for update', {
+      userId: session.user.id,
+      providedId: resolvedParams.id,
+      endpoint: `/api/matrices/[id]`
+    })
+    
+    const errorResponse: ApiResponse = {
+      success: false,
+      error: 'Invalid matrix ID'
+    }
+    
+    return NextResponse.json(errorResponse, { status: 400 })
   }
 
   try {
+    logger.info('Checking edit permissions for matrix', {
+      userId: session.user.id,
+      matrixId,
+      userRole: session.user.role
+    })
+
     const canEdit = await canEditMatrix(session.user.id, session.user.role, matrixId)
     if (!canEdit) {
-      return new NextResponse('Forbidden', { status: 403 })
+      logger.warn('User attempted to edit matrix without permission', {
+        userId: session.user.id,
+        matrixId,
+        userRole: session.user.role
+      })
+      
+      const errorResponse: ApiResponse = {
+        success: false,
+        error: 'Forbidden: Insufficient permissions to edit this matrix'
+      }
+      
+      return NextResponse.json(errorResponse, { status: 403 })
     }
 
-    const { name, description } = await req.json()
+    const body = await req.json()
+    
+    // Validation avec Zod
+    const validationResult = UpdateMatrixSchema.safeParse(body)
+    if (!validationResult.success) {
+      logger.warn('Invalid matrix update data', {
+        userId: session.user.id,
+        matrixId,
+        errors: validationResult.error.errors,
+        body
+      })
+      
+      const errorResponse: ApiResponse = {
+        success: false,
+        error: 'Données invalides',
+        message: validationResult.error.errors[0]?.message
+      }
+      
+      return NextResponse.json(errorResponse, { status: 400 })
+    }
+
+    const { name, description, requiredApprovals } = validationResult.data
+
+    logger.info('Updating matrix', {
+      userId: session.user.id,
+      matrixId,
+      changes: { name, description, requiredApprovals }
+    })
 
     const matrix = await prisma.matrix.update({
       where: { id: matrixId },
       data: {
-        name: name?.trim(),
-        description: description?.trim() || null,
+        ...(name && { name: name.trim() }),
+        ...(description !== undefined && { description: description?.trim() || null }),
+        ...(requiredApprovals && { requiredApprovals }),
         updatedAt: new Date()
       }
     })
@@ -100,13 +230,35 @@ export async function PUT(
       entity: 'Matrix',
       entityId: matrixId,
       action: 'update',
-      changes: { name, description }
+      changes: { name, description, requiredApprovals }
     })
 
-    return NextResponse.json(matrix)
+    logger.info('Matrix updated successfully', {
+      userId: session.user.id,
+      matrixId,
+      matrixName: matrix.name
+    })
+
+    const response: ApiResponse<typeof matrix> = {
+      success: true,
+      data: matrix,
+      message: 'Matrice mise à jour avec succès'
+    }
+
+    return NextResponse.json(response)
   } catch (error) {
-    console.error('Error updating matrix:', error)
-    return new NextResponse('Internal Server Error', { status: 500 })
+    logger.error('Error updating matrix', error as Error, {
+      userId: session.user.id,
+      matrixId,
+      endpoint: `/api/matrices/${matrixId}`
+    })
+    
+    const errorResponse: ApiResponse = {
+      success: false,
+      error: 'Internal Server Error'
+    }
+    
+    return NextResponse.json(errorResponse, { status: 500 })
   }
 }
 
@@ -116,23 +268,63 @@ export async function DELETE(
 ) {
   const session = await auth()
   if (!session?.user || session.user.role !== 'admin') {
-    return new NextResponse('Unauthorized', { status: 401 })
+    logger.warn('Unauthorized deletion attempt', {
+      userId: session?.user?.id,
+      userRole: session?.user?.role,
+      endpoint: `/api/matrices/[id]`,
+      method: 'DELETE'
+    })
+    
+    const errorResponse: ApiResponse = {
+      success: false,
+      error: 'Unauthorized: Admin access required'
+    }
+    
+    return NextResponse.json(errorResponse, { status: 401 })
   }
 
   const resolvedParams = await params
   const matrixId = parseInt(resolvedParams.id)
   if (isNaN(matrixId)) {
-    return new NextResponse('Invalid matrix ID', { status: 400 })
+    logger.warn('Invalid matrix ID provided for deletion', {
+      userId: session.user.id,
+      providedId: resolvedParams.id,
+      endpoint: `/api/matrices/[id]`
+    })
+    
+    const errorResponse: ApiResponse = {
+      success: false,
+      error: 'Invalid matrix ID'
+    }
+    
+    return NextResponse.json(errorResponse, { status: 400 })
   }
 
   try {
+    logger.info('Attempting to delete matrix', {
+      userId: session.user.id,
+      matrixId,
+      userRole: session.user.role
+    })
+
     const matrix = await prisma.matrix.findUnique({
       where: { id: matrixId },
-      select: { name: true }
+      select: { name: true, ownerId: true }
     })
 
     if (!matrix) {
-      return new NextResponse('Matrix not found', { status: 404 })
+      logger.warn('Matrix not found for deletion', {
+        userId: session.user.id,
+        matrixId,
+        endpoint: `/api/matrices/${matrixId}`
+      })
+      
+      const errorResponse: ApiResponse = {
+        success: false,
+        error: 'Matrix not found'
+      }
+      
+      return NextResponse.json(errorResponse, { status: 404 })
     }
 
     await prisma.matrix.delete({
@@ -145,12 +337,34 @@ export async function DELETE(
       entity: 'Matrix',
       entityId: matrixId,
       action: 'delete',
-      changes: { name: matrix.name }
+      changes: { name: matrix.name, ownerId: matrix.ownerId }
     })
 
-    return new NextResponse('Matrix deleted', { status: 200 })
+    logger.info('Matrix deleted successfully', {
+      userId: session.user.id,
+      matrixId,
+      matrixName: matrix.name,
+      originalOwnerId: matrix.ownerId
+    })
+
+    const response: ApiResponse = {
+      success: true,
+      message: `Matrice "${matrix.name}" supprimée avec succès`
+    }
+
+    return NextResponse.json(response)
   } catch (error) {
-    console.error('Error deleting matrix:', error)
-    return new NextResponse('Internal Server Error', { status: 500 })
+    logger.error('Error deleting matrix', error as Error, {
+      userId: session.user.id,
+      matrixId,
+      endpoint: `/api/matrices/${matrixId}`
+    })
+    
+    const errorResponse: ApiResponse = {
+      success: false,
+      error: 'Internal Server Error'
+    }
+    
+    return NextResponse.json(errorResponse, { status: 500 })
   }
 }

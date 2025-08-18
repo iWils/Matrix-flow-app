@@ -48,8 +48,10 @@ export default function MatricesPage() {
     try {
       const res = await fetch('/api/matrices')
       if (res.ok) {
-        const data = await res.json()
-        setMatrices(data)
+        const response = await res.json()
+        if (response.success && response.data) {
+          setMatrices(response.data)
+        }
       }
     } catch (error) {
       console.error('Erreur lors du chargement des matrices:', error)

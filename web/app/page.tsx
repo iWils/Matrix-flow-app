@@ -38,8 +38,10 @@ export default function DashboardPage() {
     try {
       const res = await fetch('/api/dashboard/stats')
       if (res.ok) {
-        const data = await res.json()
-        setStats(data)
+        const response = await res.json()
+        if (response.success && response.data) {
+          setStats(response.data)
+        }
       }
     } catch (error) {
       console.error('Error loading dashboard stats:', error)

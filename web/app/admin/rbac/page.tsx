@@ -64,8 +64,10 @@ export default function RBACPage() {
     try {
       const res = await fetch('/api/admin/rbac/groups')
       if (res.ok) {
-        const data = await res.json()
-        setUserGroups(data)
+        const response = await res.json()
+        if (response.success && response.data) {
+          setUserGroups(response.data)
+        }
       }
     } catch (error) {
       console.error('Error loading user groups:', error)

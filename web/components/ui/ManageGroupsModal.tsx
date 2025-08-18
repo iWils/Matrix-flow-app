@@ -3,28 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
-
-type UserGroup = {
-  id: number
-  name: string
-  description: string | null
-  permissions: any
-  isActive: boolean
-}
-
-type User = {
-  id: number
-  username: string
-  email?: string
-  fullName?: string
-  role: 'admin'|'user'|'viewer'
-  isActive: boolean
-  createdAt: string
-  lastPasswordChange: string
-  groupMemberships?: {
-    group: UserGroup
-  }[]
-}
+import { User, UserGroupData, UserGroupMembership } from '@/types'
 
 interface ManageGroupsModalProps {
   isOpen: boolean
@@ -34,7 +13,7 @@ interface ManageGroupsModalProps {
 }
 
 export function ManageGroupsModal({ isOpen, onClose, user, onSuccess }: ManageGroupsModalProps) {
-  const [availableGroups, setAvailableGroups] = useState<UserGroup[]>([])
+  const [availableGroups, setAvailableGroups] = useState<UserGroupData[]>([])
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -47,8 +26,10 @@ export function ManageGroupsModal({ isOpen, onClose, user, onSuccess }: ManageGr
     try {
       const res = await fetch('/api/admin/rbac/groups')
       if (res.ok) {
-        const data = await res.json()
-        setAvailableGroups(data.filter((group: UserGroup) => group.isActive))
+        const response = await res.json()
+        if (response.success && response.data) {
+          setAvailableGroups(response.data.filter((group: UserGroupData) => group.isActive))
+        }
       }
     } catch (error) {
       console.error('Error loading groups:', error)

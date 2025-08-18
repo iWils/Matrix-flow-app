@@ -3,11 +3,12 @@ import { useState } from 'react'
 import { Modal } from './Modal'
 import { Button } from './Button'
 import { Input } from './Input'
+import { User } from '@/types'
 
 interface ResetPasswordModalProps {
   isOpen: boolean
   onClose: () => void
-  user: { id: number; username: string; fullName?: string }
+  user: Pick<User, 'id' | 'username' | 'fullName'>
   onSuccess: () => void
 }
 

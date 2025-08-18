@@ -42,8 +42,10 @@ export default function WorkflowPage() {
     try {
       const res = await fetch('/api/workflow/changes')
       if (res.ok) {
-        const data = await res.json()
-        setChangeRequests(data)
+        const response = await res.json()
+        if (response.success && response.data) {
+          setChangeRequests(response.data)
+        }
       }
     } catch (error) {
       console.error('Erreur lors du chargement des demandes:', error)

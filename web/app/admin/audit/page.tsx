@@ -42,8 +42,10 @@ export default function AuditPage() {
     try {
       const res = await fetch('/api/audit')
       if (res.ok) {
-        const data = await res.json()
-        setAuditLogs(data)
+        const response = await res.json()
+        if (response.success && response.data) {
+          setAuditLogs(response.data)
+        }
       }
     } catch (error) {
       console.error('Error loading audit logs:', error)

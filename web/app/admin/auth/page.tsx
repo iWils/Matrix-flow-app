@@ -80,18 +80,20 @@ export default function AuthConfigPage() {
     try {
       const res = await fetch('/api/admin/auth/providers')
       if (res.ok) {
-        const data = await res.json()
-        setProviders(data)
-        
-        // Charger les configurations existantes
-        const ldapProvider = data.find((p: AuthProvider) => p.type === 'ldap')
-        if (ldapProvider) {
-          setLdapConfig(ldapProvider.config)
-        }
-        
-        const oidcProvider = data.find((p: AuthProvider) => p.type === 'oidc')
-        if (oidcProvider) {
-          setOidcConfig(oidcProvider.config)
+        const response = await res.json()
+        if (response.success && response.data) {
+          setProviders(response.data)
+          
+          // Charger les configurations existantes
+          const ldapProvider = response.data.find((p: AuthProvider) => p.type === 'ldap')
+          if (ldapProvider) {
+            setLdapConfig(ldapProvider.config)
+          }
+          
+          const oidcProvider = response.data.find((p: AuthProvider) => p.type === 'oidc')
+          if (oidcProvider) {
+            setOidcConfig(oidcProvider.config)
+          }
         }
       }
     } catch (error) {

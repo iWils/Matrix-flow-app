@@ -80,8 +80,10 @@ export default function SystemPage() {
     try {
       const res = await fetch('/api/admin/system/settings')
       if (res.ok) {
-        const data = await res.json()
-        setSettings(data)
+        const response = await res.json()
+        if (response.success && response.data) {
+          setSettings(response.data)
+        }
       }
     } catch (error) {
       console.error('Error loading system settings:', error)

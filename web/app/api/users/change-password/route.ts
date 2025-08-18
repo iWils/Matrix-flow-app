@@ -1,36 +1,62 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/db'
+import { auditLog } from '@/lib/audit'
+import { logger } from '@/lib/logger'
+import { ChangePasswordSchema } from '@/lib/validate'
+import { ApiResponse } from '@/types'
 import bcrypt from 'bcryptjs'
 
-const prisma = new PrismaClient()
-
 export async function POST(request: NextRequest) {
-  try {
-    const session = await auth()
+  const session = await auth()
+  
+  if (!session?.user?.email) {
+    logger.warn('Unauthorized password change attempt', {
+      endpoint: '/api/users/change-password',
+      method: 'POST'
+    })
     
-    if (!session?.user?.email) {
-      return NextResponse.json(
-        { error: 'Non authentifié' },
-        { status: 401 }
-      )
+    const errorResponse: ApiResponse = {
+      success: false,
+      error: 'Non authentifié'
+    }
+    
+    return NextResponse.json(errorResponse, { status: 401 })
+  }
+
+  try {
+    const body = await request.json()
+    
+    logger.info('Password change attempt', {
+      userId: session.user.id,
+      userEmail: session.user.email,
+      endpoint: '/api/users/change-password'
+    })
+    
+    // Validation avec Zod
+    const validationResult = ChangePasswordSchema.safeParse(body)
+    if (!validationResult.success) {
+      logger.warn('Invalid password change data', {
+        userId: session.user.id,
+        errors: validationResult.error.errors,
+        endpoint: '/api/users/change-password'
+      })
+      
+      const errorResponse: ApiResponse = {
+        success: false,
+        error: 'Données invalides',
+        message: validationResult.error.errors[0]?.message
+      }
+      
+      return NextResponse.json(errorResponse, { status: 400 })
     }
 
-    const { currentPassword, newPassword } = await request.json()
+    const { currentPassword, newPassword } = validationResult.data
 
-    if (!currentPassword || !newPassword) {
-      return NextResponse.json(
-        { error: 'Mot de passe actuel et nouveau mot de passe requis' },
-        { status: 400 }
-      )
-    }
-
-    if (newPassword.length < 6) {
-      return NextResponse.json(
-        { error: 'Le nouveau mot de passe doit contenir au moins 6 caractères' },
-        { status: 400 }
-      )
-    }
+    logger.info('Retrieving user for password verification', {
+      userId: session.user.id,
+      userEmail: session.user.email
+    })
 
     // Récupérer l'utilisateur avec son mot de passe
     const user = await prisma.user.findFirst({
@@ -40,27 +66,54 @@ export async function POST(request: NextRequest) {
           { username: session.user.email }
         ]
       },
-      select: { id: true, passwordHash: true }
+      select: { id: true, username: true, email: true, passwordHash: true }
     })
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Utilisateur non trouvé' },
-        { status: 404 }
-      )
+      logger.error('User not found for password change', undefined, {
+        sessionUserId: session.user.id,
+        sessionUserEmail: session.user.email,
+        endpoint: '/api/users/change-password'
+      })
+      
+      const errorResponse: ApiResponse = {
+        success: false,
+        error: 'Utilisateur non trouvé'
+      }
+      
+      return NextResponse.json(errorResponse, { status: 404 })
     }
+
+    logger.info('Verifying current password', {
+      userId: user.id,
+      username: user.username
+    })
 
     // Vérifier le mot de passe actuel
     const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash)
     
     if (!isCurrentPasswordValid) {
-      return NextResponse.json(
-        { error: 'Mot de passe actuel incorrect' },
-        { status: 400 }
-      )
+      logger.warn('Invalid current password provided', {
+        userId: user.id,
+        username: user.username,
+        attempt: 'password_change',
+        endpoint: '/api/users/change-password'
+      })
+      
+      const errorResponse: ApiResponse = {
+        success: false,
+        error: 'Mot de passe actuel incorrect'
+      }
+      
+      return NextResponse.json(errorResponse, { status: 400 })
     }
 
-    // Hasher le nouveau mot de passe
+    logger.info('Updating user password', {
+      userId: user.id,
+      username: user.username
+    })
+
+    // Hasher le nouveau mot de passe avec une meilleure sécurité
     const hashedNewPassword = await bcrypt.hash(newPassword, 12)
 
     // Mettre à jour le mot de passe
@@ -72,18 +125,43 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    return NextResponse.json(
-      { message: 'Mot de passe changé avec succès' },
-      { status: 200 }
-    )
+    // Audit log pour la sécurité
+    await auditLog({
+      userId: user.id,
+      entity: 'User',
+      entityId: user.id,
+      action: 'update',
+      changes: {
+        action: 'password_change',
+        timestamp: new Date().toISOString()
+      }
+    })
+
+    logger.info('Password changed successfully', {
+      userId: user.id,
+      username: user.username,
+      changeTimestamp: new Date().toISOString()
+    })
+
+    const response: ApiResponse = {
+      success: true,
+      message: 'Mot de passe changé avec succès'
+    }
+
+    return NextResponse.json(response)
 
   } catch (error) {
-    console.error('Erreur lors du changement de mot de passe:', error)
-    return NextResponse.json(
-      { error: 'Erreur interne du serveur' },
-      { status: 500 }
-    )
-  } finally {
-    await prisma.$disconnect()
+    logger.error('Error during password change', error as Error, {
+      userId: session.user.id,
+      userEmail: session.user.email,
+      endpoint: '/api/users/change-password'
+    })
+    
+    const errorResponse: ApiResponse = {
+      success: false,
+      error: 'Erreur interne du serveur'
+    }
+    
+    return NextResponse.json(errorResponse, { status: 500 })
   }
 }

@@ -62,3 +62,5 @@ web/node_modules/
 web/.next/
 web/dist/
 web/build/
+
+package-lock.json

@@ -185,6 +185,8 @@ model AuditLog {
   entityId  Int
   action    AuditAction
   changes   Json
+  ip        String?
+  userAgent String?
   at        DateTime   @default(now())
   
   // Relations

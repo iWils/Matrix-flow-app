@@ -12,34 +12,14 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { useGlobalPermissions } from '@/hooks/usePermissions'
 
-type UserGroup = {
-  id: number
-  name: string
-  description: string | null
-  permissions: any
-  isActive: boolean
-}
-
-type User = {
-  id: number
-  username: string
-  email?: string
-  fullName?: string
-  role: 'admin'|'user'|'viewer'
-  isActive: boolean
-  createdAt: string
-  lastPasswordChange: string
-  groupMemberships?: {
-    group: UserGroup
-  }[]
-}
+import { User, UserGroupData } from '@/types'
 
 export default function AdminUsersPage(){
   const { data: session } = useSession()
   const router = useRouter()
   const permissions = useGlobalPermissions()
   const [users, setUsers] = useState<User[]>([])
-  const [availableGroups, setAvailableGroups] = useState<UserGroup[]>([])
+  const [availableGroups, setAvailableGroups] = useState<UserGroupData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [username, setUsername] = useState('')
@@ -64,7 +44,10 @@ export default function AdminUsersPage(){
     try {
       const res = await fetch('/api/users')
       if (res.ok) {
-        setUsers(await res.json())
+        const response = await res.json()
+        if (response.success && response.data) {
+          setUsers(response.data)
+        }
         setError('')
       } else if (res.status === 401) {
         setError('Accès non autorisé. Seuls les administrateurs peuvent voir cette page.')
@@ -82,8 +65,10 @@ export default function AdminUsersPage(){
     try {
       const res = await fetch('/api/admin/rbac/groups')
       if (res.ok) {
-        const data = await res.json()
-        setAvailableGroups(data.filter((group: UserGroup) => group.isActive))
+        const response = await res.json()
+        if (response.success && response.data) {
+          setAvailableGroups(response.data.filter((group: UserGroupData) => group.isActive))
+        }
       }
     } catch (error) {
       console.error('Error loading groups:', error)
@@ -385,7 +370,7 @@ export default function AdminUsersPage(){
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  Dernier changement MDP: {formatDate(user.lastPasswordChange)}
+                  Dernier changement MDP: {user.lastPasswordChange ? formatDate(user.lastPasswordChange) : 'Non défini'}
                 </div>
                 
                 {/* Groupes assignés */}

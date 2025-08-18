@@ -48,7 +48,10 @@ export default function Users(){
     try {
       const res = await fetch('/api/users')
       if (res.ok) {
-        setItems(await res.json())
+        const response = await res.json()
+        if (response.success && response.data) {
+          setItems(response.data)
+        }
         setError('')
       } else if (res.status === 401) {
         setError('Accès non autorisé. Seuls les administrateurs peuvent voir cette page.')

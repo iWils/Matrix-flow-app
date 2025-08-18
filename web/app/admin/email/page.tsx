@@ -67,8 +67,10 @@ export default function EmailConfigPage() {
     try {
       const res = await fetch('/api/admin/email/settings')
       if (res.ok) {
-        const data = await res.json()
-        setSettings(data)
+        const response = await res.json()
+        if (response.success && response.data) {
+          setSettings(response.data)
+        }
       }
     } catch (error) {
       console.error('Error loading email settings:', error)
@@ -81,8 +83,10 @@ export default function EmailConfigPage() {
     try {
       const res = await fetch('/api/admin/email/templates')
       if (res.ok) {
-        const data = await res.json()
-        setTemplates(data)
+        const response = await res.json()
+        if (response.success && response.data) {
+          setTemplates(response.data)
+        }
       }
     } catch (error) {
       console.error('Error loading email templates:', error)
