@@ -12,7 +12,12 @@ export default function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Vérifier la présence du token de session
+  // Pour les routes API, laisser les endpoints gérer leur propre authentification
+  if (pathname.startsWith('/api/')) {
+    return NextResponse.next()
+  }
+
+  // Vérifier la présence du token de session uniquement pour les pages web
   const sessionToken = request.cookies.get('authjs.session-token') ||
                       request.cookies.get('__Secure-authjs.session-token')
 

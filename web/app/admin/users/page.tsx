@@ -120,7 +120,7 @@ export default function AdminUsersPage(){
     }
     load()
     loadAvailableGroups()
-  }, [session, permissions, router])
+  }, [session?.user?.id, permissions.isAuthenticated, permissions.canManageUsers])
 
   async function create(){
     if (!permissions.canManageUsers) return

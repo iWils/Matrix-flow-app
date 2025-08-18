@@ -1,5 +1,5 @@
 import { useSession } from 'next-auth/react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { UserGroupData, GroupPermissions } from '@/types'
 
 export function useUserGroups() {
@@ -33,38 +33,46 @@ export function useUserGroups() {
     }
   }
 
-  // Calculer les permissions combinées de tous les groupes
-  const combinedPermissions = userGroups.reduce((acc: Record<string, Set<string>>, group: UserGroupData) => {
-    if (!group.isActive) return acc
+  // Calculer les permissions combinées de tous les groupes avec useMemo pour éviter les re-calculs
+  const { permissions, hasPermission, hasAnyPermission } = useMemo(() => {
+    const combinedPermissions = userGroups.reduce((acc: Record<string, Set<string>>, group: UserGroupData) => {
+      if (!group.isActive) return acc
 
-    Object.entries(group.permissions).forEach(([resource, actions]) => {
-      if (!acc[resource]) {
-        acc[resource] = new Set<string>()
-      }
-      if (Array.isArray(actions)) {
-        actions.forEach((action: string) => acc[resource].add(action))
-      }
+      Object.entries(group.permissions).forEach(([resource, actions]) => {
+        if (!acc[resource]) {
+          acc[resource] = new Set<string>()
+        }
+        if (Array.isArray(actions)) {
+          actions.forEach((action: string) => acc[resource].add(action))
+        }
+      })
+
+      return acc
+    }, {} as Record<string, Set<string>>)
+
+    // Convertir les Sets en arrays pour faciliter l'utilisation
+    const permissions: GroupPermissions = {}
+    Object.entries(combinedPermissions).forEach(([resource, actionsSet]) => {
+      permissions[resource] = Array.from(actionsSet as Set<string>)
     })
 
-    return acc
-  }, {} as Record<string, Set<string>>)
-
-  // Convertir les Sets en arrays pour faciliter l'utilisation
-  const permissions: GroupPermissions = {}
-  Object.entries(combinedPermissions).forEach(([resource, actionsSet]) => {
-    permissions[resource] = Array.from(actionsSet as Set<string>)
-  })
+    return {
+      permissions,
+      hasPermission: (resource: string, action: string) => {
+        return permissions[resource]?.includes(action) || false
+      },
+      hasAnyPermission: (resource: string, actions: string[]) => {
+        return actions.some(action => permissions[resource]?.includes(action))
+      }
+    }
+  }, [userGroups])
 
   return {
     userGroups,
     loading,
     permissions,
-    hasPermission: (resource: string, action: string) => {
-      return permissions[resource]?.includes(action) || false
-    },
-    hasAnyPermission: (resource: string, actions: string[]) => {
-      return actions.some(action => permissions[resource]?.includes(action))
-    },
+    hasPermission,
+    hasAnyPermission,
     reload: loadUserGroups
   }
 }

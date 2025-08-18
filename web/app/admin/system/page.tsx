@@ -68,6 +68,8 @@ export default function SystemPage() {
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null)
   const [activeTab, setActiveTab] = useState<'general' | 'security' | 'audit' | 'backup'>('general')
 
   useEffect(() => {
@@ -94,6 +96,7 @@ export default function SystemPage() {
 
   async function saveSettings() {
     setSaving(true)
+    setMessage(null)
     try {
       const res = await fetch('/api/admin/system/settings', {
         method: 'POST',
@@ -102,32 +105,49 @@ export default function SystemPage() {
       })
       
       if (res.ok) {
-        alert('Paramètres sauvegardés avec succès')
+        const response = await res.json()
+        setMessage({ type: 'success', text: response.message || 'Paramètres sauvegardés avec succès' })
       } else {
-        alert('Erreur lors de la sauvegarde')
+        const response = await res.json()
+        setMessage({ type: 'error', text: response.message || 'Erreur lors de la sauvegarde' })
       }
     } catch (error) {
       console.error('Error saving settings:', error)
-      alert('Erreur lors de la sauvegarde')
+      setMessage({ type: 'error', text: 'Erreur de connexion lors de la sauvegarde' })
     } finally {
       setSaving(false)
     }
   }
 
   async function createBackup() {
+    setCreating(true)
+    setMessage(null)
     try {
       const res = await fetch('/api/admin/system/backup', {
         method: 'POST'
       })
       
       if (res.ok) {
-        alert('Sauvegarde créée avec succès')
+        const response = await res.json()
+        setMessage({
+          type: 'success',
+          text: response.message || 'Sauvegarde créée avec succès'
+        })
       } else {
-        alert('Erreur lors de la création de la sauvegarde')
+        const response = await res.json()
+        setMessage({
+          type: 'error',
+          text: response.message || 'Erreur lors de la création de la sauvegarde'
+        })
       }
     } catch (error) {
       console.error('Error creating backup:', error)
-      alert('Erreur lors de la création de la sauvegarde')
+      setMessage({
+        type: 'error',
+        text: 'Erreur de connexion lors de la création de la sauvegarde'
+      })
+    } finally {
+      setCreating(false)
     }
   }
 
@@ -174,6 +194,28 @@ export default function SystemPage() {
           </nav>
         </div>
       </div>
+
+      {/* Messages */}
+      {message && (
+        <div className={`mb-6 p-4 rounded-lg border ${
+          message.type === 'success'
+            ? 'bg-green-900/20 border-green-700 text-green-200'
+            : 'bg-red-900/20 border-red-700 text-red-200'
+        }`}>
+          <div className="flex items-center gap-2">
+            {message.type === 'success' ? (
+              <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            )}
+            <span className="text-sm font-medium">{message.text}</span>
+          </div>
+        </div>
+      )}
 
       {/* General Settings */}
       {activeTab === 'general' && (
@@ -530,8 +572,26 @@ export default function SystemPage() {
               </div>
 
               <div className="border-t pt-4">
-                <Button onClick={createBackup} variant="outline">
-                  Créer une sauvegarde maintenant
+                <Button
+                  onClick={createBackup}
+                  variant="outline"
+                  disabled={creating}
+                >
+                  {creating ? (
+                    <>
+                      <svg className="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Création en cours...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                      </svg>
+                      Créer une sauvegarde maintenant
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
@@ -542,7 +602,21 @@ export default function SystemPage() {
       {/* Save Button */}
       <div className="flex justify-end mt-6">
         <Button onClick={saveSettings} disabled={saving}>
-          {saving ? 'Sauvegarde...' : 'Sauvegarder les paramètres'}
+          {saving ? (
+            <>
+              <svg className="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Sauvegarde en cours...
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+              </svg>
+              Sauvegarder les paramètres
+            </>
+          )}
         </Button>
       </div>
     </div>

@@ -18,7 +18,7 @@ export const UpdateGroupSchema = z.object({
 // Schémas pour les utilisateurs
 export const RegisterUserSchema = z.object({
   username: z.string().min(3).max(50),
-  email: z.string().email(),
+  email: z.union([z.literal(''), z.string().email()]).optional(),
   fullName: z.string().min(1).max(100).optional(),
   password: z.string().min(8),
   role: z.enum(['admin', 'user', 'viewer']).optional()
