@@ -5,7 +5,7 @@ import { logger } from '@/lib/logger'
 import { CreateGroupSchema } from '@/lib/validate'
 import { UserGroupData, ApiResponse } from '@/types'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   const session = await auth()
   
   if (!session?.user || session.user.role !== 'admin') {
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 
   try {
     logger.info('Fetching user groups', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       userRole: session.user.role
     })
 
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     }))
 
     logger.info('User groups fetched successfully', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       groupCount: formattedGroups.length
     })
 
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(response)
   } catch (error) {
     logger.error('Error fetching user groups', error as Error, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       endpoint: '/api/admin/rbac/groups'
     })
     
@@ -87,15 +87,15 @@ export async function POST(request: NextRequest) {
     const validationResult = CreateGroupSchema.safeParse(body)
     if (!validationResult.success) {
       logger.warn('Invalid group creation data', {
-        userId: session.user.id,
-        errors: validationResult.error.errors,
+        userId: parseInt(session.user.id as string),
+        errors: validationResult.error.issues,
         body
       })
       
       const errorResponse: ApiResponse = {
         success: false,
         error: 'Données invalides',
-        message: validationResult.error.errors[0]?.message
+        message: validationResult.error.issues[0]?.message
       }
       
       return NextResponse.json(errorResponse, { status: 400 })
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     const { name, description, permissions } = validationResult.data
 
     logger.info('Creating new user group', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       groupName: name,
       permissionsCount: Object.keys(permissions).length
     })
@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
 
     if (existingGroup) {
       logger.warn('Attempted to create group with existing name', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         groupName: name,
         existingGroupId: existingGroup.id
       })
@@ -133,13 +133,13 @@ export async function POST(request: NextRequest) {
       data: {
         name: name.trim(),
         description: description?.trim() || '',
-        permissions: permissions,
+        permissions: JSON.parse(JSON.stringify(permissions)),
         isActive: true
       }
     })
 
     logger.info('User group created successfully', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       groupId: userGroup.id,
       groupName: userGroup.name
     })
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response)
   } catch (error) {
     logger.error('Error creating user group', error as Error, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       endpoint: '/api/admin/rbac/groups'
     })
     

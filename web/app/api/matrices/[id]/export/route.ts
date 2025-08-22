@@ -6,6 +6,7 @@ import { logger } from '@/lib/logger'
 import { auditLog } from '@/lib/audit'
 import { MatrixExportSchema } from '@/lib/validate'
 import { ApiResponse } from '@/types'
+import * as XLSX from 'xlsx'
 
 export async function GET(
   req: NextRequest,
@@ -29,7 +30,7 @@ export async function GET(
   const matrixId = parseInt(resolvedParams.id)
   if (isNaN(matrixId)) {
     logger.warn('Invalid matrix ID provided for export', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       providedId: resolvedParams.id,
       endpoint: '/api/matrices/[id]/export'
     })
@@ -41,7 +42,7 @@ export async function GET(
 
   try {
     logger.info('Starting matrix export', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       endpoint: '/api/matrices/[id]/export',
       method: 'GET'
@@ -57,10 +58,10 @@ export async function GET(
     const validatedQuery = MatrixExportSchema.parse(queryData)
 
     // Check matrix view permissions
-    const canView = await canViewMatrix(session.user.id, session.user.role, matrixId)
+    const canView = await canViewMatrix(parseInt(session.user.id as string), session.user.role, matrixId)
     if (!canView) {
       logger.warn('User lacks permission to export matrix', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         userRole: session.user.role,
         matrixId,
         action: 'export_matrix'
@@ -82,7 +83,7 @@ export async function GET(
 
     if (!matrix) {
       logger.warn('Matrix not found for export', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         matrixId
       })
       return NextResponse.json<ApiResponse<null>>({
@@ -124,7 +125,7 @@ export async function GET(
 
         const csvRows = [headers]
 
-        matrix.entries.forEach((entry: any) => {
+        matrix.entries.forEach((entry) => {
           const row = [
             entry.request_type || '',
             entry.rule_status || '',
@@ -173,7 +174,7 @@ export async function GET(
             exportedAt: new Date().toISOString(),
             exportedBy: session.user.name || session.user.email
           },
-          entries: matrix.entries.map((entry: any) => ({
+          entries: matrix.entries.map((entry) => ({
             id: entry.id,
             request_type: entry.request_type,
             rule_status: entry.rule_status,
@@ -203,13 +204,98 @@ export async function GET(
         response.headers.set('Content-Disposition', `attachment; filename="matrix-${safeMatrixName}-${exportTimestamp}.json"`)
         break
 
+      case 'excel':
+        // Create worksheet data
+        const worksheetData: (string | number)[][] = []
+        
+        // Headers
+        const xlsxHeaders = [
+          'Nature de la demande',
+          'Statut de la règle',
+          'Nom de la règle',
+          'Equipement Applicable (FW)',
+          'Zone Source',
+          'Nom de la Source',
+          'IP ou Subnet de la Source',
+          'Port Sources (Port + Protocole)',
+          'Zone Destination',
+          'Nom de la Destination',
+          'IP ou Subnet de la Destination',
+          'Groupe Protocole',
+          'Port Destination (Port + Protocole)',
+          'Action',
+          'Date d\'implémentation',
+          'Nom du demandeur',
+          'Commentaire'
+        ]
+
+        if (validatedQuery.includeMetadata) {
+          xlsxHeaders.push('Date de création', 'Dernière modification')
+        }
+
+        worksheetData.push(xlsxHeaders)
+
+        // Data rows
+        matrix.entries.forEach((entry) => {
+          const row = [
+            entry.request_type || '',
+            entry.rule_status || '',
+            entry.rule_name || '',
+            entry.device || '',
+            entry.src_zone || '',
+            entry.src_name || '',
+            entry.src_cidr || '',
+            entry.src_service || '',
+            entry.dst_zone || '',
+            entry.dst_name || '',
+            entry.dst_cidr || '',
+            entry.protocol_group || '',
+            entry.dst_service || '',
+            entry.action || '',
+            entry.implementation_date ? entry.implementation_date.toISOString().split('T')[0] : '',
+            entry.requester || '',
+            entry.comment || ''
+          ]
+
+          if (validatedQuery.includeMetadata) {
+            row.push(
+              entry.createdAt.toISOString().split('T')[0],
+              entry.updatedAt.toISOString().split('T')[0]
+            )
+          }
+
+          worksheetData.push(row)
+        })
+
+        // Create workbook and worksheet
+        const workbook = XLSX.utils.book_new()
+        const worksheet = XLSX.utils.aoa_to_sheet(worksheetData)
+        
+        // Auto-size columns
+        const colWidths = xlsxHeaders.map((_, colIndex) => {
+          const columnData = worksheetData.map(row => row[colIndex] || '')
+          const maxLength = Math.max(...columnData.map(cell => String(cell).length))
+          return { width: Math.min(Math.max(maxLength + 2, 10), 50) }
+        })
+        worksheet['!cols'] = colWidths
+
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Flow Entries')
+
+        // Generate buffer
+        const xlsxBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' })
+
+        response = new NextResponse(xlsxBuffer)
+        response.headers.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response.headers.set('Content-Disposition', `attachment; filename="matrix-${safeMatrixName}-${exportTimestamp}.xlsx"`)
+        break
+
       default:
         throw new Error(`Unsupported export format: ${validatedQuery.format}`)
     }
 
     // Audit log for matrix export
     await auditLog({
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       entity: 'Matrix',
       entityId: matrixId,
@@ -224,7 +310,7 @@ export async function GET(
     })
 
     logger.info('Matrix exported successfully', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       matrixName: matrix.name,
       format: validatedQuery.format,
@@ -237,7 +323,7 @@ export async function GET(
 
   } catch (error) {
     logger.error('Error exporting matrix', error instanceof Error ? error : undefined, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       endpoint: '/api/matrices/[id]/export',
       method: 'GET'

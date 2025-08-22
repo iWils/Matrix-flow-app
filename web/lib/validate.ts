@@ -5,13 +5,13 @@ import { NextRequest, NextResponse } from 'next/server'
 export const CreateGroupSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().max(500).optional(),
-  permissions: z.record(z.array(z.string()))
+  permissions: z.record(z.string(), z.array(z.string()))
 })
 
 export const UpdateGroupSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   description: z.string().max(500).optional(),
-  permissions: z.record(z.array(z.string())).optional(),
+  permissions: z.record(z.string(), z.array(z.string())).optional(),
   isActive: z.boolean().optional()
 })
 
@@ -68,7 +68,14 @@ export const CreateMatrixEntrySchema = z.object({
   protocol_group: z.string().max(100).optional(),
   dst_service: z.string().max(255).optional(),
   action: z.string().max(50).optional(),
-  implementation_date: z.string().datetime().optional().or(z.string().date().optional()),
+  implementation_date: z.union([
+    z.string().datetime(),
+    z.string().date(),
+    z.date(),
+    z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
+    z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Date must be in DD/MM/YYYY format'),
+    z.literal('')
+  ]).optional().nullable(),
   requester: z.string().max(255).optional(),
   comment: z.string().max(1000).optional()
 })
@@ -88,7 +95,14 @@ export const UpdateMatrixEntrySchema = z.object({
   protocol_group: z.string().max(100).optional(),
   dst_service: z.string().max(255).optional(),
   action: z.string().max(50).optional(),
-  implementation_date: z.string().datetime().optional().or(z.string().date().optional()),
+  implementation_date: z.union([
+    z.string().datetime(),
+    z.string().date(),
+    z.date(),
+    z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
+    z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Date must be in DD/MM/YYYY format'),
+    z.literal('')
+  ]).optional().nullable(),
   requester: z.string().max(255).optional(),
   comment: z.string().max(1000).optional()
 })
@@ -160,17 +174,15 @@ export const CreateChangeRequestSchema = z.object({
   matrixId: z.string().min(1, 'Matrix ID is required'),
   entryId: z.string().optional(),
   requestType: z.enum(['create_entry', 'update_entry', 'delete_entry'], {
-    required_error: 'Request type is required',
-    invalid_type_error: 'Request type must be create_entry, update_entry, or delete_entry'
+    message: 'Request type must be create_entry, update_entry, or delete_entry'
   }),
   description: z.string().min(10, 'Description must be at least 10 characters'),
-  requestedData: z.record(z.unknown())
+  requestedData: z.record(z.string(), z.unknown())
 })
 
 export const ReviewChangeRequestSchema = z.object({
   action: z.enum(['approve', 'reject'], {
-    required_error: 'Action is required',
-    invalid_type_error: 'Action must be approve or reject'
+    message: 'Action must be approve or reject'
   }),
   reviewComment: z.string().optional()
 })
@@ -247,7 +259,7 @@ export function validateRequest<T>(schema: z.ZodSchema<T>) {
         const body = await req.json()
         const validated = schema.parse(body)
         return handler(req, validated)
-      } catch (error) {
+      } catch {
         return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
       }
     }

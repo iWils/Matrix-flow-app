@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
+import { useTranslation } from 'react-i18next'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -24,11 +25,12 @@ type ChangeRequest = {
   }
   reviewedAt?: string
   description: string
-  changes?: any
+  changes?: Record<string, unknown>
 }
 
 export default function WorkflowPage() {
-  const { data: session } = useSession()
+  const { t } = useTranslation(['common', 'workflow'])
+  useSession() // Session used by permissions hook internally
   const permissions = useGlobalPermissions()
   const [changeRequests, setChangeRequests] = useState<ChangeRequest[]>([])
   const [loading, setLoading] = useState(true)
@@ -78,11 +80,11 @@ export default function WorkflowPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="warning">En attente</Badge>
+        return <Badge variant="warning">{t('workflow:pending')}</Badge>
       case 'approved':
-        return <Badge variant="success">Approuvé</Badge>
+        return <Badge variant="success">{t('workflow:approved')}</Badge>
       case 'rejected':
-        return <Badge variant="error">Rejeté</Badge>
+        return <Badge variant="error">{t('workflow:rejected')}</Badge>
       default:
         return <Badge variant="default">{status}</Badge>
     }
@@ -91,11 +93,11 @@ export default function WorkflowPage() {
   const getRequestTypeBadge = (type: string) => {
     switch (type) {
       case 'create':
-        return <Badge variant="success">Création</Badge>
+        return <Badge variant="success">{t('workflow:creation')}</Badge>
       case 'update':
-        return <Badge variant="warning">Modification</Badge>
+        return <Badge variant="warning">{t('workflow:modification')}</Badge>
       case 'delete':
-        return <Badge variant="error">Suppression</Badge>
+        return <Badge variant="error">{t('workflow:deletion')}</Badge>
       default:
         return <Badge variant="default">{type}</Badge>
     }
@@ -104,7 +106,7 @@ export default function WorkflowPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
-        <div className="text-slate-500">Chargement...</div>
+        <div className="text-slate-500 dark:text-slate-400">{t('common:loading')}</div>
       </div>
     )
   }
@@ -112,31 +114,31 @@ export default function WorkflowPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold">Workflow de changement</h1>
+        <h1 className="text-3xl font-bold text-gradient mb-2">{t('workflow:title')}</h1>
         <div className="flex gap-2">
           <Button
             variant={filter === 'all' ? 'primary' : 'outline'}
             onClick={() => setFilter('all')}
           >
-            Toutes ({changeRequests.length})
+            {t('workflow:allRequests')} ({changeRequests.length})
           </Button>
           <Button
             variant={filter === 'pending' ? 'primary' : 'outline'}
             onClick={() => setFilter('pending')}
           >
-            En attente ({changeRequests.filter(r => r.status === 'pending').length})
+            {t('workflow:pendingRequests')} ({changeRequests.filter(r => r.status === 'pending').length})
           </Button>
           <Button
             variant={filter === 'approved' ? 'primary' : 'outline'}
             onClick={() => setFilter('approved')}
           >
-            Approuvées ({changeRequests.filter(r => r.status === 'approved').length})
+            {t('workflow:approvedRequests')} ({changeRequests.filter(r => r.status === 'approved').length})
           </Button>
           <Button
             variant={filter === 'rejected' ? 'primary' : 'outline'}
             onClick={() => setFilter('rejected')}
           >
-            Rejetées ({changeRequests.filter(r => r.status === 'rejected').length})
+            {t('workflow:rejectedRequests')} ({changeRequests.filter(r => r.status === 'rejected').length})
           </Button>
         </div>
       </div>
@@ -144,23 +146,23 @@ export default function WorkflowPage() {
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         <Card>
-          <div className="text-sm text-slate-500">Total</div>
+          <div className="text-sm text-slate-500 dark:text-slate-400">{t('common:total')}</div>
           <div className="text-2xl font-semibold">{changeRequests.length}</div>
         </Card>
         <Card>
-          <div className="text-sm text-slate-500">En attente</div>
+          <div className="text-sm text-slate-500 dark:text-slate-400">{t('workflow:pending')}</div>
           <div className="text-2xl font-semibold text-orange-600">
             {changeRequests.filter(r => r.status === 'pending').length}
           </div>
         </Card>
         <Card>
-          <div className="text-sm text-slate-500">Approuvées</div>
+          <div className="text-sm text-slate-500 dark:text-slate-400">{t('workflow:approved')}</div>
           <div className="text-2xl font-semibold text-green-600">
             {changeRequests.filter(r => r.status === 'approved').length}
           </div>
         </Card>
         <Card>
-          <div className="text-sm text-slate-500">Rejetées</div>
+          <div className="text-sm text-slate-500 dark:text-slate-400">{t('workflow:rejected')}</div>
           <div className="text-2xl font-semibold text-red-600">
             {changeRequests.filter(r => r.status === 'rejected').length}
           </div>
@@ -170,14 +172,14 @@ export default function WorkflowPage() {
       {/* Table des demandes */}
       <Card>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Demandes de changement</h2>
+          <h2 className="text-lg font-semibold">{t('workflow:changeRequests')}</h2>
         </div>
 
         {filteredRequests.length === 0 ? (
-          <div className="text-center py-8 text-slate-500">
+          <div className="text-center py-8 text-slate-500 dark:text-slate-400">
             {filter === 'all' 
-              ? 'Aucune demande de changement trouvée'
-              : `Aucune demande ${filter === 'pending' ? 'en attente' : filter === 'approved' ? 'approuvée' : 'rejetée'}`
+              ? t('workflow:noChangeRequests')
+              : t(`workflow:no${filter.charAt(0).toUpperCase() + filter.slice(1)}Requests`)
             }
           </div>
         ) : (
@@ -185,14 +187,14 @@ export default function WorkflowPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Matrice</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Demandeur</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead>Réviseur</TableHead>
-                  {permissions.isAdmin && <TableHead>Actions</TableHead>}
+                  <TableHead>{t('workflow:matrix')}</TableHead>
+                  <TableHead>{t('workflow:type')}</TableHead>
+                  <TableHead>{t('workflow:description')}</TableHead>
+                  <TableHead>{t('workflow:requester')}</TableHead>
+                  <TableHead>{t('workflow:date')}</TableHead>
+                  <TableHead>{t('workflow:status')}</TableHead>
+                  <TableHead>{t('workflow:reviewer')}</TableHead>
+                  {permissions.isAdmin && <TableHead>{t('workflow:actions')}</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -200,7 +202,7 @@ export default function WorkflowPage() {
                   <TableRow key={request.id}>
                     <TableCell>
                       <div className="font-medium">{request.matrixName}</div>
-                      <div className="text-xs text-slate-500">ID: {request.matrixId}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400">ID: {request.matrixId}</div>
                     </TableCell>
                     <TableCell>
                       {getRequestTypeBadge(request.requestType)}
@@ -214,7 +216,7 @@ export default function WorkflowPage() {
                       <div className="text-sm">
                         {request.requestedBy.fullName || request.requestedBy.username}
                       </div>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-slate-500 dark:text-slate-400">
                         @{request.requestedBy.username}
                       </div>
                     </TableCell>
@@ -222,7 +224,7 @@ export default function WorkflowPage() {
                       <div className="text-sm">
                         {new Date(request.requestedAt).toLocaleDateString('fr-FR')}
                       </div>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-slate-500 dark:text-slate-400">
                         {new Date(request.requestedAt).toLocaleTimeString('fr-FR')}
                       </div>
                     </TableCell>
@@ -235,12 +237,12 @@ export default function WorkflowPage() {
                           <div className="text-sm">
                             {request.reviewedBy.fullName || request.reviewedBy.username}
                           </div>
-                          <div className="text-xs text-slate-500">
+                          <div className="text-xs text-slate-500 dark:text-slate-400">
                             {request.reviewedAt && new Date(request.reviewedAt).toLocaleDateString('fr-FR')}
                           </div>
                         </div>
                       ) : (
-                        <span className="text-slate-400">-</span>
+                        <span className="text-slate-400 dark:text-slate-400">-</span>
                       )}
                     </TableCell>
                     {permissions.isAdmin && (
@@ -252,19 +254,19 @@ export default function WorkflowPage() {
                               variant="success"
                               onClick={() => handleApproval(request.id, 'approve')}
                             >
-                              Approuver
+                              {t('workflow:approve')}
                             </Button>
                             <Button
                               size="sm"
                               variant="danger"
                               onClick={() => handleApproval(request.id, 'reject')}
                             >
-                              Rejeter
+                              {t('workflow:reject')}
                             </Button>
                           </div>
                         ) : (
-                          <span className="text-sm text-slate-400">
-                            {request.status === 'approved' ? 'Approuvé' : 'Rejeté'}
+                          <span className="text-sm text-slate-400 dark:text-slate-400">
+                            {request.status === 'approved' ? t('workflow:approved') : t('workflow:rejected')}
                           </span>
                         )}
                       </TableCell>

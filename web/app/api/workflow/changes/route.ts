@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 
   try {
     logger.info('Starting change requests fetch', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       endpoint: '/api/workflow/changes',
       method: 'GET'
     })
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
     const validatedQuery = GetChangeRequestsSchema.parse(queryData)
 
     // Build filter conditions
-    const whereCondition: any = {}
+    const whereCondition: Record<string, unknown> = {}
     if (validatedQuery.status) {
       whereCondition.status = validatedQuery.status
     }
@@ -104,7 +104,7 @@ export async function GET(req: NextRequest) {
     }))
 
     logger.info('Change requests fetched successfully', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       count: formattedRequests.length,
       filters: validatedQuery,
       statusBreakdown: {
@@ -122,7 +122,7 @@ export async function GET(req: NextRequest) {
 
   } catch (error) {
     logger.error('Error fetching change requests', error instanceof Error ? error : undefined, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       endpoint: '/api/workflow/changes',
       method: 'GET'
     })
@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
 
   try {
     logger.info('Starting change request creation', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       endpoint: '/api/workflow/changes',
       method: 'POST'
     })
@@ -171,7 +171,7 @@ export async function POST(req: NextRequest) {
 
     if (!matrix) {
       logger.warn('Matrix not found for change request', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         matrixId: matrixId,
         requestType: validatedData.requestType
       })
@@ -189,7 +189,7 @@ export async function POST(req: NextRequest) {
 
       if (!entry) {
         logger.warn('Entry not found for change request', {
-          userId: session.user.id,
+          userId: parseInt(session.user.id as string),
           matrixId: matrixId,
           entryId: entryId,
           requestType: validatedData.requestType
@@ -208,13 +208,13 @@ export async function POST(req: NextRequest) {
         entryId: entryId,
         requestType: validatedData.requestType,
         status: 'pending',
-        requestedById: session.user.id
+        requestedById: parseInt(session.user.id as string)
       }
     })
 
     if (existingRequest) {
       logger.warn('Duplicate change request attempted', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         matrixId: matrixId,
         existingRequestId: existingRequest.id,
         requestType: validatedData.requestType
@@ -231,8 +231,8 @@ export async function POST(req: NextRequest) {
         entryId: entryId,
         requestType: validatedData.requestType,
         description: validatedData.description,
-        requestedData: validatedData.requestedData as any,
-        requestedById: session.user.id
+        requestedData: JSON.parse(JSON.stringify(validatedData.requestedData)),
+        requestedById: parseInt(session.user.id as string)
       },
       include: {
         matrix: {
@@ -251,7 +251,7 @@ export async function POST(req: NextRequest) {
 
     // Audit log for security tracking
     await auditLog({
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId: matrixId,
       entity: 'ChangeRequest',
       entityId: changeRequest.id,
@@ -280,7 +280,7 @@ export async function POST(req: NextRequest) {
     }
 
     logger.info('Change request created successfully', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       changeRequestId: changeRequest.id,
       matrixId: matrixId,
       matrixName: matrix.name,
@@ -296,7 +296,7 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     logger.error('Error creating change request', error instanceof Error ? error : undefined, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       endpoint: '/api/workflow/changes',
       method: 'POST'
     })

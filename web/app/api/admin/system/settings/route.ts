@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
   if (session.user.role !== 'admin') {
     logger.warn('Non-admin user attempted to access system settings', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       userRole: session.user.role,
       endpoint: '/api/admin/system/settings',
       method: 'GET'
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
 
   try {
     logger.info('Fetching system settings', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       endpoint: '/api/admin/system/settings',
       method: 'GET'
     })
@@ -107,12 +107,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Apply database settings over defaults
-    dbSettings.forEach((setting: any) => {
+    dbSettings.forEach((setting) => {
       const keyParts = setting.key.split('.')
       if (keyParts.length === 2) {
         const [category, key] = keyParts
         if (organizedSettings[category as keyof SystemSettings]) {
-          const categorySettings = organizedSettings[category as keyof SystemSettings] as any
+          const categorySettings = organizedSettings[category as keyof SystemSettings] as Record<string, unknown>
           if (categorySettings.hasOwnProperty(key)) {
             // Type conversion based on default value type
             const defaultValue = categorySettings[key]
@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
     })
 
     logger.info('System settings retrieved successfully', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       settingsCount: dbSettings.length,
       categoriesCount: Object.keys(organizedSettings).length
     })
@@ -143,7 +143,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     logger.error('Error fetching system settings', error instanceof Error ? error : undefined, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       endpoint: '/api/admin/system/settings',
       method: 'GET'
     })
@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
 
   if (session.user.role !== 'admin') {
     logger.warn('Non-admin user attempted to update system settings', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       userRole: session.user.role,
       endpoint: '/api/admin/system/settings',
       method: 'POST'
@@ -186,7 +186,7 @@ export async function POST(request: NextRequest) {
 
   try {
     logger.info('Starting system settings update', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       endpoint: '/api/admin/system/settings',
       method: 'POST'
     })
@@ -197,12 +197,12 @@ export async function POST(request: NextRequest) {
     // Get current settings for audit comparison
     const currentSettings = await prisma.systemSetting.findMany()
     const currentSettingsMap = new Map(
-      currentSettings.map((s: any) => [s.key, s.value])
+      currentSettings.map((s) => [s.key, s.value])
     )
 
     // Track changes for audit
-    const changes: Array<{ key: string; oldValue: any; newValue: any }> = []
-    const upsertPromises: any[] = []
+    const changes: Array<{ key: string; oldValue: unknown; newValue: unknown }> = []
+    const upsertPromises: Array<ReturnType<typeof prisma.systemSetting.upsert>> = []
     
     // Process each category and setting
     for (const [category, categorySettings] of Object.entries(validatedSettings)) {
@@ -224,13 +224,13 @@ export async function POST(request: NextRequest) {
             prisma.systemSetting.upsert({
               where: { key: settingKey },
               update: {
-                value: value as any,
+                value: value as string,
                 category: category,
                 updatedAt: new Date()
               },
               create: {
                 key: settingKey,
-                value: value as any,
+                value: value as string,
                 category: category,
                 description: `${category} - ${key}`,
                 createdAt: new Date()
@@ -247,7 +247,7 @@ export async function POST(request: NextRequest) {
     // Comprehensive audit log for security tracking
     if (changes.length > 0) {
       await auditLog({
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         entity: 'SystemSettings',
         entityId: 0, // System level
         action: 'update',
@@ -262,7 +262,7 @@ export async function POST(request: NextRequest) {
       const securityChanges = changes.filter(c => c.key.startsWith('security.'))
       if (securityChanges.length > 0) {
         logger.warn('Critical security settings modified', {
-          userId: session.user.id,
+          userId: parseInt(session.user.id as string),
           username: session.user.name || session.user.email,
           securityChanges: securityChanges.map(c => ({
             setting: c.key,
@@ -274,7 +274,7 @@ export async function POST(request: NextRequest) {
     }
 
     logger.info('System settings updated successfully', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       changesCount: changes.length,
       categoriesUpdated: Object.keys(validatedSettings).length,
       hasSecurityChanges: changes.some(c => c.key.startsWith('security.'))
@@ -287,7 +287,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     logger.error('Error updating system settings', error instanceof Error ? error : undefined, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       endpoint: '/api/admin/system/settings',
       method: 'POST'
     })

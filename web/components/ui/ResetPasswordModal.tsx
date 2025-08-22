@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Modal } from './Modal'
 import { Button } from './Button'
 import { Input } from './Input'
@@ -13,6 +14,7 @@ interface ResetPasswordModalProps {
 }
 
 export function ResetPasswordModal({ isOpen, onClose, user, onSuccess }: ResetPasswordModalProps) {
+  const { t } = useTranslation('common')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -23,12 +25,12 @@ export function ResetPasswordModal({ isOpen, onClose, user, onSuccess }: ResetPa
     setError('')
 
     if (newPassword.length < 6) {
-      setError('Le mot de passe doit contenir au moins 6 caractères')
+      setError(t('passwordMinLength'))
       return
     }
 
     if (newPassword !== confirmPassword) {
-      setError('Les mots de passe ne correspondent pas')
+      setError(t('passwordsDoNotMatch'))
       return
     }
 
@@ -53,7 +55,7 @@ export function ResetPasswordModal({ isOpen, onClose, user, onSuccess }: ResetPa
       setNewPassword('')
       setConfirmPassword('')
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Erreur lors de la réinitialisation')
+      setError(error instanceof Error ? error.message : t('errorResettingPassword'))
     } finally {
       setIsLoading(false)
     }
@@ -67,24 +69,24 @@ export function ResetPasswordModal({ isOpen, onClose, user, onSuccess }: ResetPa
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Réinitialiser le mot de passe">
+    <Modal isOpen={isOpen} onClose={handleClose} title={t('resetPassword')}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            Réinitialiser le mot de passe pour <strong>{user.fullName || user.username}</strong>
+            {t('resetPasswordDescription')} <strong>{user.fullName || user.username}</strong>
           </p>
         </div>
 
         <div>
           <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Nouveau mot de passe
+            {t('newPassword')}
           </label>
           <Input
             id="newPassword"
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="Entrez le nouveau mot de passe"
+            placeholder={t('enterNewPassword')}
             required
             minLength={6}
           />
@@ -92,14 +94,14 @@ export function ResetPasswordModal({ isOpen, onClose, user, onSuccess }: ResetPa
 
         <div>
           <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Confirmer le mot de passe
+            {t('confirmPassword')}
           </label>
           <Input
             id="confirmPassword"
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Confirmez le nouveau mot de passe"
+            placeholder={t('confirmNewPassword')}
             required
             minLength={6}
           />
@@ -118,13 +120,13 @@ export function ResetPasswordModal({ isOpen, onClose, user, onSuccess }: ResetPa
             onClick={handleClose}
             disabled={isLoading}
           >
-            Annuler
+            {t('cancel')}
           </Button>
           <Button
             type="submit"
             disabled={isLoading || !newPassword || !confirmPassword}
           >
-            {isLoading ? 'Réinitialisation...' : 'Réinitialiser'}
+            {isLoading ? t('resetting') : t('resetPassword')}
           </Button>
         </div>
       </form>

@@ -1,7 +1,8 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useParams, useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
@@ -67,7 +68,8 @@ type Matrix = {
 }
 
 export default function MatrixDetailPage() {
-  const { data: session } = useSession()
+  const { t } = useTranslation(['common', 'matrices'])
+  useSession() // Session used by usePermissions hook internally
   const params = useParams()
   const router = useRouter()
   const matrixId = parseInt(params.id as string)
@@ -84,6 +86,7 @@ export default function MatrixDetailPage() {
   const [error, setError] = useState('')
   const [showAddEntry, setShowAddEntry] = useState(false)
   const [showImportCSV, setShowImportCSV] = useState(false)
+  const [showExportModal, setShowExportModal] = useState(false)
   const [editingEntry, setEditingEntry] = useState<FlowEntry | null>(null)
   const [showWorkflowModal, setShowWorkflowModal] = useState(false)
   const [workflowAction, setWorkflowAction] = useState<{
@@ -102,13 +105,7 @@ export default function MatrixDetailPage() {
     action: 'ALLOW'
   })
 
-  useEffect(() => {
-    if (matrixId) {
-      loadMatrix()
-    }
-  }, [matrixId])
-
-  async function loadMatrix() {
+  const loadMatrix = useCallback(async () => {
     try {
       const res = await fetch(`/api/matrices/${matrixId}`)
       if (res.ok) {
@@ -117,16 +114,22 @@ export default function MatrixDetailPage() {
           setMatrix(response.data)
         }
       } else if (res.status === 404) {
-        setError('Matrice non trouvée')
+        setError(t('matrices:matrixNotFound'))
       } else {
-        setError('Erreur lors du chargement')
+        setError(t('common:errorOccurred'))
       }
-    } catch (err) {
-      setError('Erreur de connexion')
+    } catch {
+      setError(t('common:connectionError'))
     } finally {
       setLoading(false)
     }
-  }
+  }, [matrixId])
+
+  useEffect(() => {
+    if (matrixId) {
+      loadMatrix()
+    }
+  }, [matrixId, loadMatrix])
 
   async function addEntry() {
     if (!newEntry.rule_name?.trim()) return
@@ -189,7 +192,7 @@ export default function MatrixDetailPage() {
     const entry = matrix?.entries.find(e => e.id === entryId)
     if (!entry) return
 
-    if (!confirm('Supprimer cette entrée ?')) return
+    if (!confirm(t('confirmDeleteEntry'))) return
 
     // Si l'utilisateur est admin, supprimer directement
     if (permissions.isAdmin) {
@@ -254,8 +257,8 @@ export default function MatrixDetailPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          matrixId,
-          entryId: workflowAction.entry?.id || null,
+          matrixId: matrixId.toString(),
+          entryId: workflowAction.entry?.id?.toString(),
           requestType: `${workflowAction.type}_entry`,
           description,
           requestedData
@@ -276,30 +279,39 @@ export default function MatrixDetailPage() {
             action: 'ALLOW'
           })
         }
-        alert('Demande de changement soumise avec succès !')
       } else {
-        alert('Erreur lors de la soumission de la demande')
+        console.error('Error submitting change request') // Keep as dev message
       }
     } catch (error) {
       console.error('Erreur lors de la soumission:', error)
-      alert('Erreur lors de la soumission de la demande')
     }
   }
 
-  async function exportCSV() {
+  async function exportMatrix(format: 'csv' | 'json' | 'excel', includeMetadata = false) {
     try {
-      const res = await fetch(`/api/matrices/${matrixId}/export`)
+      const params = new URLSearchParams({
+        format,
+        includeMetadata: includeMetadata.toString()
+      })
+      
+      const res = await fetch(`/api/matrices/${matrixId}/export?${params}`)
       if (res.ok) {
         const blob = await res.blob()
         const url = window.URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
-        a.download = `matrix-${matrix?.name}-${new Date().toISOString().split('T')[0]}.csv`
+        
+        // Determine file extension based on format
+        let extension: string = format
+        if (format === 'excel') extension = 'xlsx'
+        
+        a.download = `matrix-${matrix?.name}-${new Date().toISOString().split('T')[0]}.${extension}`
         a.click()
         window.URL.revokeObjectURL(url)
+        setShowExportModal(false)
       }
     } catch (error) {
-      console.error('Erreur export CSV:', error)
+      console.error('Erreur export:', error)
     }
   }
 
@@ -341,29 +353,29 @@ export default function MatrixDetailPage() {
             >
               ← Retour
             </Button>
-            <h1 className="text-2xl font-semibold">{matrix.name}</h1>
+            <h1 className="text-3xl font-bold text-gradient mb-2">{matrix.name}</h1>
             {matrix.publishedVersion && (
               <Badge variant="success">v{matrix.publishedVersion.version}</Badge>
             )}
           </div>
           {matrix.description && (
-            <p className="text-slate-600">{matrix.description}</p>
+            <p className="text-slate-600 dark:text-slate-400">{matrix.description}</p>
           )}
         </div>
 
         <div className="flex gap-2">
           {permissions.canViewMatrix && (
-            <Button variant="outline" onClick={exportCSV}>
-              Exporter CSV
+            <Button variant="outline" onClick={() => setShowExportModal(true)}>
+              {t('exportCSV')}
             </Button>
           )}
           {permissions.canEditMatrix && (
             <>
               <Button variant="outline" onClick={() => setShowImportCSV(true)}>
-                Importer CSV
+                {t('importFromCSV')}
               </Button>
               <Button onClick={() => setShowAddEntry(true)}>
-                Nouvelle entrée
+                {t('newFlowEntry')}
               </Button>
             </>
           )}
@@ -373,19 +385,19 @@ export default function MatrixDetailPage() {
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         <Card>
-          <div className="text-sm text-slate-500">Entrées</div>
+          <div className="text-sm text-slate-500 dark:text-slate-400">Entrées</div>
           <div className="text-2xl font-semibold">{matrix.entries.length}</div>
         </Card>
         <Card>
-          <div className="text-sm text-slate-500">Versions</div>
+          <div className="text-sm text-slate-500 dark:text-slate-400">Versions</div>
           <div className="text-2xl font-semibold">{matrix.versions.length}</div>
         </Card>
         <Card>
-          <div className="text-sm text-slate-500">Propriétaire</div>
+          <div className="text-sm text-slate-500 dark:text-slate-400">Propriétaire</div>
           <div className="text-sm">{matrix.owner?.fullName || matrix.owner?.username}</div>
         </Card>
         <Card>
-          <div className="text-sm text-slate-500">Dernière MAJ</div>
+          <div className="text-sm text-slate-500 dark:text-slate-400">Dernière MAJ</div>
           <div className="text-sm">{new Date(matrix.updatedAt).toLocaleDateString('fr-FR')}</div>
         </Card>
       </div>
@@ -394,9 +406,9 @@ export default function MatrixDetailPage() {
       {matrix.permissions && matrix.permissions.length > 0 && (
         <Card className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Permissions d'accès</h2>
+            <h2 className="text-lg font-semibold">Permissions d&apos;accès</h2>
             <Badge variant={permissions.isMatrixOwner ? 'success' : permissions.isMatrixEditor ? 'warning' : 'default'}>
-              {permissions.userMatrixRole || 'Aucun accès'}
+              {permissions.userMatrixRole || t('matrices:noAccess')}
             </Badge>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -404,7 +416,7 @@ export default function MatrixDetailPage() {
               <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                 <div>
                   <div className="font-medium text-sm">{perm.user.fullName || perm.user.username}</div>
-                  <div className="text-xs text-slate-500">@{perm.user.username}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">@{perm.user.username}</div>
                 </div>
                 <Badge variant={perm.role === 'owner' ? 'success' : perm.role === 'editor' ? 'warning' : 'default'}>
                   {perm.role}
@@ -419,14 +431,14 @@ export default function MatrixDetailPage() {
       <Card>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Entrées de flux</h2>
-          <div className="text-sm text-slate-500">
+          <div className="text-sm text-slate-500 dark:text-slate-400">
             {matrix.entries.length} entrée(s)
           </div>
         </div>
 
         {matrix.entries.length === 0 ? (
-          <div className="text-center py-8 text-slate-500">
-            Aucune entrée de flux.
+          <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+            {t('matrices:noFlowEntries')}
             {permissions.canEditMatrix && (
               <Button
                 variant="ghost"
@@ -456,15 +468,15 @@ export default function MatrixDetailPage() {
                   <TableRow key={entry.id}>
                     <TableCell>
                       <div className="font-medium">{entry.rule_name}</div>
-                      <div className="text-xs text-slate-500">{entry.device}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400">{entry.device}</div>
                     </TableCell>
                     <TableCell>
                       <div>{entry.src_zone}</div>
-                      <div className="text-sm text-slate-500">{entry.src_cidr}</div>
+                      <div className="text-sm text-slate-500 dark:text-slate-400">{entry.src_cidr}</div>
                     </TableCell>
                     <TableCell>
                       <div>{entry.dst_zone}</div>
-                      <div className="text-sm text-slate-500">{entry.dst_cidr}</div>
+                      <div className="text-sm text-slate-500 dark:text-slate-400">{entry.dst_cidr}</div>
                     </TableCell>
                     <TableCell>{entry.dst_service}</TableCell>
                     <TableCell>
@@ -494,7 +506,7 @@ export default function MatrixDetailPage() {
                           </Button>
                         )}
                         {!permissions.canEditMatrix && (
-                          <span className="text-sm text-slate-400 px-2 py-1">
+                          <span className="text-sm text-slate-400 dark:text-slate-400 px-2 py-1">
                             Lecture seule
                           </span>
                         )}
@@ -512,12 +524,12 @@ export default function MatrixDetailPage() {
       <Modal 
         isOpen={showAddEntry} 
         onClose={() => setShowAddEntry(false)}
-        title="Nouvelle entrée de flux"
+        title={t('common:newFlowEntry')}
         className="max-w-2xl"
       >
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Nom de la règle</label>
+            <label className="block text-sm font-medium mb-2">{t('common:csvRuleName')}</label>
             <Input
               value={newEntry.rule_name || ''}
               onChange={(e) => setNewEntry(prev => ({ ...prev, rule_name: e.target.value }))}
@@ -541,7 +553,7 @@ export default function MatrixDetailPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">IP/Réseau source</label>
+            <label className="block text-sm font-medium mb-2">{t('common:csvSrcCidr')}</label>
             <Input
               value={newEntry.src_cidr || ''}
               onChange={(e) => setNewEntry(prev => ({ ...prev, src_cidr: e.target.value }))}
@@ -557,7 +569,7 @@ export default function MatrixDetailPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">IP/Réseau destination</label>
+            <label className="block text-sm font-medium mb-2">{t('common:csvDstCidr')}</label>
             <Input
               value={newEntry.dst_cidr || ''}
               onChange={(e) => setNewEntry(prev => ({ ...prev, dst_cidr: e.target.value }))}
@@ -602,7 +614,7 @@ export default function MatrixDetailPage() {
             disabled={!newEntry.rule_name?.trim()}
             className="flex-1"
           >
-            {permissions.isAdmin ? 'Créer l\'entrée' : 'Soumettre la demande'}
+            {permissions.isAdmin ? t('matrices:createEntry') : t('matrices:submitRequest')}
           </Button>
           <Button 
             variant="outline"
@@ -614,13 +626,22 @@ export default function MatrixDetailPage() {
         </div>
       </Modal>
 
+      {/* Modal export */}
+      <Modal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        title={t('common:exportMatrix')}
+      >
+        <ExportForm onExport={exportMatrix} />
+      </Modal>
+
       {/* Modal import CSV */}
       <Modal
         isOpen={showImportCSV}
         onClose={() => setShowImportCSV(false)}
-        title="Importer depuis un fichier CSV"
+        title={t('common:importFile')}
       >
-        <CSVImportForm 
+        <FileImportForm 
           matrixId={matrixId} 
           onSuccess={() => {
             setShowImportCSV(false)
@@ -639,7 +660,7 @@ export default function MatrixDetailPage() {
         {editingEntry && (
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Nom de la règle</label>
+              <label className="block text-sm font-medium mb-2">{t('common:csvRuleName')}</label>
               <Input
                 value={editingEntry.rule_name || ''}
                 onChange={(e) => setEditingEntry(prev => prev ? ({ ...prev, rule_name: e.target.value }) : null)}
@@ -663,7 +684,7 @@ export default function MatrixDetailPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">IP/Réseau source</label>
+              <label className="block text-sm font-medium mb-2">{t('common:csvSrcCidr')}</label>
               <Input
                 value={editingEntry.src_cidr || ''}
                 onChange={(e) => setEditingEntry(prev => prev ? ({ ...prev, src_cidr: e.target.value }) : null)}
@@ -679,7 +700,7 @@ export default function MatrixDetailPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">IP/Réseau destination</label>
+              <label className="block text-sm font-medium mb-2">{t('common:csvDstCidr')}</label>
               <Input
                 value={editingEntry.dst_cidr || ''}
                 onChange={(e) => setEditingEntry(prev => prev ? ({ ...prev, dst_cidr: e.target.value }) : null)}
@@ -707,7 +728,7 @@ export default function MatrixDetailPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Statut de la règle</label>
+              <label className="block text-sm font-medium mb-2">{t('common:csvRuleStatus')}</label>
               <Input
                 value={editingEntry.rule_status || ''}
                 onChange={(e) => setEditingEntry(prev => prev ? ({ ...prev, rule_status: e.target.value }) : null)}
@@ -741,7 +762,7 @@ export default function MatrixDetailPage() {
             disabled={!editingEntry?.rule_name?.trim()}
             className="flex-1"
           >
-            Sauvegarder
+            {t('common:save')}
           </Button>
           <Button
             variant="outline"
@@ -757,7 +778,7 @@ export default function MatrixDetailPage() {
       <Modal
         isOpen={showWorkflowModal}
         onClose={() => setShowWorkflowModal(false)}
-        title="Demande de changement"
+        title={t('common:changeRequest')}
         className="max-w-lg"
       >
         {workflowAction && (
@@ -819,25 +840,102 @@ export default function MatrixDetailPage() {
   )
 }
 
-// Composant pour l'import CSV
-function CSVImportForm({ matrixId, onSuccess }: { matrixId: number, onSuccess: () => void }) {
+// Composant pour l'export avec sélection de format
+function ExportForm({ onExport }: { onExport: (format: 'csv' | 'json' | 'excel', includeMetadata?: boolean) => void }) {
+  const { t } = useTranslation(['common', 'matrices'])
+  const [format, setFormat] = useState<'csv' | 'json' | 'excel'>('csv')
+  const [includeMetadata, setIncludeMetadata] = useState(false)
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-2">{t('exportFormat')}</label>
+        <select
+          value={format}
+          onChange={(e) => setFormat(e.target.value as 'csv' | 'json' | 'excel')}
+          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="csv">CSV (Comma-Separated Values)</option>
+          <option value="excel">XLSX (Microsoft Excel)</option>
+          <option value="json">JSON (JavaScript Object Notation)</option>
+        </select>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="includeMetadata"
+          checked={includeMetadata}
+          onChange={(e) => setIncludeMetadata(e.target.checked)}
+          className="w-4 h-4 text-blue-600"
+        />
+        <label htmlFor="includeMetadata" className="text-sm">
+          {t('includeMetadata')}
+        </label>
+      </div>
+
+      <div className="flex gap-3 pt-4">
+        <Button
+          onClick={() => onExport(format, includeMetadata)}
+          className="flex-1"
+        >
+          Exporter {format.toUpperCase()}
+        </Button>
+        <Button variant="outline" onClick={() => {}} className="flex-1">
+          {t('cancel')}
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+// Composant pour l'import avec support multi-format
+function FileImportForm({ matrixId, onSuccess }: { matrixId: number, onSuccess: () => void }) {
+  const { t } = useTranslation(['common', 'matrices'])
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState<string>('')
+  const [overwrite, setOverwrite] = useState(false)
+  const [skipValidation, setSkipValidation] = useState(false)
+  const [importResult, setImportResult] = useState<{
+    success: boolean
+    imported: number
+    errors: number
+    total: number
+    errorDetails?: Array<{
+      row: number
+      error: string
+      data: Record<string, unknown>
+    }>
+  } | null>(null)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
-    if (selectedFile && selectedFile.type === 'text/csv') {
+    setImportResult(null)
+    
+    const supportedExtensions = ['.csv', '.xlsx', '.xls', '.json']
+    const isValidFile = supportedExtensions.some(ext => 
+      selectedFile?.name.toLowerCase().endsWith(ext)
+    )
+    
+    if (selectedFile && isValidFile) {
       setFile(selectedFile)
       
-      // Preview des premières lignes
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const text = e.target?.result as string
-        const lines = text.split('\n').slice(0, 5).join('\n')
-        setPreview(lines)
+      // Preview for text-based files (CSV, JSON)
+      if (selectedFile.name.toLowerCase().endsWith('.csv') || selectedFile.name.toLowerCase().endsWith('.json')) {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const text = e.target?.result as string
+          const lines = text.split('\n').slice(0, 5).join('\n')
+          setPreview(lines)
+        }
+        reader.readAsText(selectedFile)
+      } else {
+        // For Excel files, show basic info
+        setPreview(`Fichier Excel sélectionné: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)} KB)`)
       }
-      reader.readAsText(selectedFile)
+    } else {
+      console.error('Unsupported file format') // Keep as dev message
     }
   }
 
@@ -845,8 +943,11 @@ function CSVImportForm({ matrixId, onSuccess }: { matrixId: number, onSuccess: (
     if (!file) return
 
     setUploading(true)
+    setImportResult(null)
     const formData = new FormData()
-    formData.append('csv', file)
+    formData.append('file', file)
+    formData.append('overwrite', overwrite.toString())
+    formData.append('skipValidation', skipValidation.toString())
 
     try {
       const res = await fetch(`/api/matrices/${matrixId}/import`, {
@@ -854,14 +955,31 @@ function CSVImportForm({ matrixId, onSuccess }: { matrixId: number, onSuccess: (
         body: formData
       })
 
-      if (res.ok) {
-        onSuccess()
+      const result = await res.json()
+
+      if (res.ok && result.success) {
+        setImportResult(result.data)
+        if (result.data.errors === 0) {
+          setTimeout(() => onSuccess(), 2000)
+        }
       } else {
-        alert('Erreur lors de l\'import')
+        setImportResult({
+          success: false,
+          imported: 0,
+          errors: 1,
+          total: 1,
+          errorDetails: [{ row: 0, error: result.message || 'Erreur lors de l\'import', data: {} }]
+        })
       }
     } catch (error) {
       console.error('Erreur upload:', error)
-      alert('Erreur lors de l\'upload')
+      setImportResult({
+        success: false,
+        imported: 0,
+        errors: 1,
+        total: 1,
+        errorDetails: [{ row: 0, error: t('common:connectionError'), data: {} }]
+      })
     } finally {
       setUploading(false)
     }
@@ -871,22 +989,105 @@ function CSVImportForm({ matrixId, onSuccess }: { matrixId: number, onSuccess: (
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium mb-2">
-          Fichier CSV
+          {t('importFile')}
         </label>
         <input
           type="file"
-          accept=".csv"
+          accept=".csv,.xlsx,.xls,.json"
           onChange={handleFileChange}
-          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-50 file:text-slate-700"
+          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-50 file:text-slate-700 dark:text-slate-400"
         />
+        <div className="text-xs text-slate-500 mt-1">
+          {t('supportedFormats')}
+        </div>
       </div>
 
       {preview && (
         <div>
-          <label className="block text-sm font-medium mb-2">Aperçu</label>
+          <label className="block text-sm font-medium mb-2">{t('matrices:preview')}</label>
           <pre className="bg-slate-50 p-3 rounded text-xs overflow-x-auto max-h-32">
             {preview}
           </pre>
+        </div>
+      )}
+
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="overwrite"
+            checked={overwrite}
+            onChange={(e) => setOverwrite(e.target.checked)}
+            className="w-4 h-4 text-blue-600"
+          />
+          <label htmlFor="overwrite" className="text-sm">
+            Remplacer les entrées existantes
+          </label>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="skipValidation"
+            checked={skipValidation}
+            onChange={(e) => setSkipValidation(e.target.checked)}
+            className="w-4 h-4 text-blue-600"
+          />
+          <label htmlFor="skipValidation" className="text-sm">
+            Ignorer la validation (peut causer des erreurs)
+          </label>
+        </div>
+      </div>
+
+      {importResult && (
+        <div className={`p-4 rounded-lg ${importResult.success && importResult.errors === 0 
+          ? 'bg-green-50 border border-green-200' 
+          : importResult.success 
+            ? 'bg-yellow-50 border border-yellow-200'
+            : 'bg-red-50 border border-red-200'
+        }`}>
+          <div className="flex items-center gap-2 mb-3">
+            <div className={`w-2 h-2 rounded-full ${importResult.success && importResult.errors === 0 
+              ? 'bg-green-500' 
+              : importResult.success 
+                ? 'bg-yellow-500'
+                : 'bg-red-500'
+            }`}></div>
+            <span className="font-medium text-sm">
+              {importResult.success && importResult.errors === 0 
+                ? t('common:importSuccess')
+                : importResult.success 
+                  ? t('matrices:importWithErrors')
+                  : 'Échec de l\'import'
+              }
+            </span>
+          </div>
+          
+          <div className="text-sm space-y-1">
+            <div>Total: {importResult.total} lignes</div>
+            <div className="text-green-600">Importées: {importResult.imported}</div>
+            {importResult.errors > 0 && (
+              <div className="text-red-600">Erreurs: {importResult.errors}</div>
+            )}
+          </div>
+
+          {importResult.errorDetails && importResult.errorDetails.length > 0 && (
+            <div className="mt-3">
+              <div className="text-sm font-medium mb-2">Détails des erreurs:</div>
+              <div className="max-h-32 overflow-y-auto text-xs">
+                {importResult.errorDetails.map((error, index) => (
+                  <div key={index} className="mb-1 p-2 bg-white rounded border">
+                    <div className="font-medium">Ligne {error.row}: {error.error}</div>
+                    {error.data && Object.keys(error.data).length > 0 && (
+                      <div className="text-gray-600 mt-1">
+                        Données: {JSON.stringify(error.data, null, 2).substring(0, 100)}...
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -896,14 +1097,18 @@ function CSVImportForm({ matrixId, onSuccess }: { matrixId: number, onSuccess: (
           disabled={!file || uploading}
           className="flex-1"
         >
-          {uploading ? <LoadingSpinner size="sm" /> : 'Importer'}
+          {uploading ? <LoadingSpinner size="sm" /> : t('matrices:import')}
         </Button>
         <Button
           variant="outline"
-          onClick={() => setFile(null)}
-          disabled={!file || uploading}
+          onClick={() => {
+            setFile(null)
+            setPreview('')
+            setImportResult(null)
+          }}
+          disabled={uploading}
         >
-          Annuler
+          Réinitialiser
         </Button>
       </div>
     </div>

@@ -1,8 +1,9 @@
 'use client'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './Table'
 import { Input } from './Input'
-import { Button } from './Button'
+// Button import removed - unused
 
 interface Column<T> {
   key: keyof T
@@ -20,7 +21,7 @@ interface DataTableProps<T> {
   loading?: boolean
 }
 
-export function DataTable<T extends Record<string, any>>({
+export function DataTable<T extends Record<string, unknown>>({
   data,
   columns,
   searchable = false,
@@ -28,6 +29,7 @@ export function DataTable<T extends Record<string, any>>({
   onRowClick,
   loading = false
 }: DataTableProps<T>) {
+  const { t } = useTranslation('common')
   const [searchTerm, setSearchTerm] = useState('')
   const [sortKey, setSortKey] = useState<keyof T | null>(null)
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
@@ -72,7 +74,7 @@ export function DataTable<T extends Record<string, any>>({
     <div className="space-y-4">
       {searchable && searchKey && (
         <Input
-          placeholder={`Rechercher...`}
+          placeholder={t('searchPlaceholder')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-sm"
@@ -85,7 +87,7 @@ export function DataTable<T extends Record<string, any>>({
             {columns.map(column => (
               <TableHead key={String(column.key)}>
                 <div
-                  className={`flex items-center gap-1 ${column.sortable ? 'cursor-pointer hover:bg-slate-100 p-2 -m-2 rounded' : ''}`}
+                  className={`flex items-center gap-1 ${column.sortable ? 'cursor-pointer hover:bg-slate-100 dark:bg-slate-700 p-2 -m-2 rounded' : ''}`}
                   onClick={() => column.sortable && handleSort(column.key)}
                 >
                   {column.label}
@@ -103,7 +105,7 @@ export function DataTable<T extends Record<string, any>>({
           {sortedData.map((item, index) => (
             <TableRow key={index}>
               <div
-                className={`contents ${onRowClick ? 'cursor-pointer hover:bg-slate-50' : ''}`}
+                className={`contents ${onRowClick ? 'cursor-pointer hover:bg-slate-50 dark:bg-slate-800' : ''}`}
                 onClick={() => onRowClick?.(item)}
               >
                 {columns.map(column => (
@@ -119,7 +121,7 @@ export function DataTable<T extends Record<string, any>>({
           ))}
           {sortedData.length === 0 && (
             <TableRow>
-              <TableCell className="text-center py-8 text-slate-500">
+              <TableCell className="text-center py-8 text-slate-500 dark:text-slate-400">
                 <div style={{ gridColumn: `1 / ${columns.length + 1}` }}>
                   Aucune donnée trouvée
                 </div>

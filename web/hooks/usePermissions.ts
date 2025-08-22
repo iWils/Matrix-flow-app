@@ -27,7 +27,7 @@ export function usePermissions({ matrixId, matrixOwnerId, matrixPermissions }: U
     }
 
     const userRole = session.user.role as GlobalRole
-    const userId = session.user.id
+    const userId = parseInt(session.user.id as string)
 
     // Permissions globales basées sur le rôle
     const isAdmin = userRole === 'admin'

@@ -1,9 +1,10 @@
 'use client'
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
-import { User, UserGroupData, UserGroupMembership } from '@/types'
+import { User, UserGroupData } from '@/types'
 
 interface ManageGroupsModalProps {
   isOpen: boolean
@@ -13,6 +14,7 @@ interface ManageGroupsModalProps {
 }
 
 export function ManageGroupsModal({ isOpen, onClose, user, onSuccess }: ManageGroupsModalProps) {
+  const { t } = useTranslation('common')
   const [availableGroups, setAvailableGroups] = useState<UserGroupData[]>([])
   const [loading, setLoading] = useState(false)
 
@@ -86,17 +88,17 @@ export function ManageGroupsModal({ isOpen, onClose, user, onSuccess }: ManageGr
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Gérer les groupes - ${user.fullName || user.username}`}
+      title={`${t('manageGroups')} - ${user.fullName || user.username}`}
     >
       <div className="space-y-4">
         <div>
           <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
-            Groupes disponibles
+            {t('availableGroups')}
           </h3>
           
           {availableGroups.length === 0 ? (
             <p className="text-sm text-slate-500 dark:text-slate-400 italic">
-              Aucun groupe disponible. Créez des groupes dans la section RBAC.
+              {t('noGroupDefined')}
             </p>
           ) : (
             <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -106,7 +108,7 @@ export function ManageGroupsModal({ isOpen, onClose, user, onSuccess }: ManageGr
                     <div className="flex items-center gap-2 mb-1">
                       <h4 className="font-medium text-slate-900 dark:text-white">{group.name}</h4>
                       {isUserInGroup(group.id) && (
-                        <Badge variant="success" className="text-xs">Assigné</Badge>
+                        <Badge variant="success" className="text-xs">{t('assigned')}</Badge>
                       )}
                     </div>
                     {group.description && (
@@ -121,7 +123,7 @@ export function ManageGroupsModal({ isOpen, onClose, user, onSuccess }: ManageGr
                         onClick={() => removeUserFromGroup(group.id)}
                         disabled={loading}
                       >
-                        Retirer
+                        {t('remove')}
                       </Button>
                     ) : (
                       <Button
@@ -130,7 +132,7 @@ export function ManageGroupsModal({ isOpen, onClose, user, onSuccess }: ManageGr
                         onClick={() => assignUserToGroup(group.id)}
                         disabled={loading}
                       >
-                        Assigner
+                        {t('assign')}
                       </Button>
                     )}
                   </div>
@@ -142,7 +144,7 @@ export function ManageGroupsModal({ isOpen, onClose, user, onSuccess }: ManageGr
 
         <div className="flex justify-end pt-4">
           <Button variant="outline" onClick={onClose}>
-            Fermer
+            {t('close')}
           </Button>
         </div>
       </div>

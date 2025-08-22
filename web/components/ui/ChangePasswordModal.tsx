@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Modal } from './Modal'
 import { Input } from './Input'
 import { Button } from './Button'
@@ -10,6 +11,7 @@ interface ChangePasswordModalProps {
 }
 
 export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProps) {
+  const { t } = useTranslation('common')
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -22,12 +24,12 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
     setError('')
     
     if (newPassword !== confirmPassword) {
-      setError('Les nouveaux mots de passe ne correspondent pas')
+      setError(t('newPasswordsDoNotMatch'))
       return
     }
 
     if (newPassword.length < 6) {
-      setError('Le nouveau mot de passe doit contenir au moins 6 caractères')
+      setError(t('passwordMinLength'))
       return
     }
 
@@ -55,7 +57,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
         handleClose()
       }, 2000)
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Une erreur est survenue')
+      setError(error instanceof Error ? error.message : t('errorOccurred'))
     } finally {
       setIsLoading(false)
     }
@@ -71,7 +73,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Changer le mot de passe">
+    <Modal isOpen={isOpen} onClose={handleClose} title={t('changePassword')}>
       {success ? (
         <div className="text-center py-4">
           <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -79,13 +81,13 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <p className="text-green-600 dark:text-green-400 font-medium">Mot de passe changé avec succès !</p>
+          <p className="text-green-600 dark:text-green-400 font-medium">{t('passwordChangedSuccess')}</p>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="currentPassword" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Mot de passe actuel
+              {t('currentPassword')}
             </label>
             <Input
               id="currentPassword"
@@ -99,7 +101,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
 
           <div>
             <label htmlFor="newPassword" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Nouveau mot de passe
+              {t('newPassword')}
             </label>
             <Input
               id="newPassword"
@@ -114,7 +116,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
 
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Confirmer le nouveau mot de passe
+              {t('confirmNewPassword')}
             </label>
             <Input
               id="confirmPassword"
@@ -141,14 +143,14 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
               disabled={isLoading}
               className="flex-1"
             >
-              Annuler
+              {t('cancel')}
             </Button>
             <Button
               type="submit"
               disabled={isLoading}
               className="flex-1"
             >
-              {isLoading ? 'Changement...' : 'Changer le mot de passe'}
+              {isLoading ? t('changing') : t('changePassword')}
             </Button>
           </div>
         </form>

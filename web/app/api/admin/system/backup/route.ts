@@ -3,6 +3,7 @@ import { auth } from '@/auth'
 import { prisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 import { auditLog } from '@/lib/audit'
+import { notifications } from '@/lib/notifications'
 import { ApiResponse } from '@/types'
 import { exec } from 'child_process'
 import { promisify } from 'util'
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
 
   if (session.user.role !== 'admin') {
     logger.warn('Non-admin user attempted to create backup', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       userRole: session.user.role,
       endpoint: '/api/admin/system/backup',
       method: 'POST'
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
 
   try {
     logger.info('Starting system backup', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       endpoint: '/api/admin/system/backup',
       method: 'POST'
     })
@@ -91,7 +92,7 @@ export async function POST(request: NextRequest) {
     const dumpCommand = `pg_dump -h ${dbHost} -p ${dbPort} -U ${dbUser} -d ${dbName} --no-password --verbose --clean --if-exists --create > ${backupPath}`
     
     logger.info('Executing backup command', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       backupPath,
       command: dumpCommand.replace(dbPassword || '', '***')
     })
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
 
       // Log successful backup
       await auditLog({
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         entity: 'SystemBackup',
         entityId: 0,
         action: 'create',
@@ -119,10 +120,18 @@ export async function POST(request: NextRequest) {
       })
 
       logger.info('System backup completed successfully', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         backupPath,
         backupSize: stats.size,
         timestamp
+      })
+
+      // Send success notification
+      await notifications.backupSuccess({
+        backupPath,
+        size: stats.size,
+        automatic: false,
+        userId: parseInt(session.user.id as string)
       })
 
       return NextResponse.json<ApiResponse<{ backupPath: string; size: number }>>({
@@ -136,7 +145,7 @@ export async function POST(request: NextRequest) {
 
     } catch (execError) {
       logger.error('Database backup command failed', execError instanceof Error ? execError : undefined, {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         backupPath,
         command: dumpCommand.replace(dbPassword || '', '***')
       })
@@ -156,9 +165,16 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     logger.error('Error creating system backup', error instanceof Error ? error : undefined, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       endpoint: '/api/admin/system/backup',
       method: 'POST'
+    })
+
+    // Send failure notification
+    await notifications.backupFailure({
+      error: error instanceof Error ? error.message : 'Unknown error',
+      automatic: false,
+      userId: parseInt(session.user.id as string)
     })
 
     return NextResponse.json<ApiResponse<null>>({
@@ -169,7 +185,7 @@ export async function POST(request: NextRequest) {
 }
 
 // GET endpoint to list available backups
-export async function GET(request: NextRequest) {
+export async function GET() {
   const session = await auth()
   
   if (!session?.user) {
@@ -224,11 +240,11 @@ export async function GET(request: NextRequest) {
     } catch (dirError) {
       logger.warn('Backup directory not found or empty', {
         backupLocation,
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         error: dirError instanceof Error ? dirError.message : 'Unknown error'
       })
 
-      return NextResponse.json<ApiResponse<any[]>>({
+      return NextResponse.json<ApiResponse<Array<Record<string, unknown>>>>({
         success: true,
         data: [],
         message: 'No backups found'
@@ -237,7 +253,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     logger.error('Error listing backups', error instanceof Error ? error : undefined, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       endpoint: '/api/admin/system/backup',
       method: 'GET'
     })

@@ -2,7 +2,6 @@
 export * from './audit';
 export * from './csv';
 export * from './db';
-export * from './i18n';
 export * from './logger';
 export * from './rbac';
 export * from './session';

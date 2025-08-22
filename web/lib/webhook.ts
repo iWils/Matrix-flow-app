@@ -1,5 +1,5 @@
 
-export async function sendWebhook(event: string, payload: any, url?: string){
+export async function sendWebhook(event: string, payload: unknown, url?: string){
   const target = url || process.env.NOTIFY_WEBHOOK_URL
   if(!target) return
   try{

@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
+import { useTranslation } from 'react-i18next'
 import Link from 'next/link'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
@@ -30,7 +31,8 @@ type Matrix = {
 }
 
 export default function MatricesPage() {
-  const { data: session } = useSession()
+  const { t } = useTranslation(['common', 'matrices'])
+  useSession() // Session used by permissions hook internally
   const permissions = useGlobalPermissions()
   const [matrices, setMatrices] = useState<Matrix[]>([])
   const [loading, setLoading] = useState(true)
@@ -49,8 +51,8 @@ export default function MatricesPage() {
       const res = await fetch('/api/matrices')
       if (res.ok) {
         const response = await res.json()
-        if (response.success && response.data) {
-          setMatrices(response.data)
+        if (response.success && response.data && response.data.matrices) {
+          setMatrices(response.data.matrices)
         }
       }
     } catch (error) {
@@ -81,7 +83,7 @@ export default function MatricesPage() {
   }
 
   async function deleteMatrix(id: number) {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette matrice ?')) return
+    if (!confirm(t('confirmDelete'))) return
 
     try {
       const res = await fetch(`/api/matrices/${id}`, { method: 'DELETE' })
@@ -96,7 +98,7 @@ export default function MatricesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
-        <div className="text-slate-500">Chargement...</div>
+        <div className="text-slate-500 dark:text-slate-400">Chargement...</div>
       </div>
     )
   }
@@ -104,7 +106,7 @@ export default function MatricesPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold">Matrices de flux</h1>
+        <h1 className="text-3xl font-bold text-gradient mb-2">Matrices de flux</h1>
         {permissions.canCreateMatrix && (
           <Button onClick={() => setShowCreateModal(true)}>
             Nouvelle matrice
@@ -114,7 +116,7 @@ export default function MatricesPage() {
 
       {matrices.length === 0 ? (
         <Card className="text-center py-12">
-          <div className="text-slate-500 mb-4">Aucune matrice trouvée</div>
+          <div className="text-slate-500 dark:text-slate-400 mb-4">{t('matrices:noMatricesFound')}</div>
           {permissions.canCreateMatrix && (
             <Button onClick={() => setShowCreateModal(true)}>
               Créer votre première matrice
@@ -136,7 +138,7 @@ export default function MatricesPage() {
                     </Link>
                   </h3>
                   {matrix.description && (
-                    <p className="text-sm text-slate-600 line-clamp-2">
+                    <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
                       {matrix.description}
                     </p>
                   )}
@@ -144,8 +146,8 @@ export default function MatricesPage() {
                 {permissions.isAdmin && (
                   <button
                     onClick={() => deleteMatrix(matrix.id)}
-                    className="text-slate-400 hover:text-red-500 text-sm p-1"
-                    title="Supprimer"
+                    className="text-slate-400 dark:text-slate-400 hover:text-red-500 text-sm p-1"
+                    title={t('common:delete')}
                   >
                     ×
                   </button>
@@ -173,9 +175,9 @@ export default function MatricesPage() {
                 )}
               </div>
 
-              <div className="text-xs text-slate-500 border-t pt-3">
+              <div className="text-xs text-slate-500 dark:text-slate-400 border-t pt-3">
                 <div>
-                  Créé par {matrix.owner?.fullName || matrix.owner?.username || 'Inconnu'}
+                  {t('matrices:createdBy')} {matrix.owner?.fullName || matrix.owner?.username || t('matrices:unknown')}
                 </div>
                 <div>
                   Modifié {new Date(matrix.updatedAt).toLocaleDateString('fr-FR')}
@@ -207,7 +209,7 @@ export default function MatricesPage() {
       <Modal 
         isOpen={showCreateModal} 
         onClose={() => setShowCreateModal(false)}
-        title="Nouvelle matrice"
+        title={t('common:newMatrix')}
       >
         <div className="space-y-4">
           <div>
@@ -231,7 +233,7 @@ export default function MatricesPage() {
               onChange={(e) => setNewMatrix(prev => ({ ...prev, description: e.target.value }))}
               placeholder="Description optionnelle..."
               rows={3}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 

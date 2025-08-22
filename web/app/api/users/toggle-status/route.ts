@@ -4,7 +4,7 @@ import { auth } from '@/auth'
 import { auditLog } from '@/lib/audit'
 import { logger } from '@/lib/logger'
 import { ToggleUserStatusSchema } from '@/lib/validate'
-import { ApiResponse, User } from '@/types'
+import { ApiResponse } from '@/types'
 
 export async function POST(request: NextRequest) {
   const session = await auth()
@@ -38,14 +38,14 @@ export async function POST(request: NextRequest) {
     if (!validationResult.success) {
       logger.warn('Invalid user status toggle data', {
         adminId: session.user.id,
-        errors: validationResult.error.errors,
+        errors: validationResult.error.issues,
         body
       })
       
       const errorResponse: ApiResponse = {
         success: false,
         error: 'Données invalides',
-        message: validationResult.error.errors[0]?.message
+        message: validationResult.error.issues[0]?.message
       }
       
       return NextResponse.json(errorResponse, { status: 400 })
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Empêcher la désactivation de son propre compte
-    if (session.user.id === userId && !isActive) {
+    if (parseInt(session.user.id as string) === userId && !isActive) {
       logger.warn('Admin attempted to deactivate own account', {
         adminId: session.user.id,
         targetUserId: userId,
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Empêcher la désactivation d'un autre admin (sécurité renforcée)
-    if (targetUser.role === 'admin' && targetUser.id !== session.user.id && !isActive) {
+    if (targetUser.role === 'admin' && targetUser.id !== parseInt(session.user.id as string) && !isActive) {
       logger.warn('Admin attempted to deactivate another admin', {
         adminId: session.user.id,
         targetUserId: userId,
@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
 
     // Audit log pour la sécurité
     await auditLog({
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       entity: 'User',
       entityId: userId,
       action: 'update',

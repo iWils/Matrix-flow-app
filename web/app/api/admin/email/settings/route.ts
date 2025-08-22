@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/db'
+// Prisma types removed - using ReturnType instead
 import { logger } from '@/lib/logger'
 import { auditLog } from '@/lib/audit'
 import { EmailSettingsSchema } from '@/lib/validate'
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
 
   if (session.user.role !== 'admin') {
     logger.warn('Non-admin user attempted to access email settings', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       userRole: session.user.role,
       endpoint: '/api/admin/email/settings',
       method: 'GET'
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
 
   try {
     logger.info('Fetching email settings', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       endpoint: '/api/admin/email/settings',
       method: 'GET'
     })
@@ -82,7 +83,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Apply database settings over defaults with type safety
-    emailSettings.forEach((setting: any) => {
+    emailSettings.forEach((setting) => {
       const keyParts = setting.key.replace('email.', '').split('.')
       
       if (keyParts.length >= 2) {
@@ -98,10 +99,10 @@ export async function GET(request: NextRequest) {
           } else if (smtpField === 'secure') {
             defaultSettings.smtp.secure = setting.value === true || setting.value === 'true'
           } else {
-            (defaultSettings.smtp as any)[smtpField] = setting.value
+            ;(defaultSettings.smtp as Record<string, unknown>)[smtpField] = setting.value
           }
         } else if (section === 'from' && defaultSettings.from.hasOwnProperty(field)) {
-          (defaultSettings.from as any)[field] = setting.value
+          ;(defaultSettings.from as Record<string, unknown>)[field] = setting.value
         }
       } else if (keyParts[0] === 'enabled') {
         defaultSettings.enabled = setting.value === true || setting.value === 'true'
@@ -118,7 +119,7 @@ export async function GET(request: NextRequest) {
     }
 
     logger.info('Email settings retrieved successfully', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       emailEnabled: defaultSettings.enabled,
       hasSmtpConfig: !!defaultSettings.smtp.host,
       settingsCount: emailSettings.length
@@ -132,7 +133,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     logger.error('Error fetching email settings', error instanceof Error ? error : undefined, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       endpoint: '/api/admin/email/settings',
       method: 'GET'
     })
@@ -162,7 +163,7 @@ export async function POST(request: NextRequest) {
 
   if (session.user.role !== 'admin') {
     logger.warn('Non-admin user attempted to update email settings', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       userRole: session.user.role,
       endpoint: '/api/admin/email/settings',
       method: 'POST'
@@ -175,7 +176,7 @@ export async function POST(request: NextRequest) {
 
   try {
     logger.info('Starting email settings update', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       endpoint: '/api/admin/email/settings',
       method: 'POST'
     })
@@ -188,20 +189,20 @@ export async function POST(request: NextRequest) {
       where: { category: 'email' }
     })
     const currentSettingsMap = new Map(
-      currentSettings.map((s: any) => [s.key, s.value])
+      currentSettings.map((s) => [s.key, s.value])
     )
 
     // Track changes for audit (without sensitive data)
     const changes: Array<{ key: string; changed: boolean }> = []
-    const upsertPromises: any[] = []
+    const upsertPromises: Array<ReturnType<typeof prisma.systemSetting.upsert>> = []
     
     // Recursive function to process nested settings securely
-    function processSettings(obj: any, prefix = 'email') {
+    function processSettings(obj: Record<string, unknown>, prefix = 'email') {
       for (const [key, value] of Object.entries(obj)) {
         const settingKey = `${prefix}.${key}`
         
         if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-          processSettings(value, settingKey)
+          processSettings(value as Record<string, unknown>, settingKey)
         } else {
           const currentValue = currentSettingsMap.get(settingKey)
           const hasChanged = currentValue !== value
@@ -218,13 +219,13 @@ export async function POST(request: NextRequest) {
             prisma.systemSetting.upsert({
               where: { key: settingKey },
               update: {
-                value: value as any,
+                value: value as string,
                 category: 'email',
                 updatedAt: new Date()
               },
               create: {
                 key: settingKey,
-                value: value as any,
+                value: value as string,
                 category: 'email',
                 description: `Email configuration - ${key}`,
                 createdAt: new Date()
@@ -255,7 +256,7 @@ export async function POST(request: NextRequest) {
         }
       } catch (testError) {
         logger.warn('Email configuration test failed', {
-          userId: session.user.id,
+          userId: parseInt(session.user.id as string),
           smtpHost: validatedSettings.smtp.host,
           smtpPort: validatedSettings.smtp.port,
           error: testError instanceof Error ? testError.message : 'Unknown error'
@@ -272,7 +273,7 @@ export async function POST(request: NextRequest) {
     // Comprehensive audit log for security tracking
     if (changes.length > 0) {
       await auditLog({
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         entity: 'EmailSettings',
         entityId: 0, // System level
         action: 'update',
@@ -287,7 +288,7 @@ export async function POST(request: NextRequest) {
       // Special logging for security-relevant changes
       if (changes.some(c => c.key.includes('password') || c.key.includes('enabled'))) {
         logger.warn('Critical email settings modified', {
-          userId: session.user.id,
+          userId: parseInt(session.user.id as string),
           username: session.user.name || session.user.email,
           emailEnabled: validatedSettings.enabled,
           smtpHost: validatedSettings.smtp?.host ? '[CONFIGURED]' : '[NOT_SET]',
@@ -299,7 +300,7 @@ export async function POST(request: NextRequest) {
     }
 
     logger.info('Email settings updated successfully', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       changesCount: changes.length,
       emailEnabled: validatedSettings.enabled,
       hasSmtpConfig: !!(validatedSettings.smtp?.host),
@@ -313,7 +314,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     logger.error('Error updating email settings', error instanceof Error ? error : undefined, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       endpoint: '/api/admin/email/settings',
       method: 'POST'
     })

@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { auth } from '@/auth'
 import { logger } from '@/lib/logger'
-import { User, ApiResponse } from '@/types'
+import { ApiResponse } from '@/types'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await auth()
   if (!session?.user || session.user.role !== 'admin') {
     logger.warn('Unauthorized access attempt to users', {
@@ -22,12 +22,24 @@ export async function GET() {
   }
   
   try {
+    // Paramètres de pagination
+    const { searchParams } = new URL(req.url)
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 100)
+    const skip = (page - 1) * limit
+    
     logger.info('Fetching users', {
-      userId: session.user.id,
-      userRole: session.user.role
+      userId: parseInt(session.user.id as string),
+      userRole: session.user.role,
+      page,
+      limit
     })
 
+    const totalCount = await prisma.user.count()
+
     const users = await prisma.user.findMany({
+      skip,
+      take: limit,
       select: {
         id: true,
         username: true,
@@ -57,19 +69,38 @@ export async function GET() {
     })
 
     logger.info('Users fetched successfully', {
-      userId: session.user.id,
-      userCount: users.length
+      userId: parseInt(session.user.id as string),
+      userCount: users.length,
+      totalCount,
+      page,
+      hasMore: skip + users.length < totalCount
     })
 
-    const response: ApiResponse<typeof users> = {
+    const response: ApiResponse<{
+      users: typeof users,
+      pagination: {
+        page: number,
+        limit: number,
+        total: number,
+        hasMore: boolean
+      }
+    }> = {
       success: true,
-      data: users
+      data: {
+        users,
+        pagination: {
+          page,
+          limit,
+          total: totalCount,
+          hasMore: skip + users.length < totalCount
+        }
+      }
     }
     
     return NextResponse.json(response)
   } catch (error) {
     logger.error('Error fetching users', error as Error, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       endpoint: '/api/users'
     })
     

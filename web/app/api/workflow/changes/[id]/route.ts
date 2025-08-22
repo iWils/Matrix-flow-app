@@ -27,7 +27,7 @@ export async function PATCH(
   // Only admins can approve/reject change requests
   if (session.user.role !== 'admin') {
     logger.warn('Non-admin user attempted to review change request', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       userRole: session.user.role,
       endpoint: '/api/workflow/changes/[id]',
       method: 'PATCH'
@@ -42,7 +42,7 @@ export async function PATCH(
   const requestId = parseInt(resolvedParams.id)
   if (isNaN(requestId)) {
     logger.warn('Invalid change request ID provided', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       providedId: resolvedParams.id,
       endpoint: '/api/workflow/changes/[id]'
     })
@@ -54,7 +54,7 @@ export async function PATCH(
 
   try {
     logger.info('Starting change request review', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       changeRequestId: requestId,
       endpoint: '/api/workflow/changes/[id]',
       method: 'PATCH'
@@ -92,7 +92,7 @@ export async function PATCH(
 
     if (!changeRequest) {
       logger.warn('Change request not found', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         changeRequestId: requestId
       })
       return NextResponse.json<ApiResponse<null>>({
@@ -103,7 +103,7 @@ export async function PATCH(
 
     if (changeRequest.status !== 'pending') {
       logger.warn('Attempt to review already processed change request', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         changeRequestId: requestId,
         currentStatus: changeRequest.status,
         attemptedAction: validatedData.action
@@ -115,9 +115,9 @@ export async function PATCH(
     }
 
     // Prevent users from approving their own requests
-    if (changeRequest.requestedById === session.user.id) {
+    if (changeRequest.requestedById === parseInt(session.user.id as string)) {
       logger.warn('User attempted to review their own change request', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         changeRequestId: requestId,
         requestedById: changeRequest.requestedById
       })
@@ -128,13 +128,13 @@ export async function PATCH(
     }
 
     // Use transaction to ensure data consistency
-    const result = await prisma.$transaction(async (tx: any) => {
+    const result = await prisma.$transaction(async (tx) => {
       // Update the change request
       const updatedRequest = await tx.changeRequest.update({
         where: { id: requestId },
         data: {
           status: validatedData.action === 'approve' ? 'approved' : 'rejected',
-          reviewedById: session.user.id,
+          reviewedById: parseInt(session.user.id as string),
           reviewedAt: new Date(),
           reviewComment: validatedData.reviewComment || null
         },
@@ -161,10 +161,10 @@ export async function PATCH(
 
       // If approved, apply the changes
       if (validatedData.action === 'approve') {
-        const requestedData = changeRequest.requestedData as any
+        const requestedData = changeRequest.requestedData as Record<string, unknown>
 
         logger.info('Applying approved change request', {
-          userId: session.user.id,
+          userId: parseInt(session.user.id as string),
           changeRequestId: requestId,
           requestType: changeRequest.requestType,
           matrixId: changeRequest.matrixId
@@ -178,12 +178,12 @@ export async function PATCH(
                 matrixId: changeRequest.matrixId,
                 ...requestedData,
                 implementation_date: requestedData.implementation_date
-                  ? new Date(requestedData.implementation_date)
+                  ? new Date(requestedData.implementation_date as string)
                   : null
               }
             })
             logger.info('New flow entry created from change request', {
-              userId: session.user.id,
+              userId: parseInt(session.user.id as string),
               changeRequestId: requestId,
               newEntryId: newEntry.id,
               matrixId: changeRequest.matrixId
@@ -198,13 +198,13 @@ export async function PATCH(
                 data: {
                   ...requestedData,
                   implementation_date: requestedData.implementation_date
-                    ? new Date(requestedData.implementation_date)
+                    ? new Date(requestedData.implementation_date as string)
                     : null,
                   updatedAt: new Date()
                 }
               })
               logger.info('Flow entry updated from change request', {
-                userId: session.user.id,
+                userId: parseInt(session.user.id as string),
                 changeRequestId: requestId,
                 entryId: changeRequest.entryId,
                 matrixId: changeRequest.matrixId
@@ -219,7 +219,7 @@ export async function PATCH(
                 where: { id: changeRequest.entryId }
               })
               logger.info('Flow entry deleted from change request', {
-                userId: session.user.id,
+                userId: parseInt(session.user.id as string),
                 changeRequestId: requestId,
                 deletedEntryId: changeRequest.entryId,
                 matrixId: changeRequest.matrixId
@@ -234,7 +234,7 @@ export async function PATCH(
 
     // Comprehensive audit log for change request review
     await auditLog({
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId: changeRequest.matrixId,
       entity: 'ChangeRequest',
       entityId: requestId,
@@ -256,12 +256,12 @@ export async function PATCH(
       status: result.status as 'pending' | 'approved' | 'rejected',
       requestedBy: {
         username: result.requestedBy.username,
-        fullName: result.requestedBy.fullName
+        fullName: result.requestedBy.fullName || undefined
       },
       requestedAt: result.requestedAt.toISOString(),
       reviewedBy: result.reviewedBy ? {
         username: result.reviewedBy.username,
-        fullName: result.reviewedBy.fullName
+        fullName: result.reviewedBy.fullName || undefined
       } : undefined,
       reviewedAt: result.reviewedAt?.toISOString(),
       description: result.description,
@@ -270,7 +270,7 @@ export async function PATCH(
     }
 
     logger.info('Change request reviewed successfully', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       changeRequestId: requestId,
       action: validatedData.action,
       matrixId: changeRequest.matrixId,
@@ -287,7 +287,7 @@ export async function PATCH(
 
   } catch (error) {
     logger.error('Error reviewing change request', error instanceof Error ? error : undefined, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       changeRequestId: requestId,
       endpoint: '/api/workflow/changes/[id]',
       method: 'PATCH'

@@ -29,7 +29,7 @@ export async function POST(
   const matrixId = parseInt(resolvedParams.id)
   if (isNaN(matrixId)) {
     logger.warn('Invalid matrix ID provided for entry creation', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       providedId: resolvedParams.id,
       endpoint: '/api/matrices/[id]/entries'
     })
@@ -41,17 +41,17 @@ export async function POST(
 
   try {
     logger.info('Starting matrix entry creation', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       endpoint: '/api/matrices/[id]/entries',
       method: 'POST'
     })
 
     // Check matrix edit permissions
-    const canEdit = await canEditMatrix(session.user.id, session.user.role, matrixId)
+    const canEdit = await canEditMatrix(parseInt(session.user.id as string), session.user.role, matrixId)
     if (!canEdit) {
       logger.warn('User lacks permission to create matrix entry', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         userRole: session.user.role,
         matrixId,
         action: 'create_entry'
@@ -70,7 +70,7 @@ export async function POST(
 
     if (!matrix) {
       logger.warn('Matrix not found for entry creation', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         matrixId
       })
       return NextResponse.json<ApiResponse<null>>({
@@ -93,7 +93,7 @@ export async function POST(
 
       if (existingEntry) {
         logger.warn('Duplicate rule name attempted', {
-          userId: session.user.id,
+          userId: parseInt(session.user.id as string),
           matrixId,
           ruleName: validatedData.rule_name,
           existingEntryId: existingEntry.id
@@ -117,7 +117,7 @@ export async function POST(
 
     // Comprehensive audit log
     await auditLog({
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       entity: 'FlowEntry',
       entityId: entry.id,
@@ -139,7 +139,7 @@ export async function POST(
     }
 
     logger.info('Matrix entry created successfully', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       entryId: entry.id,
       matrixId,
       matrixName: matrix.name,
@@ -155,7 +155,7 @@ export async function POST(
 
   } catch (error) {
     logger.error('Error creating matrix entry', error instanceof Error ? error : undefined, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       endpoint: '/api/matrices/[id]/entries',
       method: 'POST'

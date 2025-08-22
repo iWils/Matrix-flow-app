@@ -22,7 +22,7 @@ export function ProtectedRoute({
   fallbackPath = '/',
   customErrorMessage
 }: ProtectedRouteProps) {
-  const { data: session, status } = useSession()
+  const { status } = useSession() // session used by permissions hook
   const router = useRouter()
   const permissions = useGlobalPermissions()
 

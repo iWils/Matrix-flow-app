@@ -1,6 +1,8 @@
 
 import { prisma } from './db'
-import { AuditAction } from '@prisma/client'
+// Types pour l'audit
+type AuditAction = 'create' | 'update' | 'delete'
+import { logger } from './logger'
 
 export interface AuditLogOptions {
   userId?: number
@@ -8,7 +10,7 @@ export interface AuditLogOptions {
   entity: string
   entityId: number
   action: AuditAction
-  changes: any
+  changes: Record<string, unknown>
   ip?: string
   userAgent?: string
 }
@@ -22,13 +24,19 @@ export async function auditLog(opts: AuditLogOptions) {
         entity: opts.entity,
         entityId: opts.entityId,
         action: opts.action,
-        changes: opts.changes,
+        changes: opts.changes ? JSON.parse(JSON.stringify(opts.changes)) : null,
         ip: opts.ip,
         userAgent: opts.userAgent
       }
     })
   } catch (error) {
-    console.error('Failed to create audit log:', error)
+    logger.error('Failed to create audit log', error as Error, {
+      entity: opts.entity,
+      entityId: opts.entityId,
+      action: opts.action,
+      userId: opts.userId,
+      matrixId: opts.matrixId
+    })
     // Ne pas faire échouer l'opération principale si l'audit échoue
   }
 }

@@ -5,7 +5,7 @@ import { auth } from '@/auth'
 import { auditLog } from '@/lib/audit'
 import { logger } from '@/lib/logger'
 import { RegisterUserSchema } from '@/lib/validate'
-import { User, ApiResponse, RegisterResponse } from '@/types'
+import { ApiResponse, RegisterResponse } from '@/types'
 
 export async function POST(req: NextRequest) {
   const session = await auth()
@@ -40,14 +40,14 @@ export async function POST(req: NextRequest) {
     if (!validationResult.success) {
       logger.warn('Invalid user registration data', {
         adminId: session.user.id,
-        errors: validationResult.error.errors,
+        errors: validationResult.error.issues,
         body: { ...body, password: '[REDACTED]' }
       })
       
       const errorResponse: ApiResponse = {
         success: false,
         error: 'Données invalides',
-        message: validationResult.error.errors[0]?.message
+        message: validationResult.error.issues[0]?.message
       }
       
       return NextResponse.json(errorResponse, { status: 400 })
@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
 
     // Audit log
     await auditLog({
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       entity: 'User',
       entityId: user.id,
       action: 'create',

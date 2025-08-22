@@ -1,11 +1,7 @@
 # web/Dockerfile
 FROM node:22-alpine AS base
 
-# Install dependencies only when needed
-FROM base AS deps
-
-# npm à la dernière version
-RUN npm install -g npm@latest
+ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN apk add --no-cache \
     libc6-compat \
@@ -13,7 +9,15 @@ RUN apk add --no-cache \
     openssl-dev \
     python3 \
     make \
-    g++
+    g++ \
+    netcat-openbsd \
+    postgresql-client
+
+# npm à la dernière version
+RUN npm install -g npm@latest
+
+# Install dependencies only when needed
+FROM base AS deps
 
 WORKDIR /app
 
@@ -30,12 +34,6 @@ RUN npm install --legacy-peer-deps && npm cache clean --force
 FROM base AS builder
 WORKDIR /app
 
-# npm à la dernière version
-RUN npm install -g npm@latest
-
-# Installer les dépendances système pour le runtime
-RUN apk add --no-cache openssl openssl-dev
-
 # Copier node_modules complet depuis deps
 COPY --from=deps /app/node_modules ./node_modules
 
@@ -46,21 +44,21 @@ COPY . .
 RUN npx prisma generate
 
 # Build the application
-ENV NEXT_TELEMETRY_DISABLED 1
+# ENV NEXT_TELEMETRY_DISABLED 1
 RUN npm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
 
-# Installer OpenSSL et netcat pour le runtime
-RUN apk add --no-cache openssl netcat-openbsd
-
 ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+# ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
+
+# Créer le répertoire de sauvegarde
+RUN mkdir -p /backups && chown -R nextjs:nodejs /backups
 
 # Copy necessary files
 COPY --from=builder /app/public ./public

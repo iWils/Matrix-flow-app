@@ -22,7 +22,7 @@ interface TableHeaderProps {
 
 export function TableHeader({ children, className }: TableHeaderProps) {
   return (
-    <thead className={cn('text-left text-slate-500 bg-slate-50', className)}>
+    <thead className={cn('text-left text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800', className)}>
       {children}
     </thead>
   )
@@ -48,7 +48,7 @@ interface TableRowProps {
 
 export function TableRow({ children, className }: TableRowProps) {
   return (
-    <tr className={cn('border-t hover:bg-slate-50', className)}>
+    <tr className={cn('border-t hover:bg-slate-50 dark:bg-slate-800', className)}>
       {children}
     </tr>
   )

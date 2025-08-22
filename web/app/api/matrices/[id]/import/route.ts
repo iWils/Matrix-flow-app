@@ -6,8 +6,9 @@ import { auditLog } from '@/lib/audit'
 import { COLMAP } from '@/lib/csv'
 import { parse } from 'csv-parse/sync'
 import { logger } from '@/lib/logger'
-import { MatrixImportSchema, CreateMatrixEntrySchema } from '@/lib/validate'
+import { CreateMatrixEntrySchema } from '@/lib/validate'
 import { ApiResponse } from '@/types'
+import * as XLSX from 'xlsx'
 
 interface ImportResult {
   success: boolean
@@ -17,7 +18,7 @@ interface ImportResult {
   errorDetails?: Array<{
     row: number
     error: string
-    data: any
+    data: Record<string, unknown>
   }>
 }
 
@@ -43,7 +44,7 @@ export async function POST(
   const matrixId = parseInt(resolvedParams.id)
   if (isNaN(matrixId)) {
     logger.warn('Invalid matrix ID provided for import', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       providedId: resolvedParams.id,
       endpoint: '/api/matrices/[id]/import'
     })
@@ -55,17 +56,17 @@ export async function POST(
 
   try {
     logger.info('Starting matrix data import', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       endpoint: '/api/matrices/[id]/import',
       method: 'POST'
     })
 
     // Check matrix edit permissions
-    const canEdit = await canEditMatrix(session.user.id, session.user.role, matrixId)
+    const canEdit = await canEditMatrix(parseInt(session.user.id as string), session.user.role, matrixId)
     if (!canEdit) {
       logger.warn('User lacks permission to import matrix data', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         userRole: session.user.role,
         matrixId,
         action: 'import_data'
@@ -84,7 +85,7 @@ export async function POST(
 
     if (!matrix) {
       logger.warn('Matrix not found for import', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         matrixId
       })
       return NextResponse.json<ApiResponse<null>>({
@@ -94,13 +95,13 @@ export async function POST(
     }
 
     const formData = await req.formData()
-    const file = formData.get('csv') as File
+    const file = formData.get('file') as File
     const overwriteParam = formData.get('overwrite') === 'true'
     const skipValidationParam = formData.get('skipValidation') === 'true'
     
     if (!file) {
       logger.warn('No file provided for matrix import', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         matrixId
       })
       return NextResponse.json<ApiResponse<null>>({
@@ -110,23 +111,26 @@ export async function POST(
     }
 
     // Validate file type and size
-    if (!file.name.endsWith('.csv')) {
+    const supportedExtensions = ['.csv', '.xlsx', '.xls', '.json']
+    const hasValidExtension = supportedExtensions.some(ext => file.name.toLowerCase().endsWith(ext))
+    
+    if (!hasValidExtension) {
       logger.warn('Invalid file format for matrix import', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         matrixId,
         fileName: file.name,
         fileType: file.type
       })
       return NextResponse.json<ApiResponse<null>>({
         success: false,
-        message: 'Only CSV files are supported'
+        message: 'Supported formats: CSV, XLSX, XLS, JSON'
       }, { status: 400 })
     }
 
     const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
     if (file.size > MAX_FILE_SIZE) {
       logger.warn('File too large for matrix import', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         matrixId,
         fileName: file.name,
         fileSize: file.size,
@@ -138,41 +142,102 @@ export async function POST(
       }, { status: 413 })
     }
 
-    const csvText = await file.text()
+    // Parse file based on format
+    let records: Array<Record<string, string>>
+    const fileExtension = file.name.toLowerCase().split('.').pop()
     
-    // Parse CSV with error handling
-    let records: any[]
     try {
-      records = parse(csvText, {
-        columns: true,
-        skip_empty_lines: true,
-        delimiter: ',',
-        quote: '"',
-        cast: false,
-        relax_column_count: true
-      })
+      switch (fileExtension) {
+        case 'csv':
+          const csvText = await file.text()
+          
+          // Auto-detect delimiter by checking first few lines
+          const firstLines = csvText.split('\n').slice(0, 5).join('\n')
+          const semicolonCount = (firstLines.match(/;/g) || []).length
+          const commaCount = (firstLines.match(/,/g) || []).length
+          const delimiter = semicolonCount > commaCount ? ';' : ','
+          
+          records = parse(csvText, {
+            columns: true,
+            skip_empty_lines: true,
+            delimiter,
+            quote: '"',
+            cast: false,
+            relax_column_count: true,
+            relax_quotes: true, // Allow malformed quotes
+            escape: '"'
+          })
+          break
+
+        case 'xlsx':
+        case 'xls':
+          const workbookBuffer = await file.arrayBuffer()
+          const workbook = XLSX.read(workbookBuffer, { type: 'buffer' })
+          
+          // Use first worksheet
+          const firstSheetName = workbook.SheetNames[0]
+          if (!firstSheetName) {
+            throw new Error('No worksheets found in Excel file')
+          }
+          
+          const worksheet = workbook.Sheets[firstSheetName]
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
+          
+          if (jsonData.length < 2) {
+            throw new Error('Excel file must contain at least a header row and one data row')
+          }
+          
+          // Convert to records format
+          const headers = jsonData[0] as string[]
+          records = (jsonData.slice(1) as (string | number)[][]).map((row) => {
+            const record: Record<string, string> = {}
+            headers.forEach((header, colIndex) => {
+              record[header] = row[colIndex] ? String(row[colIndex]).trim() : ''
+            })
+            return record
+          })
+          break
+
+        case 'json':
+          const jsonText = await file.text()
+          const jsonContent = JSON.parse(jsonText)
+          
+          // Support both array format and object format with entries array
+          if (Array.isArray(jsonContent)) {
+            records = jsonContent
+          } else if (jsonContent.entries && Array.isArray(jsonContent.entries)) {
+            records = jsonContent.entries
+          } else {
+            throw new Error('JSON file must contain an array of entries or an object with an "entries" array')
+          }
+          break
+
+        default:
+          throw new Error(`Unsupported file format: ${fileExtension}`)
+      }
     } catch (parseError) {
-      logger.warn('CSV parsing failed', {
-        userId: session.user.id,
+      logger.warn('File parsing failed', {
+        userId: parseInt(session.user.id as string),
         matrixId,
         fileName: file.name,
+        fileExtension,
         parseError: parseError instanceof Error ? parseError.message : 'Unknown error'
       })
       return NextResponse.json<ApiResponse<null>>({
         success: false,
-        message: 'Invalid CSV format'
+        message: `Invalid ${fileExtension?.toUpperCase()} format: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`
       }, { status: 400 })
     }
 
     if (records.length === 0) {
-      logger.warn('Empty CSV file provided', {
-        userId: session.user.id,
+      logger.warn('Empty file provided', {
+        userId: parseInt(session.user.id as string),
         matrixId,
         fileName: file.name
       })
       return NextResponse.json<ApiResponse<null>>({
         success: false,
-        message: 'CSV file is empty'
+        message: 'File contains no data'
       }, { status: 400 })
     }
 
@@ -187,7 +252,7 @@ export async function POST(
       })
 
       logger.info('Existing entries cleared for overwrite', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         matrixId,
         deletedCount
       })
@@ -195,7 +260,7 @@ export async function POST(
 
     let imported = 0
     let errors = 0
-    const errorDetails: Array<{ row: number; error: string; data: any }> = []
+    const errorDetails: Array<{ row: number; error: string; data: Record<string, unknown> }> = []
     const duplicateRules: string[] = []
 
     // Process records with transaction for data integrity
@@ -205,7 +270,7 @@ export async function POST(
 
       try {
         // Map CSV columns to DB fields
-        const entryData: any = {}
+        const entryData: Record<string, string | number | boolean | Date | null> = {}
         
         for (const [csvCol, dbField] of Object.entries(COLMAP)) {
           if (record[csvCol]) {
@@ -214,15 +279,31 @@ export async function POST(
         }
 
         // Convert date if present
-        if (entryData.implementation_date) {
+        if (entryData.implementation_date && entryData.implementation_date !== '') {
           try {
-            entryData.implementation_date = new Date(entryData.implementation_date)
-            if (isNaN(entryData.implementation_date.getTime())) {
-              entryData.implementation_date = null
+            let dateStr = entryData.implementation_date as string
+            
+            // Handle DD/MM/YYYY format
+            if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+              const [day, month, year] = dateStr.split('/')
+              dateStr = `${year}-${month}-${day}`
             }
+            // Handle DD-MM-YYYY format
+            else if (dateStr.match(/^\d{2}-\d{2}-\d{4}$/)) {
+              const [day, month, year] = dateStr.split('-')
+              dateStr = `${year}-${month}-${day}`
+            }
+            
+            const parsedDate = new Date(dateStr)
+            if (isNaN(parsedDate.getTime())) {
+              throw new Error(`Invalid date format: ${entryData.implementation_date}`)
+            }
+            entryData.implementation_date = parsedDate
           } catch {
-            entryData.implementation_date = null
+            throw new Error(`Invalid date format for implementation_date: ${entryData.implementation_date}. Expected formats: YYYY-MM-DD, DD/MM/YYYY, or DD-MM-YYYY`)
           }
+        } else {
+          entryData.implementation_date = null
         }
 
         // Validate data if not skipping validation
@@ -236,14 +317,14 @@ export async function POST(
 
         // Check for duplicate rule names
         if (entryData.rule_name) {
-          if (duplicateRules.includes(entryData.rule_name)) {
+          if (duplicateRules.includes(entryData.rule_name as string)) {
             throw new Error(`Duplicate rule name in CSV: ${entryData.rule_name}`)
           }
           
           const existingEntry = await prisma.flowEntry.findFirst({
             where: {
               matrixId,
-              rule_name: entryData.rule_name
+              rule_name: entryData.rule_name as string
             }
           })
 
@@ -251,7 +332,7 @@ export async function POST(
             throw new Error(`Rule name already exists: ${entryData.rule_name}`)
           }
 
-          duplicateRules.push(entryData.rule_name)
+          duplicateRules.push(entryData.rule_name as string)
         }
 
         // Create entry
@@ -267,7 +348,7 @@ export async function POST(
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error'
         logger.warn('Error importing CSV row', {
-          userId: session.user.id,
+          userId: parseInt(session.user.id as string),
           matrixId,
           rowNumber,
           error: errorMessage,
@@ -285,7 +366,7 @@ export async function POST(
 
     // Comprehensive audit log
     await auditLog({
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       entity: 'Matrix',
       entityId: matrixId,
@@ -313,7 +394,7 @@ export async function POST(
     }
 
     logger.info('Matrix data import completed', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       matrixName: matrix.name,
       fileName: file.name,
@@ -331,7 +412,7 @@ export async function POST(
 
   } catch (error) {
     logger.error('Error importing matrix data', error instanceof Error ? error : undefined, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       endpoint: '/api/matrices/[id]/import',
       method: 'POST'

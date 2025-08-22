@@ -1,7 +1,7 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-import { useLanguage } from '../providers/LanguageProvider'
+import { useTranslation } from 'react-i18next'
 
 interface UserMenuProps {
   onChangePassword: () => void
@@ -12,7 +12,7 @@ interface UserMenuProps {
 
 export function UserMenu({ onChangePassword, onChangeName, onChangeLanguage, onLogout }: UserMenuProps) {
   const { data: session } = useSession()
-  const { t } = useLanguage()
+  const { t } = useTranslation('common')
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -53,7 +53,7 @@ export function UserMenu({ onChangePassword, onChangeName, onChangeLanguage, onL
           </div>
         </div>
         <svg 
-          className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 text-slate-400 dark:text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           fill="none" 
           stroke="currentColor" 
           viewBox="0 0 24 24"

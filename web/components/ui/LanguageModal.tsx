@@ -2,8 +2,7 @@
 import { useState } from 'react'
 import { Modal } from './Modal'
 import { Button } from './Button'
-import { useLanguage } from '../providers/LanguageProvider'
-import { Language, languages } from '../../lib/i18n'
+import { useTranslation } from 'react-i18next'
 
 interface LanguageModalProps {
   isOpen: boolean
@@ -11,15 +10,35 @@ interface LanguageModalProps {
 }
 
 export function LanguageModal({ isOpen, onClose }: LanguageModalProps) {
-  const { language: currentLanguage, setLanguage, t } = useLanguage()
-  const [selectedLanguage, setSelectedLanguage] = useState<Language>(currentLanguage)
+  const { t, i18n } = useTranslation('common')
+  const [selectedLanguage, setSelectedLanguage] = useState(i18n.language || 'fr')
 
-  const handleSave = () => {
-    setLanguage(selectedLanguage)
-    onClose()
+  const handleSave = async () => {
+    try {
+      // Update language in i18next
+      await i18n.changeLanguage(selectedLanguage)
+      
+      // Save to user profile
+      const response = await fetch('/api/users/language', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ language: selectedLanguage }),
+      })
+      
+      if (!response.ok) {
+        console.error('Failed to save language preference')
+      }
+      
+      onClose()
+    } catch (error) {
+      console.error('Error saving language:', error)
+    }
   }
 
-  const languageFlags: Record<Language, string> = {
+  const languages = { fr: 'Français', en: 'English', es: 'Español' }
+  const languageFlags: Record<string, string> = {
     fr: '🇫🇷',
     en: '🇬🇧',
     es: '🇪🇸'
@@ -29,11 +48,11 @@ export function LanguageModal({ isOpen, onClose }: LanguageModalProps) {
     <Modal isOpen={isOpen} onClose={onClose} title={t('changeLanguage')}>
       <div className="space-y-4">
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          Sélectionnez votre langue préférée pour l'interface.
+          Sélectionnez votre langue préférée pour l&apos;interface.
         </p>
         
         <div className="space-y-2">
-          {(Object.keys(languages) as Language[]).map((lang) => (
+          {Object.keys(languages).map((lang) => (
             <label
               key={lang}
               className={`
@@ -49,16 +68,16 @@ export function LanguageModal({ isOpen, onClose }: LanguageModalProps) {
                 name="language"
                 value={lang}
                 checked={selectedLanguage === lang}
-                onChange={(e) => setSelectedLanguage(e.target.value as Language)}
+                onChange={(e) => setSelectedLanguage(e.target.value)}
                 className="sr-only"
               />
               <span className="text-2xl">{languageFlags[lang]}</span>
               <div className="flex-1">
-                <div className="font-medium text-slate-900 dark:text-slate-100">{languages[lang]}</div>
+                <div className="font-medium text-slate-900 dark:text-slate-100">{languages[lang as keyof typeof languages]}</div>
                 <div className="text-sm text-slate-500 dark:text-slate-400">
-                  {lang === 'fr' && 'Français'}
-                  {lang === 'en' && 'English'}
-                  {lang === 'es' && 'Español'}
+                  {lang === 'fr' && t('french')}
+                  {lang === 'en' && t('english')}
+                  {lang === 'es' && t('spanish')}
                 </div>
               </div>
               {selectedLanguage === lang && (

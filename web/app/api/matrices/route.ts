@@ -4,9 +4,9 @@ import { auth } from '@/auth'
 import { auditLog } from '@/lib/audit'
 import { logger } from '@/lib/logger'
 import { CreateMatrixSchema } from '@/lib/validate'
-import { Matrix, ApiResponse } from '@/types'
+import { ApiResponse } from '@/types'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await auth()
   if (!session?.user) {
     logger.warn('Unauthorized access attempt to matrices', {
@@ -22,12 +22,25 @@ export async function GET() {
   }
 
   try {
+    // Récupérer les paramètres de pagination depuis l'URL
+    const { searchParams } = new URL(req.url)
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 100) // Max 100 items
+    const skip = (page - 1) * limit
+
     logger.info('Fetching matrices', {
-      userId: session.user.id,
-      userRole: session.user.role
+      userId: parseInt(session.user.id as string),
+      userRole: session.user.role,
+      page,
+      limit
     })
 
+    // Compter le total pour la pagination
+    const totalCount = await prisma.matrix.count()
+
     const matrices = await prisma.matrix.findMany({
+      skip,
+      take: limit,
       include: {
         owner: {
           select: {
@@ -54,19 +67,38 @@ export async function GET() {
     })
 
     logger.info('Matrices fetched successfully', {
-      userId: session.user.id,
-      matrixCount: matrices.length
+      userId: parseInt(session.user.id as string),
+      matrixCount: matrices.length,
+      totalCount,
+      page,
+      hasMore: skip + matrices.length < totalCount
     })
 
-    const response: ApiResponse<typeof matrices> = {
+    const response: ApiResponse<{
+      matrices: typeof matrices,
+      pagination: {
+        page: number,
+        limit: number,
+        total: number,
+        hasMore: boolean
+      }
+    }> = {
       success: true,
-      data: matrices
+      data: {
+        matrices,
+        pagination: {
+          page,
+          limit,
+          total: totalCount,
+          hasMore: skip + matrices.length < totalCount
+        }
+      }
     }
 
     return NextResponse.json(response)
   } catch (error) {
     logger.error('Error fetching matrices', error as Error, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       endpoint: '/api/matrices'
     })
     
@@ -97,7 +129,7 @@ export async function POST(req: NextRequest) {
   // Vérifier que l'utilisateur peut créer des matrices (admin ou user, pas viewer)
   if (session.user.role === 'viewer') {
     logger.warn('Viewer attempted to create matrix', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       userRole: session.user.role,
       endpoint: '/api/matrices'
     })
@@ -117,15 +149,15 @@ export async function POST(req: NextRequest) {
     const validationResult = CreateMatrixSchema.safeParse(body)
     if (!validationResult.success) {
       logger.warn('Invalid matrix creation data', {
-        userId: session.user.id,
-        errors: validationResult.error.errors,
+        userId: parseInt(session.user.id as string),
+        errors: validationResult.error.issues,
         body
       })
       
       const errorResponse: ApiResponse = {
         success: false,
         error: 'Données invalides',
-        message: validationResult.error.errors[0]?.message
+        message: validationResult.error.issues[0]?.message
       }
       
       return NextResponse.json(errorResponse, { status: 400 })
@@ -134,7 +166,7 @@ export async function POST(req: NextRequest) {
     const { name, description, requiredApprovals = 1 } = validationResult.data
 
     logger.info('Creating new matrix', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixName: name,
       requiredApprovals
     })
@@ -146,7 +178,7 @@ export async function POST(req: NextRequest) {
         data: {
           name: name.trim(),
           description: description?.trim() || null,
-          ownerId: session.user.id,
+          ownerId: parseInt(session.user.id as string),
           requiredApprovals
         }
       })
@@ -159,8 +191,8 @@ export async function POST(req: NextRequest) {
           status: 'approved',
           note: 'Version initiale créée automatiquement',
           snapshot: { entries: [] }, // Snapshot vide pour commencer
-          createdById: session.user.id,
-          approvedById: session.user.id,
+          createdById: parseInt(session.user.id as string),
+          approvedById: parseInt(session.user.id as string),
           approvedAt: new Date(),
           requiredApprovals
         }
@@ -191,7 +223,7 @@ export async function POST(req: NextRequest) {
 
     // Audit log
     await auditLog({
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       entity: 'Matrix',
       entityId: result.id,
       action: 'create',
@@ -199,7 +231,7 @@ export async function POST(req: NextRequest) {
     })
 
     logger.info('Matrix created successfully', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId: result.id,
       matrixName: result.name
     })
@@ -213,7 +245,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(response)
   } catch (error) {
     logger.error('Error creating matrix', error as Error, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       endpoint: '/api/matrices'
     })
     

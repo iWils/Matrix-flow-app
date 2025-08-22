@@ -31,7 +31,7 @@ export async function PUT(
   
   if (isNaN(matrixId) || isNaN(entryId)) {
     logger.warn('Invalid IDs provided for entry update', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       providedMatrixId: resolvedParams.id,
       providedEntryId: resolvedParams.entryId,
       endpoint: '/api/matrices/[id]/entries/[entryId]'
@@ -44,7 +44,7 @@ export async function PUT(
 
   try {
     logger.info('Starting matrix entry update', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       entryId,
       endpoint: '/api/matrices/[id]/entries/[entryId]',
@@ -52,10 +52,10 @@ export async function PUT(
     })
 
     // Check matrix edit permissions
-    const canEdit = await canEditMatrix(session.user.id, session.user.role, matrixId)
+    const canEdit = await canEditMatrix(parseInt(session.user.id as string), session.user.role, matrixId)
     if (!canEdit) {
       logger.warn('User lacks permission to update matrix entry', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         userRole: session.user.role,
         matrixId,
         entryId,
@@ -79,7 +79,7 @@ export async function PUT(
 
     if (!existingEntry) {
       logger.warn('Entry not found for update', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         matrixId,
         entryId
       })
@@ -104,7 +104,7 @@ export async function PUT(
 
       if (duplicateEntry) {
         logger.warn('Duplicate rule name attempted during update', {
-          userId: session.user.id,
+          userId: parseInt(session.user.id as string),
           matrixId,
           entryId,
           newRuleName: validatedData.rule_name,
@@ -130,7 +130,7 @@ export async function PUT(
 
     // Comprehensive audit log
     await auditLog({
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       entity: 'FlowEntry',
       entityId: entryId,
@@ -157,7 +157,7 @@ export async function PUT(
     }
 
     logger.info('Matrix entry updated successfully', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       entryId,
       matrixId,
       matrixName: existingEntry.matrix.name,
@@ -174,7 +174,7 @@ export async function PUT(
 
   } catch (error) {
     logger.error('Error updating matrix entry', error instanceof Error ? error : undefined, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       entryId,
       endpoint: '/api/matrices/[id]/entries/[entryId]',
@@ -212,7 +212,7 @@ export async function DELETE(
   
   if (isNaN(matrixId) || isNaN(entryId)) {
     logger.warn('Invalid IDs provided for entry deletion', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       providedMatrixId: resolvedParams.id,
       providedEntryId: resolvedParams.entryId,
       endpoint: '/api/matrices/[id]/entries/[entryId]'
@@ -225,7 +225,7 @@ export async function DELETE(
 
   try {
     logger.info('Starting matrix entry deletion', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       entryId,
       endpoint: '/api/matrices/[id]/entries/[entryId]',
@@ -233,10 +233,10 @@ export async function DELETE(
     })
 
     // Check matrix edit permissions
-    const canEdit = await canEditMatrix(session.user.id, session.user.role, matrixId)
+    const canEdit = await canEditMatrix(parseInt(session.user.id as string), session.user.role, matrixId)
     if (!canEdit) {
       logger.warn('User lacks permission to delete matrix entry', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         userRole: session.user.role,
         matrixId,
         entryId,
@@ -260,7 +260,7 @@ export async function DELETE(
 
     if (!entry) {
       logger.warn('Entry not found for deletion', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         matrixId,
         entryId
       })
@@ -277,7 +277,7 @@ export async function DELETE(
 
     // Comprehensive audit log
     await auditLog({
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       entity: 'FlowEntry',
       entityId: entryId,
@@ -295,7 +295,7 @@ export async function DELETE(
     })
 
     logger.info('Matrix entry deleted successfully', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       entryId,
       matrixId,
       matrixName: entry.matrix.name,
@@ -310,7 +310,7 @@ export async function DELETE(
 
   } catch (error) {
     logger.error('Error deleting matrix entry', error instanceof Error ? error : undefined, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       entryId,
       endpoint: '/api/matrices/[id]/entries/[entryId]',

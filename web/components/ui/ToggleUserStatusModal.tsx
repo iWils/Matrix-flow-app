@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Modal } from './Modal'
 import { Button } from './Button'
 import { User } from '@/types'
@@ -12,12 +13,13 @@ interface ToggleUserStatusModalProps {
 }
 
 export function ToggleUserStatusModal({ isOpen, onClose, user, onSuccess }: ToggleUserStatusModalProps) {
+  const { t } = useTranslation('common')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
   const newStatus = !user.isActive
-  const actionText = newStatus ? 'activer' : 'désactiver'
-  const actionTextCapitalized = newStatus ? 'Activer' : 'Désactiver'
+  const actionText = newStatus ? t('activate') : t('deactivate')
+  const actionTextCapitalized = newStatus ? t('activateCapital') : t('deactivateCapital')
 
   const handleSubmit = async () => {
     setError('')
@@ -41,7 +43,7 @@ export function ToggleUserStatusModal({ isOpen, onClose, user, onSuccess }: Togg
       onSuccess()
       onClose()
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Erreur lors de la modification du statut')
+      setError(error instanceof Error ? error.message : t('errorModifyingStatus'))
     } finally {
       setIsLoading(false)
     }
@@ -53,15 +55,15 @@ export function ToggleUserStatusModal({ isOpen, onClose, user, onSuccess }: Togg
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title={`${actionTextCapitalized} l'utilisateur`}>
+    <Modal isOpen={isOpen} onClose={handleClose} title={`${actionTextCapitalized} ${t('theUser')}`}>
       <div className="space-y-4">
         <div>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Êtes-vous sûr de vouloir {actionText} l'utilisateur <strong>{user.fullName || user.username}</strong> ?
+            {t('confirmUserAction', { action: actionText, username: user.fullName || user.username })}
           </p>
           {!newStatus && (
             <p className="text-sm text-amber-600 dark:text-amber-400 mt-2">
-              ⚠️ L'utilisateur ne pourra plus se connecter une fois désactivé.
+              ⚠️ {t('deactivateWarning')}
             </p>
           )}
         </div>
@@ -77,7 +79,7 @@ export function ToggleUserStatusModal({ isOpen, onClose, user, onSuccess }: Togg
             onClick={handleClose}
             disabled={isLoading}
           >
-            Annuler
+            {t('cancel')}
           </Button>
           <Button
             type="button"
@@ -85,7 +87,7 @@ export function ToggleUserStatusModal({ isOpen, onClose, user, onSuccess }: Togg
             disabled={isLoading}
             variant={newStatus ? "primary" : "danger"}
           >
-            {isLoading ? 'Modification...' : actionTextCapitalized}
+            {isLoading ? t('modifying') : actionTextCapitalized}
           </Button>
         </div>
       </div>

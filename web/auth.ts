@@ -1,4 +1,4 @@
-import NextAuth from "next-auth"
+import NextAuth, { DefaultSession } from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/db"
@@ -7,17 +7,25 @@ import bcrypt from "bcryptjs"
 declare module "next-auth" {
   interface Session {
     user: {
-      id: number
-      email: string
-      role: "admin" | "user" | "viewer"
+      id: string | number
+      email?: string | null
       name?: string | null
-    }
+      role: "admin" | "user" | "viewer"
+      language: string
+    } & DefaultSession["user"]
+  }
+
+  interface User {
+    role: "admin" | "user" | "viewer"
+    language: string
   }
 }
+
 
 declare module "@auth/core/adapters" {
   interface AdapterUser {
     role: "admin" | "user" | "viewer"
+    language: string
   }
 }
 
@@ -55,7 +63,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: user.id.toString(),
           email: user.email || user.username,
           name: user.fullName,
-          role: user.role
+          role: user.role,
+          language: user.language
         }
       }
     })
@@ -64,14 +73,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = (user as any).role;
+        token.role = user.role;
+        token.language = user.language;
       }
       return token;
     },
     async session({ session, token }) {
-      if (token) {
-        (session.user as any).id = parseInt(token.id as string);
-        (session.user as any).role = token.role;
+      if (token && session.user) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as "admin" | "user" | "viewer";
+        session.user.language = token.language as string;
       }
       return session;
     }

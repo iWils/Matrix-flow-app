@@ -5,7 +5,7 @@ import { canEditMatrix } from '@/lib/rbac'
 import { auditLog } from '@/lib/audit'
 import { logger } from '@/lib/logger'
 import { CreateMatrixVersionSchema } from '@/lib/validate'
-import { ApiResponse, MatrixVersion } from '@/types'
+import { ApiResponse, MatrixVersion, MatrixSnapshot, MatrixStatus } from '@/types'
 
 export async function POST(
   req: NextRequest,
@@ -29,7 +29,7 @@ export async function POST(
   const matrixId = parseInt(resolvedParams.id)
   if (isNaN(matrixId)) {
     logger.warn('Invalid matrix ID provided for version creation', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       providedId: resolvedParams.id,
       endpoint: '/api/matrices/[id]/versions'
     })
@@ -41,17 +41,17 @@ export async function POST(
 
   try {
     logger.info('Starting matrix version creation', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       endpoint: '/api/matrices/[id]/versions',
       method: 'POST'
     })
 
     // Check matrix edit permissions
-    const canEdit = await canEditMatrix(session.user.id, session.user.role, matrixId)
+    const canEdit = await canEditMatrix(parseInt(session.user.id as string), session.user.role, matrixId)
     if (!canEdit) {
       logger.warn('User lacks permission to create matrix version', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         userRole: session.user.role,
         matrixId,
         action: 'create_version'
@@ -82,7 +82,7 @@ export async function POST(
 
     if (!matrix) {
       logger.warn('Matrix not found for version creation', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         matrixId
       })
       return NextResponse.json<ApiResponse<null>>({
@@ -95,7 +95,7 @@ export async function POST(
     const hasRecentVersion = matrix.versions.length > 0
     if (hasRecentVersion && matrix.entries.length === 0) {
       logger.warn('Attempt to create version with no entries', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         matrixId,
         matrixName: matrix.name
       })
@@ -109,7 +109,7 @@ export async function POST(
 
     // Create comprehensive snapshot
     const snapshot = {
-      entries: matrix.entries.map((entry: any) => ({
+      entries: matrix.entries.map((entry) => ({
         id: entry.id,
         request_type: entry.request_type,
         rule_status: entry.rule_status,
@@ -150,7 +150,7 @@ export async function POST(
         version: nextVersion,
         note: validatedData.note?.trim() || null,
         snapshot,
-        createdById: session.user.id,
+        createdById: parseInt(session.user.id as string),
         requiredApprovals: matrix.requiredApprovals
       },
       include: {
@@ -165,7 +165,7 @@ export async function POST(
 
     // Comprehensive audit log
     await auditLog({
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       entity: 'MatrixVersion',
       entityId: version.id,
@@ -185,8 +185,8 @@ export async function POST(
       matrixId: version.matrixId,
       version: version.version,
       note: version.note,
-      snapshot: version.snapshot as any,
-      status: version.status as any,
+      snapshot: version.snapshot as unknown as MatrixSnapshot,
+      status: version.status as MatrixStatus,
       createdById: version.createdById!,
       requiredApprovals: version.requiredApprovals!,
       createdAt: version.createdAt,
@@ -198,7 +198,7 @@ export async function POST(
     }
 
     logger.info('Matrix version created successfully', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       versionId: version.id,
       matrixId,
       matrixName: matrix.name,
@@ -215,7 +215,7 @@ export async function POST(
 
   } catch (error) {
     logger.error('Error creating matrix version', error instanceof Error ? error : undefined, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       endpoint: '/api/matrices/[id]/versions',
       method: 'POST'

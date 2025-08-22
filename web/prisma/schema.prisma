@@ -52,6 +52,7 @@ model User {
   fullName              String?
   passwordHash          String
   role                  GlobalRole @default(viewer)
+  language              String     @default("fr")
   isActive              Boolean    @default(true)
   createdAt             DateTime   @default(now())
   lastPasswordChange    DateTime   @default(now())
@@ -70,6 +71,8 @@ model User {
   accounts              Account[]
   sessions              Session[]
 
+  @@index([isActive, role])
+  @@index([createdAt(sort: Desc)])
   @@map("users")
 }
 
@@ -92,6 +95,8 @@ model Matrix {
   versions            MatrixVersion[]     @relation("MatrixVersions")
   changeRequests      ChangeRequest[]
 
+  @@index([updatedAt(sort: Desc)])
+  @@index([ownerId, updatedAt(sort: Desc)])
   @@map("matrices")
 }
 
@@ -122,6 +127,9 @@ model FlowEntry {
   matrix            Matrix          @relation(fields: [matrixId], references: [id], onDelete: Cascade)
   changeRequests    ChangeRequest[]
 
+  @@index([matrixId, createdAt(sort: Desc)])
+  @@index([matrixId, rule_name])
+  @@index([matrixId, updatedAt(sort: Desc)])
   @@map("flow_entries")
 }
 
@@ -160,6 +168,9 @@ model MatrixVersion {
   publishedMatrix    Matrix?         @relation("PublishedVersion")
 
   @@unique([matrixId, version])
+  @@index([matrixId, version(sort: Desc)])
+  @@index([status, createdAt(sort: Desc)])
+  @@index([approvedAt(sort: Desc)])
   @@map("matrix_versions")
 }
 
@@ -192,6 +203,12 @@ model AuditLog {
   // Relations
   user      User?      @relation(fields: [userId], references: [id])
 
+  @@index([at(sort: Desc)])
+  @@index([entity, at(sort: Desc)])
+  @@index([action, at(sort: Desc)])
+  @@index([userId, at(sort: Desc)])
+  @@index([matrixId, at(sort: Desc)])
+  @@index([entity, action, at(sort: Desc)])
   @@map("audit_logs")
 }
 
@@ -215,6 +232,10 @@ model ChangeRequest {
   requestedBy     User                  @relation("RequestedBy", fields: [requestedById], references: [id])
   reviewedBy      User?                 @relation("ReviewedBy", fields: [reviewedById], references: [id])
 
+  @@index([status, requestedAt(sort: Desc)])
+  @@index([matrixId, status, requestedAt(sort: Desc)])
+  @@index([requestedById, status, requestedAt(sort: Desc)])
+  @@index([matrixId, entryId, requestType, status, requestedById])
   @@map("change_requests")
 }
 
@@ -249,6 +270,8 @@ model Session {
   // Relations
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+  @@index([expires])
   @@map("sessions")
 }
 
@@ -272,6 +295,7 @@ model SystemSetting {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([category])
   @@map("system_settings")
 }
 
@@ -287,6 +311,7 @@ model UserGroup {
   // Relations
   members     UserGroupMember[]
 
+  @@index([isActive])
   @@map("user_groups")
 }
 
@@ -314,6 +339,8 @@ model AuthProvider {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  @@index([isActive, priority])
+  @@index([type])
   @@map("auth_providers")
 }
 
@@ -328,5 +355,6 @@ model EmailTemplate {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  @@index([isActive])
   @@map("email_templates")
 }

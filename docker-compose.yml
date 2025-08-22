@@ -10,6 +10,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       POSTGRES_DB: ${POSTGRES_DB:-matrixflow}
+    ports:
+      - "5432:5432"
     volumes:
       - dbdata:/var/lib/postgresql/data
     healthcheck:
@@ -25,7 +27,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-changeme}@db:5432/${POSTGRES_DB:-matrixflow}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-changeme}@${POSTGRES_IP:-db}:5432/${POSTGRES_DB:-matrixflow}
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-change-me-nextauth-secret}
       - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-${NEXTAUTH_URL:-http://localhost:3000}}
@@ -36,6 +38,9 @@ services:
         condition: service_healthy
     ports:
       - "3000:3000"  # Accès via http://localhost:3000
+    volumes:
+      - backups:/backups
 
 volumes:
   dbdata:
+  backups:

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
-import { ApiResponse, PaginatedResponse } from '@/types'
+import { ApiResponse } from '@/types'
 
 export async function GET(request: NextRequest) {
   const session = await auth()
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
   // Vérifier que l'utilisateur est admin
   if (session.user.role !== 'admin') {
     logger.warn('Non-admin user attempted to access audit logs', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       userRole: session.user.role,
       endpoint: '/api/audit'
     })
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Construire les filtres dynamiquement
-    const whereClause: any = {}
+    const whereClause: Record<string, unknown> = {}
     if (entityFilter) {
       whereClause.entity = entityFilter
     }
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
     ])
 
     // Transformer les données pour correspondre au format attendu
-    const formattedLogs = auditLogs.map((log: any) => ({
+    const formattedLogs = auditLogs.map((log) => ({
       id: log.id,
       entity: log.entity,
       entityId: log.entityId,

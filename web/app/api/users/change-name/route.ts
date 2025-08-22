@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     
     logger.info('Name change attempt', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       userEmail: session.user.email,
       endpoint: '/api/users/change-name'
     })
@@ -36,8 +36,8 @@ export async function POST(request: NextRequest) {
     const validationResult = ChangeNameSchema.safeParse(body)
     if (!validationResult.success) {
       logger.warn('Invalid name change data', {
-        userId: session.user.id,
-        errors: validationResult.error.errors,
+        userId: parseInt(session.user.id as string),
+        errors: validationResult.error.issues,
         body,
         endpoint: '/api/users/change-name'
       })
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       const errorResponse: ApiResponse = {
         success: false,
         error: 'Données invalides',
-        message: validationResult.error.errors[0]?.message
+        message: validationResult.error.issues[0]?.message
       }
       
       return NextResponse.json(errorResponse, { status: 400 })
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     const { fullName } = validationResult.data
 
     logger.info('Retrieving user for name update', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       userEmail: session.user.email,
       newName: fullName
     })
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     logger.error('Error during name change', error as Error, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       userEmail: session.user.email,
       endpoint: '/api/users/change-name'
     })

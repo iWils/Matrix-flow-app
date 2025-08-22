@@ -1,10 +1,11 @@
 import './globals.css'
 import { Providers } from './providers'
 import { LayoutContent } from './LayoutContent'
+import '@/lib/startup' // Initialize services
 
 export const metadata = {
   title: 'Matrix Flow',
-  description: 'Application de gestion des matrices de flux réseau',
+  description: 'Network flow matrix management application',
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',

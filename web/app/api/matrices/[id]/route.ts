@@ -5,7 +5,7 @@ import { auditLog } from '@/lib/audit'
 import { canEditMatrix } from '@/lib/rbac'
 import { logger } from '@/lib/logger'
 import { UpdateMatrixSchema } from '@/lib/validate'
-import { Matrix, ApiResponse } from '@/types'
+import { ApiResponse } from '@/types'
 
 export async function GET(
   req: NextRequest,
@@ -30,7 +30,7 @@ export async function GET(
   const matrixId = parseInt(resolvedParams.id)
   if (isNaN(matrixId)) {
     logger.warn('Invalid matrix ID provided', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       providedId: resolvedParams.id,
       endpoint: `/api/matrices/[id]`
     })
@@ -45,7 +45,7 @@ export async function GET(
 
   try {
     logger.info('Fetching matrix details', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       userRole: session.user.role
     })
@@ -82,7 +82,7 @@ export async function GET(
 
     if (!matrix) {
       logger.warn('Matrix not found', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         matrixId,
         endpoint: `/api/matrices/${matrixId}`
       })
@@ -96,7 +96,7 @@ export async function GET(
     }
 
     logger.info('Matrix details fetched successfully', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       matrixName: matrix.name,
       entriesCount: matrix.entries.length,
@@ -111,7 +111,7 @@ export async function GET(
     return NextResponse.json(response)
   } catch (error) {
     logger.error('Error fetching matrix details', error as Error, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       endpoint: `/api/matrices/${matrixId}`
     })
@@ -148,7 +148,7 @@ export async function PUT(
   const matrixId = parseInt(resolvedParams.id)
   if (isNaN(matrixId)) {
     logger.warn('Invalid matrix ID provided for update', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       providedId: resolvedParams.id,
       endpoint: `/api/matrices/[id]`
     })
@@ -163,15 +163,15 @@ export async function PUT(
 
   try {
     logger.info('Checking edit permissions for matrix', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       userRole: session.user.role
     })
 
-    const canEdit = await canEditMatrix(session.user.id, session.user.role, matrixId)
+    const canEdit = await canEditMatrix(parseInt(session.user.id as string), session.user.role, matrixId)
     if (!canEdit) {
       logger.warn('User attempted to edit matrix without permission', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         matrixId,
         userRole: session.user.role
       })
@@ -190,16 +190,16 @@ export async function PUT(
     const validationResult = UpdateMatrixSchema.safeParse(body)
     if (!validationResult.success) {
       logger.warn('Invalid matrix update data', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         matrixId,
-        errors: validationResult.error.errors,
+        errors: validationResult.error.issues,
         body
       })
       
       const errorResponse: ApiResponse = {
         success: false,
         error: 'Données invalides',
-        message: validationResult.error.errors[0]?.message
+        message: validationResult.error.issues[0]?.message
       }
       
       return NextResponse.json(errorResponse, { status: 400 })
@@ -208,7 +208,7 @@ export async function PUT(
     const { name, description, requiredApprovals } = validationResult.data
 
     logger.info('Updating matrix', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       changes: { name, description, requiredApprovals }
     })
@@ -225,7 +225,7 @@ export async function PUT(
 
     // Audit log
     await auditLog({
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       entity: 'Matrix',
       entityId: matrixId,
@@ -234,7 +234,7 @@ export async function PUT(
     })
 
     logger.info('Matrix updated successfully', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       matrixName: matrix.name
     })
@@ -248,7 +248,7 @@ export async function PUT(
     return NextResponse.json(response)
   } catch (error) {
     logger.error('Error updating matrix', error as Error, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       endpoint: `/api/matrices/${matrixId}`
     })
@@ -287,7 +287,7 @@ export async function DELETE(
   const matrixId = parseInt(resolvedParams.id)
   if (isNaN(matrixId)) {
     logger.warn('Invalid matrix ID provided for deletion', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       providedId: resolvedParams.id,
       endpoint: `/api/matrices/[id]`
     })
@@ -302,7 +302,7 @@ export async function DELETE(
 
   try {
     logger.info('Attempting to delete matrix', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       userRole: session.user.role
     })
@@ -314,7 +314,7 @@ export async function DELETE(
 
     if (!matrix) {
       logger.warn('Matrix not found for deletion', {
-        userId: session.user.id,
+        userId: parseInt(session.user.id as string),
         matrixId,
         endpoint: `/api/matrices/${matrixId}`
       })
@@ -333,7 +333,7 @@ export async function DELETE(
 
     // Audit log
     await auditLog({
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       entity: 'Matrix',
       entityId: matrixId,
       action: 'delete',
@@ -341,7 +341,7 @@ export async function DELETE(
     })
 
     logger.info('Matrix deleted successfully', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       matrixName: matrix.name,
       originalOwnerId: matrix.ownerId
@@ -355,7 +355,7 @@ export async function DELETE(
     return NextResponse.json(response)
   } catch (error) {
     logger.error('Error deleting matrix', error as Error, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       matrixId,
       endpoint: `/api/matrices/${matrixId}`
     })

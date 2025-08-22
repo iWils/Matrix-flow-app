@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     
     logger.info('Password change attempt', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       userEmail: session.user.email,
       endpoint: '/api/users/change-password'
     })
@@ -37,15 +37,15 @@ export async function POST(request: NextRequest) {
     const validationResult = ChangePasswordSchema.safeParse(body)
     if (!validationResult.success) {
       logger.warn('Invalid password change data', {
-        userId: session.user.id,
-        errors: validationResult.error.errors,
+        userId: parseInt(session.user.id as string),
+        errors: validationResult.error.issues,
         endpoint: '/api/users/change-password'
       })
       
       const errorResponse: ApiResponse = {
         success: false,
         error: 'Données invalides',
-        message: validationResult.error.errors[0]?.message
+        message: validationResult.error.issues[0]?.message
       }
       
       return NextResponse.json(errorResponse, { status: 400 })
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     const { currentPassword, newPassword } = validationResult.data
 
     logger.info('Retrieving user for password verification', {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       userEmail: session.user.email
     })
 
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     logger.error('Error during password change', error as Error, {
-      userId: session.user.id,
+      userId: parseInt(session.user.id as string),
       userEmail: session.user.email,
       endpoint: '/api/users/change-password'
     })

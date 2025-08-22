@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
+import { useTranslation } from 'react-i18next'
 import { Modal } from './Modal'
 import { Input } from './Input'
 import { Button } from './Button'
@@ -11,6 +12,7 @@ interface ChangeNameModalProps {
 }
 
 export function ChangeNameModal({ isOpen, onClose }: ChangeNameModalProps) {
+  const { t } = useTranslation('common')
   const { data: session, update } = useSession()
   const [name, setName] = useState(session?.user?.name || '')
   const [isLoading, setIsLoading] = useState(false)
@@ -22,12 +24,12 @@ export function ChangeNameModal({ isOpen, onClose }: ChangeNameModalProps) {
     setError('')
     
     if (!name.trim()) {
-      setError('Le nom ne peut pas être vide')
+      setError(t('nameCannotBeEmpty'))
       return
     }
 
     if (name.trim().length < 2) {
-      setError('Le nom doit contenir au moins 2 caractères')
+      setError(t('nameMinLength'))
       return
     }
 
@@ -63,7 +65,7 @@ export function ChangeNameModal({ isOpen, onClose }: ChangeNameModalProps) {
         handleClose()
       }, 2000)
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Une erreur est survenue')
+      setError(error instanceof Error ? error.message : t('errorOccurred'))
     } finally {
       setIsLoading(false)
     }
@@ -77,7 +79,7 @@ export function ChangeNameModal({ isOpen, onClose }: ChangeNameModalProps) {
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Modifier le nom">
+    <Modal isOpen={isOpen} onClose={handleClose} title={t('modifyName')}>
       {success ? (
         <div className="text-center py-4">
           <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -85,13 +87,13 @@ export function ChangeNameModal({ isOpen, onClose }: ChangeNameModalProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <p className="text-green-600 dark:text-green-400 font-medium">Nom modifié avec succès !</p>
+          <p className="text-green-600 dark:text-green-400 font-medium">{t('nameChangedSuccess')}</p>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Nom d'utilisateur
+              {t('name')}
             </label>
             <Input
               id="name"
@@ -100,7 +102,7 @@ export function ChangeNameModal({ isOpen, onClose }: ChangeNameModalProps) {
               onChange={(e) => setName(e.target.value)}
               required
               disabled={isLoading}
-              placeholder="Entrez votre nom"
+              placeholder={t('enterYourName')}
               minLength={2}
             />
           </div>
@@ -119,14 +121,14 @@ export function ChangeNameModal({ isOpen, onClose }: ChangeNameModalProps) {
               disabled={isLoading}
               className="flex-1"
             >
-              Annuler
+              {t('cancel')}
             </Button>
             <Button
               type="submit"
               disabled={isLoading || !name.trim() || name.trim() === session?.user?.name}
               className="flex-1"
             >
-              {isLoading ? 'Modification...' : 'Modifier le nom'}
+              {isLoading ? t('modifying') : t('changeName')}
             </Button>
           </div>
         </form>

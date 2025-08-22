@@ -1,0 +1,13 @@
+{
+  "noMatricesFound": "No se encontraron matrices",
+  "noFlowEntries": "No hay entradas de flujo.",
+  "createdBy": "Creado por",
+  "unknown": "Desconocido",
+  "matrixNotFound": "Matriz no encontrada",
+  "noAccess": "Sin acceso",
+  "createEntry": "Crear entrada",
+  "submitRequest": "Enviar solicitud",
+  "importWithErrors": "Importación completada con errores",
+  "import": "Importar",
+  "preview": "Vista previa"
+}

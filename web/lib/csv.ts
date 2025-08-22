@@ -1,3 +1,25 @@
+// Function to get localized CSV headers
+export function getLocalizedHeaders(t: (key: string) => string): Record<string, string> {
+  return {
+    [t('csvRequestType')]: "request_type",
+    [t('csvRuleStatus')]: "rule_status",
+    [t('csvRuleName')]: "rule_name",
+    [t('csvDevice')]: "device",
+    [t('csvSrcZone')]: "src_zone",
+    [t('csvSrcName')]: "src_name",
+    [t('csvSrcCidr')]: "src_cidr",
+    [t('csvSrcService')]: "src_service",
+    [t('csvDstZone')]: "dst_zone",
+    [t('csvDstName')]: "dst_name",
+    [t('csvDstCidr')]: "dst_cidr",
+    [t('csvProtocolGroup')]: "protocol_group",
+    [t('csvDstService')]: "dst_service",
+    [t('csvAction')]: "action",
+    [t('csvImplementationDate')]: "implementation_date",
+    [t('csvRequester')]: "requester",
+    [t('csvComment')]: "comment"
+  }
+}
 
 export const COLMAP: Record<string,string> = {
   "Nature de la demande": "request_type",
@@ -18,5 +40,22 @@ export const COLMAP: Record<string,string> = {
   "Action": "action",
   "Date d'implémentation": "implementation_date",
   "Nom du demandeur": "requester",
-  "Commentaire": "comment"
+  "Commentaire": "comment",
+  // English headers
+  "Request Type": "request_type",
+  "Rule Status": "rule_status",
+  "Rule Name": "rule_name",
+  "Applicable Equipment (FW)": "device",
+  "Source Zone": "src_zone",
+  "Source Name": "src_name",
+  "Source IP or Subnet": "src_cidr",
+  "Source Ports (Port + Protocol)": "src_service",
+  "Destination Zone": "dst_zone",
+  "Destination Name": "dst_name",
+  "Destination IP or Subnet": "dst_cidr",
+  "Protocol Group": "protocol_group",
+  "Destination Ports (Port + Protocol)": "dst_service",
+  "Implementation Date": "implementation_date",
+  "Requester Name": "requester",
+  "Comment": "comment"
 }
