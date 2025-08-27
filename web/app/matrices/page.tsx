@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useTranslation } from 'react-i18next'
+import { useLocalizedDate } from '@/lib/hooks/useLocalizedDate'
 import Link from 'next/link'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
@@ -34,6 +35,7 @@ export default function MatricesPage() {
   const { t } = useTranslation(['common', 'matrices'])
   useSession() // Session used by permissions hook internally
   const permissions = useGlobalPermissions()
+  const { formatShortDate } = useLocalizedDate()
   const [matrices, setMatrices] = useState<Matrix[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -180,7 +182,7 @@ export default function MatricesPage() {
                   {t('matrices:createdBy')} {matrix.owner?.fullName || matrix.owner?.username || t('matrices:unknown')}
                 </div>
                 <div>
-                  Modifié {new Date(matrix.updatedAt).toLocaleDateString('fr-FR')}
+                  Modifié {formatShortDate(matrix.updatedAt)}
                 </div>
               </div>
 

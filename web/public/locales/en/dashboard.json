@@ -8,6 +8,7 @@
   "flowManagement": "Flow management",
   "welcome": "Welcome",
   "thisMonth": "this month",
+  "title": "Matrix Flow - Dashboard",
   "activeUsers": "Active",
   "operational": "Operational",
   "quickActions": "Quick Actions",
@@ -37,5 +38,19 @@
   "flowEntries": "Flow Entries",
   "usersCount": "Users",
   "rbacSecurity": "RBAC Security",
-  "systemHealth": "System Health"
+  "systemHealth": "System Health",
+  "adminActions": "Admin Actions",
+  "manageUsers": "Manage Users",
+  "inactiveUsers": "inactive users",
+  "rbacManagement": "RBAC Management",
+  "rolesAndPermissions": "Roles and permissions",
+  "systemSettings": "System Settings",
+  "generalConfiguration": "General configuration",
+  "system": "System",
+  "created": "created",
+  "updated": "updated",
+  "deleted": "deleted",
+  "matrixEntity": "matrix",
+  "entryEntity": "entry",
+  "userEntity": "user"
 }

@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { useSession } from 'next-auth/react'
 import { Modal } from './Modal'
 import { Button } from './Button'
 import { useTranslation } from 'react-i18next'
@@ -11,12 +12,16 @@ interface LanguageModalProps {
 
 export function LanguageModal({ isOpen, onClose }: LanguageModalProps) {
   const { t, i18n } = useTranslation('common')
-  const [selectedLanguage, setSelectedLanguage] = useState(i18n.language || 'fr')
+  const { data: session, update } = useSession()
+  const [selectedLanguage, setSelectedLanguage] = useState(session?.user?.language || i18n.language || 'fr')
 
   const handleSave = async () => {
     try {
-      // Update language in i18next
+      // Update language in i18next first
       await i18n.changeLanguage(selectedLanguage)
+      
+      // Store in localStorage to persist immediately
+      localStorage.setItem('i18nextLng', selectedLanguage)
       
       // Save to user profile
       const response = await fetch('/api/users/language', {
@@ -29,7 +34,20 @@ export function LanguageModal({ isOpen, onClose }: LanguageModalProps) {
       
       if (!response.ok) {
         console.error('Failed to save language preference')
+        return
       }
+      
+      // Update session with new language
+      await update({
+        ...session,
+        user: {
+          ...session?.user,
+          language: selectedLanguage
+        }
+      })
+      
+      // Force a reload to ensure all components pick up the new language
+      window.location.reload()
       
       onClose()
     } catch (error) {
@@ -48,7 +66,7 @@ export function LanguageModal({ isOpen, onClose }: LanguageModalProps) {
     <Modal isOpen={isOpen} onClose={onClose} title={t('changeLanguage')}>
       <div className="space-y-4">
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          Sélectionnez votre langue préférée pour l&apos;interface.
+          {t('selectPreferredLanguage')}
         </p>
         
         <div className="space-y-2">

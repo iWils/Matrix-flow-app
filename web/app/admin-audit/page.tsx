@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { useTranslation } from 'react-i18next'
+import { useLocalizedDate } from '@/lib/hooks/useLocalizedDate'
 
 type AuditLog = {
   id: number
@@ -22,6 +23,7 @@ type AuditLog = {
 export default function AuditPage() {
   const { data: session } = useSession()
   const { t } = useTranslation(['dashboard', 'common'])
+  const { formatDateTime } = useLocalizedDate()
   const router = useRouter()
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
   const [loading, setLoading] = useState(true)
@@ -126,7 +128,7 @@ export default function AuditPage() {
                     </Badge>
                   </div>
                   <div className="text-xs text-slate-400 dark:text-slate-400 mb-2">
-                    {new Date(log.at).toLocaleString('fr-FR')}
+                    {formatDateTime(log.at)}
                   </div>
                   {log.changes && Object.keys(log.changes).length > 0 && (
                     <div className="text-xs bg-slate-800 p-2 rounded border border-slate-600">

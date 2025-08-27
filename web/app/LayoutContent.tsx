@@ -9,6 +9,7 @@ import { ChangePasswordModal } from '../components/ui/ChangePasswordModal'
 import { ChangeNameModal } from '../components/ui/ChangeNameModal'
 import { LanguageModal } from '../components/ui/LanguageModal'
 import { ThemeToggle } from '../components/ui/ThemeToggle'
+import LanguageSelector from '../components/ui/LanguageSelector'
 import { useTranslation } from 'react-i18next'
 
 export function LayoutContent({ children }: { children: React.ReactNode }) {
@@ -18,7 +19,7 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
   const [changePasswordModalOpen, setChangePasswordModalOpen] = useState(false)
   const [changeNameModalOpen, setChangeNameModalOpen] = useState(false)
   const [languageModalOpen, setLanguageModalOpen] = useState(false)
-  const { t } = useTranslation(['dashboard', 'common'])
+  const { t } = useTranslation(['dashboard', 'common', 'admin', 'workflow', 'matrices'])
   
   // Pages qui ne doivent pas avoir la sidebar
   const isAuthPage = pathname === '/login' || pathname.startsWith('/api/auth/')
@@ -191,7 +192,6 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
             <UserMenu
               onChangePassword={() => setChangePasswordModalOpen(true)}
               onChangeName={() => setChangeNameModalOpen(true)}
-              onChangeLanguage={() => setLanguageModalOpen(true)}
               onLogout={() => {
                 import('next-auth/react').then(({ signOut }) => signOut())
               }}
@@ -247,6 +247,7 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
             
             {/* Actions supplémentaires */}
             <div className="flex items-center gap-4">
+              <LanguageSelector />
               <ThemeToggle />
               <div className="hidden lg:block text-sm text-slate-500 dark:text-slate-400">
                 {session.user?.name || session.user?.email}

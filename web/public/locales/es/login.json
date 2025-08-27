@@ -1,0 +1,15 @@
+{
+  "welcomeLogin": "Inicie sesión en su cuenta",
+  "username": "Nombre de usuario",
+  "password": "Contraseña",
+  "enterUsername": "Ingrese su nombre de usuario",
+  "enterYourPassword": "Ingrese su contraseña",
+  "login": "Iniciar sesión",
+  "loggingIn": "Iniciando sesión...",
+  "invalidCredentials": "Nombre de usuario o contraseña incorrectos",
+  "connectionError": "Error de conexión",
+  "demoAccount": "Cuenta de demostración",
+  "securedBy": "Asegurado por",
+  "changeLanguage": "Cambiar idioma",
+  "changeTheme": "Cambiar tema"
+}

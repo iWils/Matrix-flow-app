@@ -8,6 +8,7 @@
   "flowManagement": "Gestion des flux",
   "welcome": "Bienvenue",
   "thisMonth": "ce mois",
+  "title": "Matrix Flow - Tableau de bord",
   "activeUsers": "Actifs",
   "operational": "Opérationnel",
   "quickActions": "Actions rapides",
@@ -37,5 +38,12 @@
   "flowEntries": "Entrées de flux",
   "usersCount": "Utilisateurs",
   "rbacSecurity": "Sécurité RBAC",
-  "systemHealth": "État du système"
+  "systemHealth": "État du système",
+  "adminActions": "Actions administrateur",
+  "manageUsers": "Gérer les utilisateurs", 
+  "inactiveUsers": "utilisateurs inactifs",
+  "rbacManagement": "Gestion RBAC",
+  "rolesAndPermissions": "Rôles et permissions",
+  "systemSettings": "Paramètres système",
+  "generalConfiguration": "Configuration générale"
 }

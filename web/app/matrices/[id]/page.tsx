@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useParams, useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
+import { useLocalizedDate } from '@/lib/hooks/useLocalizedDate'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
@@ -69,6 +70,7 @@ type Matrix = {
 
 export default function MatrixDetailPage() {
   const { t } = useTranslation(['common', 'matrices'])
+  const { formatShortDate } = useLocalizedDate()
   useSession() // Session used by usePermissions hook internally
   const params = useParams()
   const router = useRouter()
@@ -123,7 +125,7 @@ export default function MatrixDetailPage() {
     } finally {
       setLoading(false)
     }
-  }, [matrixId])
+  }, [matrixId, t])
 
   useEffect(() => {
     if (matrixId) {
@@ -398,7 +400,7 @@ export default function MatrixDetailPage() {
         </Card>
         <Card>
           <div className="text-sm text-slate-500 dark:text-slate-400">Dernière MAJ</div>
-          <div className="text-sm">{new Date(matrix.updatedAt).toLocaleDateString('fr-FR')}</div>
+          <div className="text-sm">{formatShortDate(matrix.updatedAt)}</div>
         </Card>
       </div>
 

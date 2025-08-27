@@ -21,11 +21,25 @@ class BackupScheduler {
   private isRunning = false
 
   constructor() {
-    this.init()
+    // Don't initialize during build - only initialize when explicitly started
+    // The scheduler will be manually started when the app runs
+  }
+
+  public async start() {
+    if (!this.isDatabaseAvailable()) {
+      return
+    }
+    await this.init()
   }
 
   private async init() {
     try {
+      // Check if database is available before attempting to connect
+      if (!this.isDatabaseAvailable()) {
+        logger.info('Database not available, skipping backup scheduler initialization')
+        return
+      }
+
       const settings = await this.getBackupSettings()
       if (settings.autoBackup) {
         this.startScheduler(settings)
@@ -36,8 +50,29 @@ class BackupScheduler {
     }
   }
 
+  private isDatabaseAvailable(): boolean {
+    // Skip if running in browser
+    if (typeof window !== 'undefined') {
+      return false
+    }
+
+    const databaseUrl = process.env.DATABASE_URL
+    if (!databaseUrl) {
+      return false
+    }
+    
+    // Skip initialization during build phase
+    if (process.env.NEXT_PHASE === 'phase-production-build' || 
+        process.env.BUILDING === 'true' ||
+        process.env.CI === 'true') {
+      return false
+    }
+
+    return true
+  }
+
   private async getBackupSettings(): Promise<BackupSettings> {
-    const settingsMap = new Map<string, any>()
+    const settingsMap = new Map<string, string>()
     
     const dbSettings = await prisma.systemSetting.findMany({
       where: {
@@ -47,14 +82,14 @@ class BackupScheduler {
       }
     })
 
-    dbSettings.forEach(setting => {
+    dbSettings.forEach((setting) => {
       const key = setting.key.replace('backup.', '')
-      settingsMap.set(key, setting.value)
+      settingsMap.set(key, String(setting.value) || '')
     })
 
     return {
-      autoBackup: settingsMap.get('autoBackup') === true || settingsMap.get('autoBackup') === 'true',
-      backupFrequency: settingsMap.get('backupFrequency') || 'daily',
+      autoBackup: settingsMap.get('autoBackup') === 'true',
+      backupFrequency: (settingsMap.get('backupFrequency') as 'daily' | 'weekly' | 'monthly') || 'daily',
       retentionCount: Number(settingsMap.get('retentionCount')) || 7,
       backupLocation: settingsMap.get('backupLocation') || '/backups'
     }

@@ -43,8 +43,8 @@ COPY . .
 # Générer le client Prisma
 RUN npx prisma generate
 
-# Build the application
-# ENV NEXT_TELEMETRY_DISABLED 1
+# Build the application without database connection
+# ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # Production image, copy all the files and run next
@@ -52,20 +52,24 @@ FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
+ENV PRISMA_QUERY_ENGINE_LIBRARY=/app/node_modules/.prisma/client/libquery_engine-linux-musl-openssl-3.0.x.so.node
+ENV PRISMA_QUERY_ENGINE_BINARY=/app/node_modules/.prisma/client/query-engine-linux-musl-openssl-3.0.x
 # ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Créer le répertoire de sauvegarde
+# Créer les répertoires nécessaires avec les bonnes permissions
 RUN mkdir -p /backups && chown -R nextjs:nodejs /backups
+RUN mkdir -p /app/.prisma && chown -R nextjs:nodejs /app/.prisma
+RUN mkdir -p /tmp/prisma && chown -R nextjs:nodejs /tmp/prisma
 
-# Copy necessary files
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/node_modules ./node_modules
-COPY start.sh ./start.sh
+# Copy necessary files with correct ownership
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --chown=nextjs:nodejs start.sh ./start.sh
 
 # Copy built application
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./

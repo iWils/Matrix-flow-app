@@ -1,0 +1,15 @@
+{
+  "welcomeLogin": "Sign in to your account",
+  "username": "Username",
+  "password": "Password",
+  "enterUsername": "Enter your username",
+  "enterYourPassword": "Enter your password", 
+  "login": "Sign in",
+  "loggingIn": "Signing in...",
+  "invalidCredentials": "Invalid username or password",
+  "connectionError": "Connection error",
+  "demoAccount": "Demo account",
+  "securedBy": "Secured by",
+  "changeLanguage": "Change language",
+  "changeTheme": "Change theme"
+}

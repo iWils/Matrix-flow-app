@@ -10,9 +10,17 @@ until nc -z db 5432; do
 done
 echo "✅ Base de données disponible"
 
-# Synchroniser le schéma avec la base de données
-echo "🔄 Synchronisation du schéma de base de données..."
+# Créer les tables si elles n'existent pas
+echo "🔄 Synchronisation du schéma avec la base de données..."
 npx prisma db push --accept-data-loss
+
+# Si des migrations existent, les appliquer
+if [ -d "prisma/migrations" ] && [ "$(ls -A prisma/migrations)" ]; then
+  echo "📂 Application des migrations..."
+  npx prisma migrate deploy || echo "Aucune migration à appliquer"
+else
+  echo "ℹ️ Aucune migration trouvée, utilisation de db push"
+fi
 
 # Toujours exécuter le seed (il vérifie lui-même s'il doit créer l'utilisateur)
 echo "👤 Vérification et création de l'utilisateur administrateur si nécessaire..."

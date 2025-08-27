@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
     })
 
     // Format data for API response
-    const formattedRequests: ChangeRequest[] = changeRequests.map(request => ({
+    const formattedRequests: ChangeRequest[] = changeRequests.map((request) => ({
       id: request.id,
       matrixId: request.matrixId.toString(),
       matrixName: request.matrix.name,

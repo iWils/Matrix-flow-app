@@ -194,17 +194,22 @@ clean:
 # Nettoyage complet (DANGER!)
 nuke:
 	@echo "$(RED)⚠️  DANGER: Cette commande va tout supprimer (conteneurs, volumes, images) !$(NC)"
-	@echo "Tapez 'CONFIRMER' pour continuer:"
-	@read confirm; \
-	if [ "$$confirm" = "CONFIRMER" ]; then \
+# 	@echo "Tapez 'CONFIRMER' pour continuer:"
+# 	@read confirm; \
+# 	if [ "$$confirm" = "CONFIRMER" ]; then \
 		echo "$(RED)Suppression en cours...$(NC)"; \
 		$(COMPOSE) down -v --rmi all; \
 		docker system prune -af --volumes; \
 		rm -rf $(WEB_DIR)/node_modules $(WEB_DIR)/.next; \
 		echo "$(GREEN)✅ Réinitialisation complète terminée$(NC)"; \
-	else \
-		echo "$(YELLOW)Annulé$(NC)"; \
-	fi
+# 	else \
+# 		echo "$(YELLOW)Annulé$(NC)"; \
+# 	fi
+	@echo "$(RED)Suppression en cours...$(NC)"
+	$(COMPOSE) down -v --rmi all
+	docker system prune -af --volumes
+	rm -rf $(WEB_DIR)/node_modules $(WEB_DIR)/.next
+	@echo "$(GREEN)✅ Réinitialisation complète terminée$(NC)"
 
 # Vérification de l'état de l'application
 health:

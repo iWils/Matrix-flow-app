@@ -52,6 +52,7 @@
   "schedulerStatus": "Statut du Planificateur",
   "enabled": "Activé",
   "disabled": "Désactivé",
+  "autoBackup": "Sauvegarde Automatique",
   "totalBackups": "Total Sauvegardes",
   "notScheduled": "Non programmé",
   "nextBackup": "Prochaine Sauvegarde",
@@ -68,5 +69,16 @@
   "confirmRestore": "Confirmer la Restauration",
   "restoreWarning": "Ceci remplacera toutes les données actuelles par la sauvegarde sélectionnée. Cette action ne peut pas être annulée.",
   "restoring": "Restauration...",
-  "confirmRestoreAction": "Restaurer la Base de Données"
+  "confirmRestoreAction": "Restaurer la Base de Données",
+  "returnToDashboard": "Retour au dashboard",
+  "accessDeniedAdmin": "Accès refusé. Seuls les administrateurs peuvent accéder à cette page.",
+  "noEmailProvided": "Pas d'email",
+  "createdOn": "Créé le",
+  "resetPassword": "Réinitialiser MDP",
+  "groups": "Groupes",
+  "totalUsers": "Total Utilisateurs",
+  "administrators": "Administrateurs",
+  "noUsers": "Aucun utilisateur",
+  "startByCreatingFirstUser": "Commencez par créer votre premier utilisateur.",
+  "errorCreatingUser": "Erreur lors de la création de l'utilisateur"
 }

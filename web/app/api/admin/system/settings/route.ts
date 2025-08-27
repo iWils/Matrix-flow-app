@@ -117,12 +117,12 @@ export async function GET(request: NextRequest) {
             // Type conversion based on default value type
             const defaultValue = categorySettings[key]
             if (typeof defaultValue === 'boolean') {
-              categorySettings[key] = setting.value === true || setting.value === 'true'
+              categorySettings[key] = String(setting.value) === 'true'
             } else if (typeof defaultValue === 'number') {
-              const numValue = Number(setting.value)
+              const numValue = Number(String(setting.value))
               categorySettings[key] = isNaN(numValue) ? defaultValue : numValue
             } else {
-              categorySettings[key] = setting.value
+              categorySettings[key] = String(setting.value)
             }
           }
         }
@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
     // Get current settings for audit comparison
     const currentSettings = await prisma.systemSetting.findMany()
     const currentSettingsMap = new Map(
-      currentSettings.map((s) => [s.key, s.value])
+      currentSettings.map((s) => [s.key, String(s.value)])
     )
 
     // Track changes for audit

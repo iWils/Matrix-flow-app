@@ -6,6 +6,8 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { useTranslation } from 'react-i18next'
+import { useLocalizedDate } from '@/lib/hooks/useLocalizedDate'
+import { Avatar } from '@/components/ui/Avatar'
 
 type DashboardStats = {
   totalMatrices: number
@@ -19,6 +21,7 @@ type DashboardStats = {
     user: {
       username: string
       fullName?: string
+      email?: string
     } | null
     changes: Record<string, unknown>
   }>
@@ -55,6 +58,7 @@ type DashboardStats = {
 export default function DashboardPage() {
   const { data: session } = useSession()
   const { t } = useTranslation(['dashboard', 'common'])
+  const { formatDate, formatDateTime } = useLocalizedDate()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -101,12 +105,7 @@ export default function DashboardPage() {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          {new Date().toLocaleDateString('fr-FR', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          })}
+          {formatDate(new Date())}
         </div>
       </div>
 
@@ -428,12 +427,20 @@ export default function DashboardPage() {
             {stats?.recentActivity && stats.recentActivity.length > 0 ? (
               stats.recentActivity.slice(0, 5).map(activity => (
                 <div key={activity.id} className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 hover:bg-slate-100 dark:bg-slate-700 transition-colors">
-                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                    activity.action === 'create' ? 'bg-green-100 text-green-700' :
-                    activity.action === 'delete' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
-                  }`}>
-                    {activity.action === 'create' ? '+' :
-                     activity.action === 'delete' ? '×' : '↻'}
+                  <div className="flex items-start gap-2">
+                    <Avatar 
+                      email={activity.user?.email} 
+                      name={activity.user?.fullName || activity.user?.username} 
+                      size={32} 
+                      showTooltip={true}
+                    />
+                    <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                      activity.action === 'create' ? 'bg-green-100 text-green-700' :
+                      activity.action === 'delete' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                    }`}>
+                      {activity.action === 'create' ? '+' :
+                       activity.action === 'delete' ? '×' : '↻'}
+                    </div>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm">
@@ -452,7 +459,7 @@ export default function DashboardPage() {
                       </span>
                     </div>
                     <div className="text-xs text-slate-500 mt-1">
-                      {new Date(activity.at).toLocaleString('fr-FR')}
+                      {formatDateTime(activity.at)}
                     </div>
                   </div>
                 </div>

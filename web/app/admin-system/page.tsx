@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useTranslation } from 'react-i18next'
+import { useLocalizedDate } from '@/lib/hooks/useLocalizedDate'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -39,6 +40,7 @@ type SystemSettings = {
 
 export default function SystemPage() {
   const { t } = useTranslation(['common', 'admin'])
+  const { formatDateTime } = useLocalizedDate()
   const { data: session } = useSession()
   const [settings, setSettings] = useState<SystemSettings>({
     general: {
@@ -73,8 +75,17 @@ export default function SystemPage() {
   const [creating, setCreating] = useState(false)
   const [restoring, setRestoring] = useState(false)
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null)
-  const [schedulerStatus, setSchedulerStatus] = useState<any>(null)
-  const [backupList, setBackupList] = useState<any[]>([])
+  const [schedulerStatus, setSchedulerStatus] = useState<{
+    isEnabled: boolean
+    backupCount: number
+    nextBackup?: string
+  } | null>(null)
+  const [backupList, setBackupList] = useState<{
+    name: string
+    size: number
+    createdAt: string
+    path: string
+  }[]>([])
   const [selectedBackup, setSelectedBackup] = useState<string>('')
   const [showRestoreConfirm, setShowRestoreConfirm] = useState(false)
   const [activeTab, setActiveTab] = useState<'general' | 'security' | 'audit' | 'backup'>('general')
@@ -712,7 +723,7 @@ export default function SystemPage() {
                   <div className="text-center p-4 bg-slate-100 dark:bg-slate-700 rounded-lg">
                     <div className="text-sm font-medium text-slate-900 dark:text-white">
                       {schedulerStatus.nextBackup ? 
-                        new Date(schedulerStatus.nextBackup).toLocaleString() : 
+                        formatDateTime(schedulerStatus.nextBackup) : 
                         t('admin:notScheduled')}
                     </div>
                     <div className="text-sm text-slate-500 dark:text-slate-400">{t('admin:nextBackup')}</div>
@@ -801,7 +812,7 @@ export default function SystemPage() {
                       <div>
                         <div className="font-medium text-slate-900 dark:text-white">{backup.name}</div>
                         <div className="text-sm text-slate-600 dark:text-slate-300">
-                          {formatFileSize(backup.size)} • {new Date(backup.createdAt).toLocaleString()}
+                          {formatFileSize(backup.size)} • {formatDateTime(backup.createdAt)}
                         </div>
                       </div>
                       <Button

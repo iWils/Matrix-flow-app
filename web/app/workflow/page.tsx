@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useTranslation } from 'react-i18next'
+import { useLocalizedDate } from '@/lib/hooks/useLocalizedDate'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -30,6 +31,7 @@ type ChangeRequest = {
 
 export default function WorkflowPage() {
   const { t } = useTranslation(['common', 'workflow'])
+  const { formatShortDate, formatTime } = useLocalizedDate()
   useSession() // Session used by permissions hook internally
   const permissions = useGlobalPermissions()
   const [changeRequests, setChangeRequests] = useState<ChangeRequest[]>([])
@@ -222,10 +224,10 @@ export default function WorkflowPage() {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        {new Date(request.requestedAt).toLocaleDateString('fr-FR')}
+                        {formatShortDate(request.requestedAt)}
                       </div>
                       <div className="text-xs text-slate-500 dark:text-slate-400">
-                        {new Date(request.requestedAt).toLocaleTimeString('fr-FR')}
+                        {formatTime(request.requestedAt)}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -238,7 +240,7 @@ export default function WorkflowPage() {
                             {request.reviewedBy.fullName || request.reviewedBy.username}
                           </div>
                           <div className="text-xs text-slate-500 dark:text-slate-400">
-                            {request.reviewedAt && new Date(request.reviewedAt).toLocaleDateString('fr-FR')}
+                            {request.reviewedAt && formatShortDate(request.reviewedAt)}
                           </div>
                         </div>
                       ) : (

@@ -11,10 +11,6 @@ interface NotificationData {
   userId?: number
 }
 
-interface EmailNotification extends NotificationData {
-  recipient: string
-  priority: 'low' | 'medium' | 'high'
-}
 
 class NotificationService {
   private notifications: NotificationData[] = []

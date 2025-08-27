@@ -6,7 +6,7 @@ export async function initializeServices() {
     logger.info('Initializing application services...')
     
     // Initialize backup scheduler
-    // The scheduler will auto-start based on database settings
+    await backupScheduler.start()
     logger.info('Backup scheduler initialized')
     
     logger.info('All application services initialized successfully')

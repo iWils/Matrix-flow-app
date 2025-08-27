@@ -51,6 +51,7 @@
   "schedulerStatus": "Scheduler Status",
   "enabled": "Enabled",
   "disabled": "Disabled",
+  "autoBackup": "Automated Backup",
   "totalBackups": "Total Backups",
   "notScheduled": "Not scheduled",
   "nextBackup": "Next Backup",
@@ -67,5 +68,16 @@
   "confirmRestore": "Confirm Restore",
   "restoreWarning": "This will replace all current data with the selected backup. This action cannot be undone.",
   "restoring": "Restoring...",
-  "confirmRestoreAction": "Restore Database"
+  "confirmRestoreAction": "Restore Database",
+  "returnToDashboard": "Return to dashboard",
+  "accessDeniedAdmin": "Access denied. Only administrators can access this page.",
+  "noEmailProvided": "No email",
+  "createdOn": "Created on",
+  "resetPassword": "Reset Password",
+  "groups": "Groups",
+  "totalUsers": "Total Users",
+  "administrators": "Administrators",
+  "noUsers": "No users",
+  "startByCreatingFirstUser": "Start by creating your first user.",
+  "errorCreatingUser": "Error creating user"
 }

@@ -34,7 +34,7 @@ export async function GET(
       }
     })
 
-    return NextResponse.json(userGroups.map(ug => ug.group))
+    return NextResponse.json(userGroups.map((ug) => ug.group))
   } catch (error) {
     console.error('Error fetching user groups:', error)
     return NextResponse.json(

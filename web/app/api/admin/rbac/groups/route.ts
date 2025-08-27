@@ -32,7 +32,7 @@ export async function GET() {
       orderBy: { createdAt: 'desc' }
     })
 
-    const formattedGroups: UserGroupData[] = userGroups.map(group => ({
+    const formattedGroups: UserGroupData[] = userGroups.map((group) => ({
       id: group.id,
       name: group.name,
       description: group.description,

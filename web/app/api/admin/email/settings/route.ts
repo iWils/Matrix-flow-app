@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/db'
-// Prisma types removed - using ReturnType instead
 import { logger } from '@/lib/logger'
 import { auditLog } from '@/lib/audit'
 import { EmailSettingsSchema } from '@/lib/validate'
@@ -84,6 +83,8 @@ export async function GET(request: NextRequest) {
 
     // Apply database settings over defaults with type safety
     emailSettings.forEach((setting) => {
+      // Convert JsonValue to string, handling null values
+      const settingValue = setting.value ? String(setting.value) : ''
       const keyParts = setting.key.replace('email.', '').split('.')
       
       if (keyParts.length >= 2) {
@@ -92,20 +93,20 @@ export async function GET(request: NextRequest) {
         if (section === 'smtp' && defaultSettings.smtp.hasOwnProperty(field)) {
           const smtpField = field as keyof typeof defaultSettings.smtp
           if (smtpField === 'port') {
-            const portValue = Number(setting.value)
+            const portValue = Number(settingValue)
             if (!isNaN(portValue)) {
               defaultSettings.smtp.port = portValue
             }
           } else if (smtpField === 'secure') {
-            defaultSettings.smtp.secure = setting.value === true || setting.value === 'true'
+            defaultSettings.smtp.secure = settingValue === 'true'
           } else {
-            ;(defaultSettings.smtp as Record<string, unknown>)[smtpField] = setting.value
+            ;(defaultSettings.smtp as Record<string, unknown>)[smtpField] = settingValue
           }
         } else if (section === 'from' && defaultSettings.from.hasOwnProperty(field)) {
-          ;(defaultSettings.from as Record<string, unknown>)[field] = setting.value
+          ;(defaultSettings.from as Record<string, unknown>)[field] = settingValue
         }
       } else if (keyParts[0] === 'enabled') {
-        defaultSettings.enabled = setting.value === true || setting.value === 'true'
+        defaultSettings.enabled = settingValue === 'true'
       }
     })
 
@@ -189,7 +190,7 @@ export async function POST(request: NextRequest) {
       where: { category: 'email' }
     })
     const currentSettingsMap = new Map(
-      currentSettings.map((s) => [s.key, s.value])
+      currentSettings.map((s) => [s.key, String(s.value)])
     )
 
     // Track changes for audit (without sensitive data)

@@ -1,0 +1,15 @@
+{
+  "welcomeLogin": "Connectez-vous à votre espace",
+  "username": "Nom d'utilisateur",
+  "password": "Mot de passe", 
+  "enterUsername": "Saisissez votre nom d'utilisateur",
+  "enterYourPassword": "Saisissez votre mot de passe",
+  "login": "Se connecter",
+  "loggingIn": "Connexion en cours...",
+  "invalidCredentials": "Nom d'utilisateur ou mot de passe incorrect",
+  "connectionError": "Erreur de connexion",
+  "demoAccount": "Compte de démonstration",
+  "securedBy": "Sécurisé par",
+  "changeLanguage": "Changer la langue",
+  "changeTheme": "Changer le thème"
+}

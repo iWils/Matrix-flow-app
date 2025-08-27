@@ -39,8 +39,7 @@ services:
     ports:
       - "3000:3000"  # Accès via http://localhost:3000
     volumes:
-      - backups:/backups
+      - /srv/backups:/backups
 
 volumes:
   dbdata:
-  backups:

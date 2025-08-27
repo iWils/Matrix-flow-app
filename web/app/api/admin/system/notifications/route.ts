@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 
     let notifications
     if (type) {
-      notifications = notificationService.getNotificationsByType(type as any, limit)
+      notifications = notificationService.getNotificationsByType(type as 'backup_success' | 'backup_failure' | 'restore_success' | 'restore_failure' | 'scheduler_error', limit)
     } else {
       notifications = notificationService.getRecentNotifications(limit)
     }

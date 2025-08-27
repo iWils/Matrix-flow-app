@@ -4,9 +4,11 @@ import { signIn, getSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import Image from 'next/image'
+import LoginLanguageSelector from '../../components/ui/LoginLanguageSelector'
+import { LoginThemeToggle } from '../../components/ui/LoginThemeToggle'
 
 export default function LoginForm() {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation('login')
   const [username, setUsername] = useState('admin')
   const [password, setPassword] = useState('admin')
   const [error, setError] = useState('')
@@ -15,7 +17,7 @@ export default function LoginForm() {
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get('callbackUrl') || '/'
 
-  // Vérifier si déjà connecté
+  // Check if already logged in
   useEffect(() => {
     getSession().then((session) => {
       if (session) {
@@ -51,6 +53,12 @@ export default function LoginForm() {
 
   return (
     <div className="w-full max-w-md animate-fade-in">
+      {/* Controls bar */}
+      <div className="flex items-center justify-end gap-3 mb-6">
+        <LoginLanguageSelector />
+        <LoginThemeToggle />
+      </div>
+      
       <form onSubmit={handleSubmit} className="glass rounded-3xl p-8 shadow-2xl border border-white/20 backdrop-blur-xl space-y-8">
         {/* Logo and Header */}
         <div className="text-center">
@@ -160,7 +168,7 @@ export default function LoginForm() {
         {/* Footer */}
         <div className="text-center pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            {t('securedBy')} Matrix Flow • Version 2.0
+            {t('securedBy')} Matrix Flow • Version 1.0
           </p>
         </div>
       </form>

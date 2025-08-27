@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
+import { useLocalizedDate } from '@/lib/hooks/useLocalizedDate'
 import { ResetPasswordModal } from '@/components/ui/ResetPasswordModal'
 import { ToggleUserStatusModal } from '@/components/ui/ToggleUserStatusModal'
 import { ManageGroupsModal } from '@/components/ui/ManageGroupsModal'
@@ -12,11 +13,13 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { useGlobalPermissions } from '@/hooks/usePermissions'
+import { Avatar } from '@/components/ui/Avatar'
 
 import { User, UserGroupData } from '@/types'
 
 export default function AdminUsersPage(){
-  const { t } = useTranslation('common')
+  const { t } = useTranslation(['common', 'admin'])
+  const { formatDateTime } = useLocalizedDate()
   const { data: session } = useSession()
   const router = useRouter()
   const permissions = useGlobalPermissions()
@@ -154,31 +157,11 @@ export default function AdminUsersPage(){
         setError(t('errorCreatingUser'))
       }
     } catch {
-      setError('Erreur lors de la création de l&apos;utilisateur')
+      setError(t('admin:errorCreatingUser'))
     }
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
 
-  const getInitials = (user: User) => {
-    if (user.fullName) {
-      return user.fullName
-        .split(' ')
-        .map(name => name.charAt(0))
-        .join('')
-        .toUpperCase()
-        .slice(0, 2)
-    }
-    return user.username.charAt(0).toUpperCase()
-  }
 
   const openResetPasswordModal = (user: User) => {
     setResetPasswordModal({ isOpen: true, user })
@@ -219,7 +202,7 @@ export default function AdminUsersPage(){
     return (
       <div className="animate-fade-in">
         <Alert variant="error">
-          Accès refusé. Seuls les administrateurs peuvent accéder à cette page.
+          {t('admin:accessDeniedAdmin')}
           <Button
             variant="outline"
             className="ml-4"
@@ -337,11 +320,12 @@ export default function AdminUsersPage(){
             <div className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-50 dark:from-blue-900/200 to-purple-50 dark:to-purple-900/200 rounded-full flex items-center justify-center">
-                    <span className="text-slate-700 dark:text-white font-bold text-lg">
-                      {getInitials(user)}
-                    </span>
-                  </div>
+                  <Avatar 
+                    email={user.email} 
+                    name={user.fullName || user.username} 
+                    size={48} 
+                    showTooltip={true}
+                  />
                   <div>
                     <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{user.fullName || user.username}</h3>
                     <p className="text-sm text-slate-600 dark:text-slate-300">@{user.username}</p>
@@ -362,19 +346,19 @@ export default function AdminUsersPage(){
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
                   </svg>
-                  {user.email || 'Pas d&apos;email'}
+                  {user.email || t('admin:noEmailProvided')}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0h6m-6 0l-1 12a2 2 0 002 2h6a2 2 0 002-2L16 7" />
                   </svg>
-                  Créé le: {formatDate(user.createdAt)}
+                  {t('admin:createdOn')}: {formatDateTime(user.createdAt)}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  {t('admin:lastPasswordChange')}: {user.lastPasswordChange ? formatDate(user.lastPasswordChange) : t('admin:notDefined')}
+                  {t('admin:lastPasswordChange')}: {user.lastPasswordChange ? formatDateTime(user.lastPasswordChange) : t('admin:notDefined')}
                 </div>
                 
                 {/* Groupes assignés */}
@@ -383,7 +367,7 @@ export default function AdminUsersPage(){
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
-                    Groupes: {user.groupMemberships.map(gm => gm.group.name).join(', ')}
+                    {t('admin:groups')}: {user.groupMemberships.map(gm => gm.group.name).join(', ')}
                   </div>
                 )}
               </div>
@@ -396,7 +380,7 @@ export default function AdminUsersPage(){
                     onClick={() => openResetPasswordModal(user)}
                     className="flex-1 text-xs"
                   >
-                    Réinitialiser MDP
+                    {t('admin:resetPassword')}
                   </Button>
                   <Button
                     size="sm"
@@ -430,8 +414,8 @@ export default function AdminUsersPage(){
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">Aucun utilisateur</h3>
-          <p className="text-slate-500 dark:text-slate-400">Commencez par créer votre premier utilisateur.</p>
+          <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">{t('admin:noUsers')}</h3>
+          <p className="text-slate-500 dark:text-slate-400">{t('admin:startByCreatingFirstUser')}</p>
         </div>
       )}
 
@@ -441,7 +425,7 @@ export default function AdminUsersPage(){
           <div className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-600 dark:text-slate-400">Total Utilisateurs</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400">{t('admin:totalUsers')}</p>
                 <p className="text-2xl font-bold text-slate-900 dark:text-white">{users.length}</p>
               </div>
               <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -473,7 +457,7 @@ export default function AdminUsersPage(){
           <div className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-600 dark:text-slate-400">Administrateurs</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400">{t('admin:administrators')}</p>
                 <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{users.filter(u => u.role === 'admin').length}</p>
               </div>
               <div className="w-10 h-10 bg-yellow-600 rounded-lg flex items-center justify-center">

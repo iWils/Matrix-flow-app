@@ -52,6 +52,7 @@
   "schedulerStatus": "Estado del Programador",
   "enabled": "Habilitado",
   "disabled": "Deshabilitado",
+  "autoBackup": "Guardado automático",
   "totalBackups": "Total Respaldos",
   "notScheduled": "No programado",
   "nextBackup": "Próximo Respaldo",
@@ -68,5 +69,16 @@
   "confirmRestore": "Confirmar Restauración",
   "restoreWarning": "Esto reemplazará todos los datos actuales con el respaldo seleccionado. Esta acción no se puede deshacer.",
   "restoring": "Restaurando...",
-  "confirmRestoreAction": "Restaurar Base de Datos"
+  "confirmRestoreAction": "Restaurar Base de Datos",
+  "returnToDashboard": "Volver al panel",
+  "accessDeniedAdmin": "Acceso denegado. Solo los administradores pueden acceder a esta página.",
+  "noEmailProvided": "Sin email",
+  "createdOn": "Creado el",
+  "resetPassword": "Restablecer Contraseña",
+  "groups": "Grupos",
+  "totalUsers": "Total Usuarios",
+  "administrators": "Administradores",
+  "noUsers": "Sin usuarios",
+  "startByCreatingFirstUser": "Comience creando su primer usuario.",
+  "errorCreatingUser": "Error al crear usuario"
 }

@@ -39,9 +39,13 @@ export async function POST(request: NextRequest) {
     }, { status: 403 })
   }
 
+  let backupPath: string | undefined
+  
   try {
     const body = await request.json()
-    const { backupPath, confirmRestore } = body
+    const result = body
+    backupPath = result.backupPath
+    const confirmRestore = result.confirmRestore
 
     if (!backupPath || !confirmRestore) {
       return NextResponse.json<ApiResponse<null>>({
