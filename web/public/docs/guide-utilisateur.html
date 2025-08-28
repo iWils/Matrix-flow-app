@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide Utilisateur - Matrix Flow</title>
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --secondary-color: #64748b;
+            --background-color: #f8fafc;
+            --surface-color: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+            --accent-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .header {
+            background-color: var(--surface-color);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .breadcrumb {
+            color: var(--secondary-color);
+            margin-top: 0.5rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .nav {
+            background-color: var(--primary-color);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-list {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .main {
+            padding: 2rem 0;
+            display: flex;
+            gap: 2rem;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--surface-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .sidebar h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .sidebar a:hover {
+            color: var(--primary-color);
+        }
+
+        .content {
+            flex: 1;
+            background-color: var(--surface-color);
+            border-radius: 0.75rem;
+            padding: 2rem;
+        }
+
+        .content h1 {
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            border-bottom: 3px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .content h2 {
+            color: var(--primary-color);
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .content h3 {
+            color: var(--text-color);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .content p {
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+
+        .content ul, .content ol {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+        }
+
+        .content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background-color: #eff6ff;
+            border-color: var(--primary-color);
+            color: #1d4ed8;
+        }
+
+        .alert-warning {
+            background-color: #fffbeb;
+            border-color: var(--warning-color);
+            color: #92400e;
+        }
+
+        .alert-success {
+            background-color: #ecfdf5;
+            border-color: var(--accent-color);
+            color: #047857;
+        }
+
+        .code-block {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        }
+
+        .screenshot {
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .step {
+            background-color: var(--background-color);
+            border-left: 4px solid var(--accent-color);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .step-number {
+            background-color: var(--accent-color);
+            color: white;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            background-color: var(--background-color);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .feature-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background-color: var(--surface-color);
+        }
+
+        .table th,
+        .table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table th {
+            background-color: var(--background-color);
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+
+            .main {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                position: static;
+            }
+
+            .content h1 {
+                font-size: 2rem;
+            }
+
+            .nav-list {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>Guide Utilisateur - Matrix Flow</h1>
+            <div class="breadcrumb">
+                <a href="index.html">Documentation</a> / Guide Utilisateur
+            </div>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <div class="container">
+            <ul class="nav-list">
+                <li><a href="index.html" class="nav-link">← Retour</a></li>
+                <li><a href="#connexion" class="nav-link">Connexion</a></li>
+                <li><a href="#matrices" class="nav-link">Matrices</a></li>
+                <li><a href="#flux" class="nav-link">Flux</a></li>
+                <li><a href="#workflow" class="nav-link">Workflow</a></li>
+                <li><a href="#profil" class="nav-link">Profil</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main">
+        <div class="container">
+            <aside class="sidebar">
+                <h3>Table des matières</h3>
+                <ul>
+                    <li><a href="#introduction">Introduction</a></li>
+                    <li><a href="#connexion">Connexion</a></li>
+                    <li><a href="#tableau-bord">Tableau de bord</a></li>
+                    <li><a href="#matrices">Gestion des matrices</a>
+                        <ul style="margin-left: 1rem; margin-top: 0.5rem;">
+                            <li><a href="#creation-matrice">Création</a></li>
+                            <li><a href="#visualisation-matrice">Visualisation</a></li>
+                            <li><a href="#modification-matrice">Modification</a></li>
+                            <li><a href="#permissions-matrice">Permissions</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#flux">Gestion des flux</a>
+                        <ul style="margin-left: 1rem; margin-top: 0.5rem;">
+                            <li><a href="#creation-flux">Création</a></li>
+                            <li><a href="#modification-flux">Modification</a></li>
+                            <li><a href="#suppression-flux">Suppression</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#workflow">Workflow d'approbation</a></li>
+                    <li><a href="#import-export">Import/Export</a></li>
+                    <li><a href="#versioning">Versioning</a></li>
+                    <li><a href="#profil">Gestion du profil</a></li>
+                    <li><a href="#audit">Historique et audit</a></li>
+                </ul>
+            </aside>
+
+            <div class="content">
+                <h1 id="introduction">Guide Utilisateur Matrix Flow</h1>
+
+                <div class="alert alert-info">
+                    <strong>Bienvenue dans Matrix Flow !</strong> Ce guide vous accompagnera dans la découverte et l'utilisation de toutes les fonctionnalités de l'application de gestion des matrices de flux réseau.
+                </div>
+
+                <h2 id="connexion">Connexion à l'application</h2>
+
+                <h3>Première connexion</h3>
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <div>
+                        <strong>Accédez à l'application</strong><br>
+                        Ouvrez votre navigateur et rendez-vous à l'adresse fournie par votre administrateur.
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <div>
+                        <strong>Saisissez vos identifiants</strong><br>
+                        Entrez votre nom d'utilisateur et mot de passe fournis par votre administrateur.
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <div>
+                        <strong>Configurez votre profil</strong><br>
+                        Lors de votre première connexion, vous serez invité à changer votre mot de passe et à configurer vos préférences.
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    <strong>Sécurité :</strong> Changez votre mot de passe par défaut dès votre première connexion pour garantir la sécurité de votre compte.
+                </div>
+
+                <h3>Interface utilisateur</h3>
+                <p>L'interface de Matrix Flow est composée de plusieurs éléments principaux :</p>
+                <ul>
+                    <li><strong>Barre de navigation :</strong> Accès rapide aux différentes sections</li>
+                    <li><strong>Menu utilisateur :</strong> Gestion du profil, paramètres et déconnexion</li>
+                    <li><strong>Sélecteur de langue :</strong> Changement de langue en temps réel</li>
+                    <li><strong>Thème :</strong> Basculement entre mode clair et sombre</li>
+                </ul>
+
+                <h2 id="tableau-bord">Tableau de bord</h2>
+
+                <p>Le tableau de bord est votre point d'entrée principal dans l'application. Il affiche :</p>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>📊 Statistiques</h4>
+                        <p>Nombre de matrices, flux actifs, demandes en attente et activité récente.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🔔 Notifications</h4>
+                        <p>Alertes sur les demandes d'approbation, les modifications importantes et les échéances.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>⚡ Accès rapide</h4>
+                        <p>Liens directs vers vos matrices fréquemment utilisées et les actions courantes.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📈 Activité récente</h4>
+                        <p>Historique de vos dernières modifications et actions dans l'application.</p>
+                    </div>
+                </div>
+
+                <h2 id="matrices">Gestion des matrices</h2>
+
+                <h3 id="creation-matrice">Création d'une nouvelle matrice</h3>
+
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <div>
+                        <strong>Accédez à la section Matrices</strong><br>
+                        Cliquez sur "Matrices" dans la navigation principale.
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <div>
+                        <strong>Créez une nouvelle matrice</strong><br>
+                        Cliquez sur le bouton "Nouvelle matrice" et remplissez les informations requises :
+                        <ul style="margin-top: 0.5rem;">
+                            <li><strong>Nom :</strong> Nom descriptif de votre matrice</li>
+                            <li><strong>Description :</strong> Description détaillée de l'usage et du contexte</li>
+                            <li><strong>Nombre d'approbations requis :</strong> Nombre de validations nécessaires pour les modifications</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <div>
+                        <strong>Configurez les permissions</strong><br>
+                        Définissez qui peut accéder et modifier votre matrice en ajoutant des utilisateurs avec des rôles spécifiques.
+                    </div>
+                </div>
+
+                <h3 id="visualisation-matrice">Visualisation d'une matrice</h3>
+
+                <p>Chaque matrice dispose d'une vue détaillée permettant de :</p>
+                <ul>
+                    <li>Consulter tous les flux configurés</li>
+                    <li>Filtrer et rechercher dans les entrées</li>
+                    <li>Exporter les données au format CSV ou JSON</li>
+                    <li>Visualiser l'historique des modifications</li>
+                    <li>Accéder aux versions précédentes</li>
+                </ul>
+
+                <h3 id="modification-matrice">Modification d'une matrice</h3>
+
+                <div class="alert alert-info">
+                    <strong>Permissions requises :</strong> Vous devez avoir le rôle "propriétaire" ou "éditeur" sur la matrice pour pouvoir la modifier.
+                </div>
+
+                <p>Les modifications d'une matrice incluent :</p>
+                <ul>
+                    <li>Changement du nom ou de la description</li>
+                    <li>Ajustement du nombre d'approbations requises</li>
+                    <li>Configuration des webhooks de notification</li>
+                    <li>Gestion des permissions utilisateur</li>
+                </ul>
+
+                <h3 id="permissions-matrice">Système de permissions</h3>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Rôle</th>
+                            <th>Permissions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Propriétaire</strong></td>
+                            <td>Contrôle total : modification, suppression, gestion des permissions</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Éditeur</strong></td>
+                            <td>Modification des flux, création de demandes de changement</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Lecteur</strong></td>
+                            <td>Consultation uniquement des flux et de l'historique</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2 id="flux">Gestion des flux</h2>
+
+                <h3 id="creation-flux">Création d'un flux</h3>
+
+                <p>Un flux représente une règle de trafic réseau dans votre matrice. Pour créer un nouveau flux :</p>
+
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <div>
+                        <strong>Ouvrez la matrice cible</strong><br>
+                        Accédez à la matrice dans laquelle vous souhaitez ajouter le flux.
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <div>
+                        <strong>Cliquez sur "Nouveau flux"</strong><br>
+                        Le formulaire de création s'ouvre avec tous les champs nécessaires.
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <div>
+                        <strong>Remplissez les informations du flux</strong><br>
+                        Complétez les champs suivants selon vos besoins :
+                    </div>
+                </div>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Champ</th>
+                            <th>Description</th>
+                            <th>Exemple</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Type de demande</td>
+                            <td>Nature de la demande de flux</td>
+                            <td>Nouveau flux, Modification, Suppression</td>
+                        </tr>
+                        <tr>
+                            <td>Nom de la règle</td>
+                            <td>Identifiant unique de la règle</td>
+                            <td>ALLOW_HTTP_WEB</td>
+                        </tr>
+                        <tr>
+                            <td>Équipement</td>
+                            <td>Équipement réseau concerné</td>
+                            <td>Firewall-01, Router-DMZ</td>
+                        </tr>
+                        <tr>
+                            <td>Zone source</td>
+                            <td>Zone réseau d'origine du trafic</td>
+                            <td>DMZ, LAN, WAN</td>
+                        </tr>
+                        <tr>
+                            <td>Nom source</td>
+                            <td>Nom descriptif de la source</td>
+                            <td>Serveurs Web</td>
+                        </tr>
+                        <tr>
+                            <td>CIDR source</td>
+                            <td>Adresse réseau source</td>
+                            <td>192.168.1.0/24</td>
+                        </tr>
+                        <tr>
+                            <td>Service source</td>
+                            <td>Port/service source</td>
+                            <td>ANY, TCP/80</td>
+                        </tr>
+                        <tr>
+                            <td>Zone destination</td>
+                            <td>Zone réseau de destination</td>
+                            <td>Internet, DMZ</td>
+                        </tr>
+                        <tr>
+                            <td>Nom destination</td>
+                            <td>Nom descriptif de la destination</td>
+                            <td>Serveurs de base de données</td>
+                        </tr>
+                        <tr>
+                            <td>CIDR destination</td>
+                            <td>Adresse réseau destination</td>
+                            <td>10.0.0.0/16</td>
+                        </tr>
+                        <tr>
+                            <td>Groupe de protocole</td>
+                            <td>Type de protocole</td>
+                            <td>HTTP, HTTPS, FTP</td>
+                        </tr>
+                        <tr>
+                            <td>Service destination</td>
+                            <td>Port/service destination</td>
+                            <td>TCP/443, UDP/53</td>
+                        </tr>
+                        <tr>
+                            <td>Action</td>
+                            <td>Action à appliquer</td>
+                            <td>ALLOW, DENY, LOG</td>
+                        </tr>
+                        <tr>
+                            <td>Date d'implémentation</td>
+                            <td>Date prévue de mise en œuvre</td>
+                            <td>2024-03-15</td>
+                        </tr>
+                        <tr>
+                            <td>Demandeur</td>
+                            <td>Personne ayant fait la demande</td>
+                            <td>john.doe@company.com</td>
+                        </tr>
+                        <tr>
+                            <td>Commentaire</td>
+                            <td>Justification ou remarques</td>
+                            <td>Ouverture pour nouvelle application</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="alert alert-warning">
+                    <strong>Validation :</strong> Tous les flux sont automatiquement validés avant création. Assurez-vous que les formats d'adresses IP et de ports sont corrects.
+                </div>
+
+                <h3 id="modification-flux">Modification d'un flux existant</h3>
+
+                <p>Pour modifier un flux existant :</p>
+
+                <ol>
+                    <li>Localisez le flux dans la liste ou utilisez la fonction de recherche</li>
+                    <li>Cliquez sur l'icône d'édition (crayon) à droite de la ligne</li>
+                    <li>Modifiez les champs nécessaires dans le formulaire</li>
+                    <li>Ajoutez un commentaire expliquant la raison de la modification</li>
+                    <li>Validez en cliquant sur "Enregistrer les modifications"</li>
+                </ol>
+
+                <div class="alert alert-info">
+                    <strong>Workflow d'approbation :</strong> Selon la configuration de la matrice, vos modifications peuvent nécessiter une approbation avant d'être appliquées.
+                </div>
+
+                <h3 id="suppression-flux">Suppression d'un flux</h3>
+
+                <p>La suppression d'un flux suit un processus contrôlé :</p>
+
+                <div class="alert alert-warning">
+                    <strong>Attention :</strong> La suppression d'un flux est définitive et peut impacter la sécurité de votre réseau. Assurez-vous de la nécessité de cette action.
+                </div>
+
+                <ol>
+                    <li>Sélectionnez le flux à supprimer</li>
+                    <li>Cliquez sur l'icône de suppression (corbeille)</li>
+                    <li>Confirmez l'action dans la boîte de dialogue</li>
+                    <li>Ajoutez une justification obligatoire</li>
+                    <li>La suppression sera soumise au workflow d'approbation si configuré</li>
+                </ol>
+
+                <h2 id="workflow">Workflow d'approbation</h2>
+
+                <p>Le système de workflow garantit que tous les changements importants sont validés avant leur application.</p>
+
+                <h3>Types de demandes de changement</h3>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>🆕 Création de flux</h4>
+                        <p>Demande d'ajout d'un nouveau flux dans la matrice.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>✏️ Modification de flux</h4>
+                        <p>Demande de modification d'un flux existant.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🗑️ Suppression de flux</h4>
+                        <p>Demande de suppression d'un flux de la matrice.</p>
+                    </div>
+                </div>
+
+                <h3>États des demandes</h3>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>État</th>
+                            <th>Description</th>
+                            <th>Actions possibles</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span style="color: var(--warning-color);">En attente</span></td>
+                            <td>Demande soumise, en attente de révision</td>
+                            <td>Modifier, Annuler</td>
+                        </tr>
+                        <tr>
+                            <td><span style="color: var(--accent-color);">Approuvée</span></td>
+                            <td>Demande validée et appliquée</td>
+                            <td>Consulter l'historique</td>
+                        </tr>
+                        <tr>
+                            <td><span style="color: var(--danger-color);">Rejetée</span></td>
+                            <td>Demande refusée avec commentaires</td>
+                            <td>Réviser et resoumettre</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Gestion de vos demandes</h3>
+
+                <p>Dans la section "Workflow", vous pouvez :</p>
+                <ul>
+                    <li>Consulter toutes vos demandes en cours et passées</li>
+                    <li>Suivre le statut de chaque demande</li>
+                    <li>Lire les commentaires des approbateurs</li>
+                    <li>Modifier les demandes en attente</li>
+                    <li>Annuler des demandes non encore traitées</li>
+                </ul>
+
+                <h2 id="import-export">Import et Export</h2>
+
+                <h3>Export des données</h3>
+
+                <p>Matrix Flow permet d'exporter vos matrices dans plusieurs formats :</p>
+
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <div>
+                        <strong>Accédez à la matrice</strong><br>
+                        Ouvrez la matrice que vous souhaitez exporter.
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <div>
+                        <strong>Sélectionnez le format</strong><br>
+                        Choisissez entre les formats disponibles :
+                        <ul style="margin-top: 0.5rem;">
+                            <li><strong>CSV :</strong> Compatible avec Excel et autres tableurs</li>
+                            <li><strong>JSON :</strong> Format structuré pour l'intégration système</li>
+                            <li><strong>XML :</strong> Format standard pour les systèmes d'entreprise</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <div>
+                        <strong>Configurez les options</strong><br>
+                        Définissez les filtres et options d'export (période, statut des flux, colonnes à inclure).
+                    </div>
+                </div>
+
+                <h3>Import de données</h3>
+
+                <p>L'import permet de charger des flux en masse depuis un fichier :</p>
+
+                <div class="alert alert-warning">
+                    <strong>Format requis :</strong> Le fichier d'import doit respecter le format template fourni. Téléchargez le modèle avant de préparer vos données.
+                </div>
+
+                <ol>
+                    <li>Téléchargez le template d'import depuis la matrice cible</li>
+                    <li>Remplissez le fichier avec vos données de flux</li>
+                    <li>Validez le format et la cohérence des données</li>
+                    <li>Uploadez le fichier via l'interface d'import</li>
+                    <li>Vérifiez le rapport de validation</li>
+                    <li>Confirmez l'import si tout est correct</li>
+                </ol>
+
+                <h2 id="versioning">Système de versioning</h2>
+
+                <p>Chaque matrice dispose d'un système de versioning complet qui conserve l'historique de tous les changements.</p>
+
+                <h3>Fonctionnalités du versioning</h3>
+
+                <ul>
+                    <li><strong>Versions automatiques :</strong> Création automatique lors de modifications importantes</li>
+                    <li><strong>Snapshots complets :</strong> Chaque version contient l'état complet de la matrice</li>
+                    <li><strong>Métadonnées :</strong> Informations sur l'auteur, la date, et les raisons du changement</li>
+                    <li><strong>Restauration :</strong> Possibilité de revenir à une version antérieure</li>
+                    <li><strong>Comparaison :</strong> Comparaison entre versions pour identifier les changements</li>
+                </ul>
+
+                <h3>Consultation de l'historique</h3>
+
+                <p>Pour accéder à l'historique des versions :</p>
+                <ol>
+                    <li>Ouvrez la matrice concernée</li>
+                    <li>Cliquez sur l'onglet "Versions" ou "Historique"</li>
+                    <li>Parcourez la liste des versions chronologique</li>
+                    <li>Cliquez sur une version pour voir les détails</li>
+                    <li>Utilisez la fonction "Comparer" pour voir les différences</li>
+                </ol>
+
+                <h2 id="profil">Gestion du profil utilisateur</h2>
+
+                <h3>Informations personnelles</h3>
+
+                <p>Accédez à votre profil via le menu utilisateur (icône en haut à droite) :</p>
+
+                <ul>
+                    <li><strong>Nom complet :</strong> Modifiable selon les permissions</li>
+                    <li><strong>Email :</strong> Utilisé pour les notifications</li>
+                    <li><strong>Nom d'utilisateur :</strong> Identifiant de connexion</li>
+                    <li><strong>Rôle global :</strong> Défini par l'administrateur</li>
+                    <li><strong>Langue :</strong> Interface et notifications</li>
+                </ul>
+
+                <h3>Changement de mot de passe</h3>
+
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <div>
+                        <strong>Accédez aux paramètres</strong><br>
+                        Menu utilisateur > "Changer le mot de passe"
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <div>
+                        <strong>Saisissez les informations</strong><br>
+                        <ul>
+                            <li>Mot de passe actuel</li>
+                            <li>Nouveau mot de passe (minimum 8 caractères)</li>
+                            <li>Confirmation du nouveau mot de passe</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <div>
+                        <strong>Validez le changement</strong><br>
+                        Le système vérifiera la complexité et mettra à jour votre mot de passe.
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <strong>Politique de mot de passe :</strong> Les mots de passe doivent contenir au minimum 8 caractères avec au moins une majuscule, une minuscule et un chiffre.
+                </div>
+
+                <h3>Préférences d'interface</h3>
+
+                <ul>
+                    <li><strong>Langue :</strong> Français, Anglais (interface temps réel)</li>
+                    <li><strong>Thème :</strong> Mode clair ou sombre</li>
+                    <li><strong>Notifications :</strong> Configuration des alertes par email</li>
+                    <li><strong>Fuseau horaire :</strong> Affichage des dates et heures</li>
+                </ul>
+
+                <h2 id="audit">Historique et audit</h2>
+
+                <p>Matrix Flow maintient un historique complet de toutes les actions pour garantir la traçabilité et la conformité.</p>
+
+                <h3>Types d'événements audités</h3>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Catégorie</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Authentification</td>
+                            <td>Connexions, déconnexions, tentatives échouées</td>
+                        </tr>
+                        <tr>
+                            <td>Matrices</td>
+                            <td>Création, modification, suppression, changements de permissions</td>
+                        </tr>
+                        <tr>
+                            <td>Flux</td>
+                            <td>Ajout, modification, suppression de règles de flux</td>
+                        </tr>
+                        <tr>
+                            <td>Workflow</td>
+                            <td>Soumission, approbation, rejet de demandes</td>
+                        </tr>
+                        <tr>
+                            <td>Profil</td>
+                            <td>Modifications du profil, changements de mot de passe</td>
+                        </tr>
+                        <tr>
+                            <td>Import/Export</td>
+                            <td>Opérations d'import et d'export de données</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Consultation de l'audit</h3>
+
+                <p>Selon vos permissions, vous pouvez consulter :</p>
+                <ul>
+                    <li><strong>Votre historique personnel :</strong> Toutes vos actions dans l'application</li>
+                    <li><strong>Historique des matrices :</strong> Actions sur les matrices où vous avez des permissions</li>
+                    <li><strong>Historique complet :</strong> Toutes les actions (administrateurs uniquement)</li>
+                </ul>
+
+                <h3>Filtrage et recherche</h3>
+
+                <p>L'interface d'audit permet de filtrer les événements par :</p>
+                <ul>
+                    <li>Période (date de début et fin)</li>
+                    <li>Type d'action (création, modification, suppression)</li>
+                    <li>Utilisateur (si vous avez les permissions)</li>
+                    <li>Matrice ou entité concernée</li>
+                    <li>Adresse IP source</li>
+                </ul>
+
+                <div class="alert alert-success">
+                    <strong>Conformité :</strong> L'audit trail répond aux exigences de conformité et peut être exporté pour les audits externes.
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

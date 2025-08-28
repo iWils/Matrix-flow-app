@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation Technique - Matrix Flow</title>
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --secondary-color: #64748b;
+            --background-color: #f8fafc;
+            --surface-color: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+            --accent-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --tech-color: #0891b2;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--tech-color), var(--primary-color));
+            color: white;
+            padding: 2rem 0;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .breadcrumb {
+            opacity: 0.9;
+            margin-top: 0.5rem;
+        }
+
+        .breadcrumb a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav {
+            background-color: var(--tech-color);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-list {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .main {
+            padding: 2rem 0;
+            display: flex;
+            gap: 2rem;
+        }
+
+        .sidebar {
+            width: 280px;
+            background-color: var(--surface-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+            border: 1px solid var(--border-color);
+        }
+
+        .sidebar h3 {
+            color: var(--tech-color);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+            display: block;
+            padding: 0.25rem 0;
+        }
+
+        .sidebar a:hover {
+            color: var(--tech-color);
+        }
+
+        .content {
+            flex: 1;
+            background-color: var(--surface-color);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .content h1 {
+            color: var(--tech-color);
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            border-bottom: 3px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .content h2 {
+            color: var(--tech-color);
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .content h3 {
+            color: var(--text-color);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .content p {
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+
+        .content ul, .content ol {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+        }
+
+        .content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background-color: #eff6ff;
+            border-color: var(--primary-color);
+            color: #1d4ed8;
+        }
+
+        .alert-warning {
+            background-color: #fffbeb;
+            border-color: var(--warning-color);
+            color: #92400e;
+        }
+
+        .alert-success {
+            background-color: #ecfdf5;
+            border-color: var(--accent-color);
+            color: #047857;
+        }
+
+        .alert-tech {
+            background-color: #f0f9ff;
+            border-color: var(--tech-color);
+            color: #0c4a6e;
+        }
+
+        .code-block {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .tech-stack {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .tech-card {
+            background-color: var(--background-color);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--tech-color);
+        }
+
+        .tech-card h4 {
+            color: var(--tech-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .version-badge {
+            background-color: var(--tech-color);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background-color: var(--surface-color);
+        }
+
+        .table th,
+        .table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table th {
+            background-color: var(--background-color);
+            font-weight: 600;
+            color: var(--tech-color);
+        }
+
+        .architecture-section {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .architecture-section h4 {
+            color: var(--tech-color);
+            margin-bottom: 1rem;
+        }
+
+        .command-example {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .command-example::before {
+            content: "$ ";
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .file-tree {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-family: monospace;
+            margin: 1rem 0;
+        }
+
+        .db-schema {
+            background-color: #fefce8;
+            border: 1px solid #eab308;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+
+            .main {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                position: static;
+            }
+
+            .content h1 {
+                font-size: 2rem;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .nav-list {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .tech-stack {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>🛠️ Documentation Technique Matrix Flow</h1>
+            <div class="breadcrumb">
+                <a href="index.html">Documentation</a> / Documentation Technique
+            </div>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <div class="container">
+            <ul class="nav-list">
+                <li><a href="index.html" class="nav-link">← Retour</a></li>
+                <li><a href="#architecture" class="nav-link">Architecture</a></li>
+                <li><a href="#technologies" class="nav-link">Technologies</a></li>
+                <li><a href="#database" class="nav-link">Base de données</a></li>
+                <li><a href="#deploiement" class="nav-link">Déploiement</a></li>
+                <li><a href="#developpement" class="nav-link">Développement</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main">
+        <div class="container">
+            <aside class="sidebar">
+                <h3>🔧 Architecture</h3>
+                <ul>
+                    <li><a href="#introduction">Vue d'ensemble</a></li>
+                    <li><a href="#architecture">Architecture globale</a>
+                        <ul style="margin-left: 1rem; margin-top: 0.5rem;">
+                            <li><a href="#frontend">Frontend</a></li>
+                            <li><a href="#backend">Backend</a></li>
+                            <li><a href="#database">Base de données</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#technologies">Stack technologique</a></li>
+                    <li><a href="#structure">Structure du projet</a></li>
+                    <li><a href="#database-schema">Schéma de données</a></li>
+                    <li><a href="#deploiement">Déploiement</a>
+                        <ul style="margin-left: 1rem; margin-top: 0.5rem;">
+                            <li><a href="#docker">Docker</a></li>
+                            <li><a href="#production">Production</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#developpement">Développement</a>
+                        <ul style="margin-left: 1rem; margin-top: 0.5rem;">
+                            <li><a href="#setup">Configuration</a></li>
+                            <li><a href="#commandes">Commandes</a></li>
+                            <li><a href="#tests">Tests</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#performance">Performance</a></li>
+                    <li><a href="#securite-tech">Sécurité</a></li>
+                </ul>
+            </aside>
+
+            <div class="content">
+                <h1 id="introduction">Documentation Technique Matrix Flow</h1>
+
+                <div class="alert alert-tech">
+                    <strong>🛠️ Document technique :</strong> Cette documentation s'adresse aux développeurs, architectes et équipes techniques responsables du déploiement et de la maintenance de Matrix Flow.
+                </div>
+
+                <h2 id="architecture">Architecture globale</h2>
+
+                <p>Matrix Flow est une application web moderne construite avec Next.js utilisant une architecture full-stack intégrée. L'application combine le frontend React avec des API routes server-side dans un seul déploiement.</p>
+
+                <div class="architecture-section">
+                    <h4>Principes architecturaux</h4>
+                    <ul>
+                        <li><strong>Monolithe modulaire :</strong> Architecture full-stack unifiée avec séparation claire des responsabilités</li>
+                        <li><strong>API-First :</strong> Toutes les fonctionnalités exposées via une API REST pour l'extensibilité</li>
+                        <li><strong>Sécurité intégrée :</strong> Authentification, autorisation et audit trail natifs</li>
+                        <li><strong>Scalabilité :</strong> Architecture préparée pour la montée en charge horizontale</li>
+                        <li><strong>Observabilité :</strong> Logging structuré et métriques intégrées</li>
+                    </ul>
+                </div>
+
+                <h3 id="frontend">Couche Frontend</h3>
+
+                <div class="tech-stack">
+                    <div class="tech-card">
+                        <h4>⚛️ React 18 <span class="version-badge">18.2.0</span></h4>
+                        <ul>
+                            <li>Composants fonctionnels avec hooks</li>
+                            <li>Context API pour l'état global</li>
+                            <li>Suspense et Concurrent Features</li>
+                            <li>Server Components (Next.js 13+)</li>
+                        </ul>
+                    </div>
+                    <div class="tech-card">
+                        <h4>🎨 Tailwind CSS <span class="version-badge">3.4</span></h4>
+                        <ul>
+                            <li>Utility-first CSS framework</li>
+                            <li>Design system cohérent</li>
+                            <li>Responsive design mobile-first</li>
+                            <li>Dark mode support</li>
+                        </ul>
+                    </div>
+                    <div class="tech-card">
+                        <h4>📱 Interface utilisateur</h4>
+                        <ul>
+                            <li>Progressive Web App (PWA) ready</li>
+                            <li>Composants UI réutilisables</li>
+                            <li>Internationalisation (i18n)</li>
+                            <li>Accessibilité WCAG 2.1</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3 id="backend">Couche Backend</h3>
+
+                <div class="tech-stack">
+                    <div class="tech-card">
+                        <h4>🚀 Next.js <span class="version-badge">15.2.3</span></h4>
+                        <ul>
+                            <li>App Router (pages et API routes)</li>
+                            <li>Server-Side Rendering (SSR)</li>
+                            <li>Static Site Generation (SSG)</li>
+                            <li>Edge Runtime support</li>
+                        </ul>
+                    </div>
+                    <div class="tech-card">
+                        <h4>🔐 NextAuth.js <span class="version-badge">5.0 beta</span></h4>
+                        <ul>
+                            <li>Authentification multi-providers</li>
+                            <li>Session management</li>
+                            <li>CSRF protection</li>
+                            <li>JWT et Database sessions</li>
+                        </ul>
+                    </div>
+                    <div class="tech-card">
+                        <h4>⚡ API Architecture</h4>
+                        <ul>
+                            <li>REST API avec validation Zod</li>
+                            <li>Middleware de sécurité</li>
+                            <li>Rate limiting intégré</li>
+                            <li>CORS configuré</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3 id="database">Couche Base de données</h3>
+
+                <div class="tech-stack">
+                    <div class="tech-card">
+                        <h4>🐘 PostgreSQL <span class="version-badge">17</span></h4>
+                        <ul>
+                            <li>Base de données relationnelle robuste</li>
+                            <li>Support JSON natif</li>
+                            <li>Indexes optimisés</li>
+                            <li>Contraintes d'intégrité</li>
+                        </ul>
+                    </div>
+                    <div class="tech-card">
+                        <h4>🏗️ Prisma ORM <span class="version-badge">6.14</span></h4>
+                        <ul>
+                            <li>Type-safe database client</li>
+                            <li>Schema-first approach</li>
+                            <li>Migration system</li>
+                            <li>Query optimization</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h2 id="technologies">Stack technologique complète</h2>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Composant</th>
+                            <th>Technologie</th>
+                            <th>Version</th>
+                            <th>Rôle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Runtime</td>
+                            <td>Node.js</td>
+                            <td>18+ LTS</td>
+                            <td>Environnement d'exécution JavaScript</td>
+                        </tr>
+                        <tr>
+                            <td>Framework</td>
+                            <td>Next.js</td>
+                            <td>15.2.3</td>
+                            <td>Framework React full-stack</td>
+                        </tr>
+                        <tr>
+                            <td>UI Library</td>
+                            <td>React</td>
+                            <td>18.2.0</td>
+                            <td>Bibliothèque interface utilisateur</td>
+                        </tr>
+                        <tr>
+                            <td>Styling</td>
+                            <td>Tailwind CSS</td>
+                            <td>3.4</td>
+                            <td>Framework CSS utility-first</td>
+                        </tr>
+                        <tr>
+                            <td>Language</td>
+                            <td>TypeScript</td>
+                            <td>5.5</td>
+                            <td>Langage typé pour JavaScript</td>
+                        </tr>
+                        <tr>
+                            <td>Database</td>
+                            <td>PostgreSQL</td>
+                            <td>17</td>
+                            <td>Base de données relationnelle</td>
+                        </tr>
+                        <tr>
+                            <td>ORM</td>
+                            <td>Prisma</td>
+                            <td>6.14</td>
+                            <td>Object-Relational Mapping</td>
+                        </tr>
+                        <tr>
+                            <td>Auth</td>
+                            <td>NextAuth.js</td>
+                            <td>5.0 beta</td>
+                            <td>Authentification et autorisation</td>
+                        </tr>
+                        <tr>
+                            <td>Validation</td>
+                            <td>Zod</td>
+                            <td>Latest</td>
+                            <td>Validation de schémas TypeScript</td>
+                        </tr>
+                        <tr>
+                            <td>Testing</td>
+                            <td>Jest</td>
+                            <td>Latest</td>
+                            <td>Framework de tests unitaires</td>
+                        </tr>
+                        <tr>
+                            <td>Linting</td>
+                            <td>ESLint</td>
+                            <td>Latest</td>
+                            <td>Analyse statique du code</td>
+                        </tr>
+                        <tr>
+                            <td>Container</td>
+                            <td>Docker</td>
+                            <td>20+</td>
+                            <td>Conteneurisation</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2 id="structure">Structure du projet</h2>
+
+                <div class="file-tree">matrix-flow-app/
+├── web/                          # Application Next.js
+│   ├── app/                      # App Router (Next.js 13+)
+│   │   ├── api/                  # API Routes
+│   │   │   ├── auth/            # Endpoints d'authentification
+│   │   │   ├── matrices/        # CRUD matrices
+│   │   │   ├── users/           # Gestion utilisateurs
+│   │   │   ├── admin/           # API administration
+│   │   │   └── workflow/        # Système d'approbation
+│   │   ├── matrices/            # Pages matrices
+│   │   ├── admin/               # Panneau d'administration
+│   │   ├── login/               # Authentification
+│   │   ├── workflow/            # Interface workflow
+│   │   └── layout.tsx           # Layout global
+│   ├── components/              # Composants React
+│   │   ├── ui/                  # Composants UI réutilisables
+│   │   ├── auth/                # Composants d'authentification
+│   │   └── providers/           # Context providers
+│   ├── lib/                     # Utilitaires et logique métier
+│   │   ├── db.ts               # Client Prisma
+│   │   ├── auth.ts             # Configuration NextAuth
+│   │   ├── rbac.ts             # Contrôle d'accès
+│   │   ├── audit.ts            # Système d'audit
+│   │   ├── validate.ts         # Schémas de validation
+│   │   └── logger.ts           # Logging structuré
+│   ├── prisma/                 # Configuration Prisma
+│   │   ├── schema.prisma       # Schéma de données
+│   │   ├── migrations/         # Migrations BDD
+│   │   └── seed.ts             # Données initiales
+│   ├── public/                 # Assets statiques
+│   │   └── docs/               # Documentation
+│   ├── middleware.ts           # Middleware Next.js
+│   ├── next.config.js         # Configuration Next.js
+│   ├── tailwind.config.js     # Configuration Tailwind
+│   └── package.json           # Dépendances Node.js
+├── docker-compose.yml         # Orchestration Docker
+├── docker-compose.prod.yml    # Configuration production
+├── Dockerfile                 # Image Docker
+├── Makefile                   # Scripts d'automatisation
+└── README.md                  # Documentation projet</div>
+
+                <h3>Conventions de nommage</h3>
+
+                <ul>
+                    <li><strong>Fichiers :</strong> kebab-case pour les fichiers et dossiers</li>
+                    <li><strong>Composants :</strong> PascalCase pour les composants React</li>
+                    <li><strong>API Routes :</strong> REST conventions (GET, POST, PUT, DELETE)</li>
+                    <li><strong>Base de données :</strong> snake_case pour les colonnes, PascalCase pour les modèles</li>
+                    <li><strong>Variables :</strong> camelCase pour JavaScript/TypeScript</li>
+                </ul>
+
+                <h2 id="database-schema">Schéma de base de données</h2>
+
+                <div class="alert alert-info">
+                    <strong>📊 Modèle de données :</strong> Matrix Flow utilise un modèle relationnel optimisé pour la performance et l'intégrité des données.
+                </div>
+
+                <h3>Tables principales</h3>
+
+                <div class="db-schema">
+                    <h4>🔐 Authentification et utilisateurs</h4>
+                    <ul>
+                        <li><strong>users :</strong> Comptes utilisateurs avec rôles globaux</li>
+                        <li><strong>accounts :</strong> Comptes externes (NextAuth)</li>
+                        <li><strong>sessions :</strong> Sessions utilisateurs</li>
+                        <li><strong>user_groups :</strong> Groupes d'utilisateurs</li>
+                        <li><strong>user_group_members :</strong> Appartenance aux groupes</li>
+                    </ul>
+                </div>
+
+                <div class="db-schema">
+                    <h4>📊 Données métier</h4>
+                    <ul>
+                        <li><strong>matrices :</strong> Matrices de flux principales</li>
+                        <li><strong>flow_entries :</strong> Entrées de flux individuelles</li>
+                        <li><strong>matrix_permissions :</strong> Permissions granulaires sur les matrices</li>
+                        <li><strong>matrix_versions :</strong> Système de versioning</li>
+                        <li><strong>matrix_version_approvals :</strong> Approbations de versions</li>
+                    </ul>
+                </div>
+
+                <div class="db-schema">
+                    <h4>🔄 Workflow et audit</h4>
+                    <ul>
+                        <li><strong>change_requests :</strong> Demandes de modifications</li>
+                        <li><strong>audit_logs :</strong> Historique complet des actions</li>
+                    </ul>
+                </div>
+
+                <div class="db-schema">
+                    <h4>⚙️ Configuration système</h4>
+                    <ul>
+                        <li><strong>system_settings :</strong> Paramètres de configuration</li>
+                        <li><strong>auth_providers :</strong> Fournisseurs d'authentification</li>
+                        <li><strong>email_templates :</strong> Templates d'emails</li>
+                    </ul>
+                </div>
+
+                <h3>Relations et contraintes</h3>
+
+                <div class="code-block">-- Exemple des relations clés
+-- Matrices appartiennent à des utilisateurs
+Matrix.ownerId -> User.id
+
+-- Permissions granulaires par matrice
+MatrixPermission.matrixId -> Matrix.id
+MatrixPermission.userId -> User.id
+
+-- Flux appartiennent à une matrice
+FlowEntry.matrixId -> Matrix.id
+
+-- Système de versioning
+MatrixVersion.matrixId -> Matrix.id
+Matrix.publishedVersionId -> MatrixVersion.id
+
+-- Audit trail
+AuditLog.userId -> User.id (optionnel)
+AuditLog.matrixId -> Matrix.id (optionnel)
+
+-- Workflow d'approbation
+ChangeRequest.matrixId -> Matrix.id
+ChangeRequest.requestedById -> User.id
+ChangeRequest.reviewedById -> User.id</div>
+
+                <h3>Indexes optimisés</h3>
+
+                <p>La base de données utilise des indexes stratégiques pour optimiser les performances :</p>
+
+                <ul>
+                    <li><strong>Recherche temporelle :</strong> Index sur les colonnes de dates (createdAt, updatedAt)</li>
+                    <li><strong>Filtrage utilisateur :</strong> Index composites sur userId + critères de tri</li>
+                    <li><strong>Recherche de matrices :</strong> Index sur les colonnes de recherche fréquente</li>
+                    <li><strong>Audit trail :</strong> Index multi-colonnes pour les requêtes d'audit complexes</li>
+                </ul>
+
+                <h2 id="deploiement">Déploiement</h2>
+
+                <h3 id="docker">Déploiement avec Docker</h3>
+
+                <div class="alert alert-tech">
+                    <strong>🐳 Docker recommandé :</strong> Le déploiement via Docker Compose est la méthode recommandée pour tous les environnements.
+                </div>
+
+                <h4>Architecture des conteneurs</h4>
+
+                <div class="tech-stack">
+                    <div class="tech-card">
+                        <h4>📦 matrix-flow-web</h4>
+                        <ul>
+                            <li>Application Next.js</li>
+                            <li>Port 3000 (interne)</li>
+                            <li>Volume pour uploads</li>
+                            <li>Variables d'environnement</li>
+                        </ul>
+                    </div>
+                    <div class="tech-card">
+                        <h4>🗄️ matrix-flow-db</h4>
+                        <ul>
+                            <li>PostgreSQL 17</li>
+                            <li>Port 5432</li>
+                            <li>Volume persistant</li>
+                            <li>Configuration optimisée</li>
+                        </ul>
+                    </div>
+                    <div class="tech-card">
+                        <h4>🔄 matrix-flow-redis (optionnel)</h4>
+                        <ul>
+                            <li>Cache et sessions</li>
+                            <li>Queue management</li>
+                            <li>Rate limiting</li>
+                            <li>Performance boost</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h4>Configuration Docker Compose</h4>
+
+                <div class="code-block">version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://matrixflow:${DB_PASSWORD}@db:5432/matrixflow
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+    depends_on:
+      - db
+    volumes:
+      - uploads:/app/uploads
+    restart: unless-stopped
+
+  db:
+    image: postgres:17
+    environment:
+      - POSTGRES_DB=matrixflow
+      - POSTGRES_USER=matrixflow
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  uploads:</div>
+
+                <h3 id="production">Déploiement production</h3>
+
+                <h4>Pré-requis serveur</h4>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Composant</th>
+                            <th>Minimum</th>
+                            <th>Recommandé</th>
+                            <th>Production</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>CPU</td>
+                            <td>2 cores</td>
+                            <td>4 cores</td>
+                            <td>8+ cores</td>
+                        </tr>
+                        <tr>
+                            <td>RAM</td>
+                            <td>4 GB</td>
+                            <td>8 GB</td>
+                            <td>16+ GB</td>
+                        </tr>
+                        <tr>
+                            <td>Stockage</td>
+                            <td>50 GB</td>
+                            <td>100 GB SSD</td>
+                            <td>200+ GB NVMe</td>
+                        </tr>
+                        <tr>
+                            <td>Réseau</td>
+                            <td>100 Mbps</td>
+                            <td>1 Gbps</td>
+                            <td>10+ Gbps</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4>Étapes de déploiement</h4>
+
+                <div class="command-example">git clone https://github.com/votre-org/matrix-flow-app.git</div>
+
+                <div class="command-example">cd matrix-flow-app && cp .env.example .env.production</div>
+
+                <div class="command-example">docker-compose -f docker-compose.prod.yml up -d</div>
+
+                <div class="command-example">make db-push && make db-seed</div>
+
+                <h4>Reverse Proxy (Nginx)</h4>
+
+                <div class="code-block">upstream matrix_flow {
+    server 127.0.0.1:3000;
+}
+
+server {
+    listen 80;
+    server_name matrix-flow.votre-domaine.com;
+    
+    # Redirection HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name matrix-flow.votre-domaine.com;
+    
+    # Certificats SSL
+    ssl_certificate /path/to/certificate.crt;
+    ssl_certificate_key /path/to/private.key;
+    
+    # Sécurité SSL
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384;
+    
+    # Headers de sécurité
+    add_header X-Frame-Options DENY;
+    add_header X-Content-Type-Options nosniff;
+    add_header X-XSS-Protection "1; mode=block";
+    add_header Strict-Transport-Security "max-age=31536000";
+    
+    # Upload size
+    client_max_body_size 100M;
+    
+    # Proxy vers l'application
+    location / {
+        proxy_pass http://matrix_flow;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}</div>
+
+                <h2 id="developpement">Environnement de développement</h2>
+
+                <h3 id="setup">Configuration initiale</h3>
+
+                <div class="command-example">git clone https://github.com/votre-org/matrix-flow-app.git</div>
+
+                <div class="command-example">cd matrix-flow-app</div>
+
+                <div class="command-example">make install</div>
+
+                <div class="command-example">cp .env.example .env.local</div>
+
+                <div class="command-example">make dev</div>
+
+                <h3 id="commandes">Commandes de développement</h3>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Commande</th>
+                            <th>Description</th>
+                            <th>Usage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>make install</code></td>
+                            <td>Installation complète</td>
+                            <td>Première installation</td>
+                        </tr>
+                        <tr>
+                            <td><code>make dev</code></td>
+                            <td>Serveur de développement</td>
+                            <td>Développement local</td>
+                        </tr>
+                        <tr>
+                            <td><code>make build</code></td>
+                            <td>Build production</td>
+                            <td>Préparation déploiement</td>
+                        </tr>
+                        <tr>
+                            <td><code>make db-push</code></td>
+                            <td>Appliquer le schéma</td>
+                            <td>Migration base de données</td>
+                        </tr>
+                        <tr>
+                            <td><code>make db-seed</code></td>
+                            <td>Données initiales</td>
+                            <td>Initialisation</td>
+                        </tr>
+                        <tr>
+                            <td><code>make db-studio</code></td>
+                            <td>Interface Prisma Studio</td>
+                            <td>Administration BDD</td>
+                        </tr>
+                        <tr>
+                            <td><code>make test</code></td>
+                            <td>Tests unitaires</td>
+                            <td>Validation code</td>
+                        </tr>
+                        <tr>
+                            <td><code>make lint</code></td>
+                            <td>Analyse statique</td>
+                            <td>Qualité code</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3 id="tests">Stratégie de tests</h3>
+
+                <div class="tech-stack">
+                    <div class="tech-card">
+                        <h4>🧪 Tests unitaires</h4>
+                        <ul>
+                            <li>Jest + Testing Library</li>
+                            <li>Mocking des dépendances</li>
+                            <li>Couverture de code</li>
+                            <li>Tests des utilitaires</li>
+                        </ul>
+                    </div>
+                    <div class="tech-card">
+                        <h4>🔗 Tests d'intégration</h4>
+                        <ul>
+                            <li>Tests API endpoints</li>
+                            <li>Base de données de test</li>
+                            <li>Authentification</li>
+                            <li>Workflows complets</li>
+                        </ul>
+                    </div>
+                    <div class="tech-card">
+                        <h4>🎭 Tests end-to-end</h4>
+                        <ul>
+                            <li>Playwright (recommandé)</li>
+                            <li>Scénarios utilisateur</li>
+                            <li>Tests cross-browser</li>
+                            <li>CI/CD integration</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h4>Configuration Jest</h4>
+
+                <div class="code-block">// jest.config.js
+const nextJest = require('next/jest')
+
+const createJestConfig = nextJest({
+  dir: './',
+})
+
+const customJestConfig = {
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  moduleDirectories: ['node_modules', '<rootDir>/'],
+  testEnvironment: 'jest-environment-jsdom',
+  collectCoverageFrom: [
+    'app/**/*.{js,jsx,ts,tsx}',
+    'components/**/*.{js,jsx,ts,tsx}',
+    'lib/**/*.{js,jsx,ts,tsx}',
+    '!**/*.d.ts',
+  ],
+  coverageThreshold: {
+    global: {
+      branches: 70,
+      functions: 70,
+      lines: 70,
+      statements: 70,
+    },
+  },
+}
+
+module.exports = createJestConfig(customJestConfig)</div>
+
+                <h2 id="performance">Optimisations de performance</h2>
+
+                <h3>Frontend</h3>
+
+                <div class="architecture-section">
+                    <h4>Optimisations React/Next.js</h4>
+                    <ul>
+                        <li><strong>Code Splitting :</strong> Chargement dynamique des composants</li>
+                        <li><strong>Image Optimization :</strong> Next.js Image component</li>
+                        <li><strong>Memoization :</strong> React.memo, useMemo, useCallback</li>
+                        <li><strong>Server Components :</strong> Rendu côté serveur</li>
+                        <li><strong>Bundle Analysis :</strong> Analyse de la taille du bundle</li>
+                    </ul>
+                </div>
+
+                <h3>Backend</h3>
+
+                <div class="architecture-section">
+                    <h4>Optimisations base de données</h4>
+                    <ul>
+                        <li><strong>Query Optimization :</strong> Requêtes Prisma optimisées</li>
+                        <li><strong>Connection Pooling :</strong> Pool de connexions PostgreSQL</li>
+                        <li><strong>Indexes :</strong> Index sur les colonnes fréquemment requêtées</li>
+                        <li><strong>Pagination :</strong> Pagination cursor-based pour les grandes listes</li>
+                        <li><strong>Caching :</strong> Mise en cache Redis pour les données fréquentes</li>
+                    </ul>
+                </div>
+
+                <h3>Monitoring des performances</h3>
+
+                <div class="code-block">// Exemple de métriques de performance
+export async function measureDatabaseQuery<T>(
+  queryName: string,
+  queryFn: () => Promise<T>
+): Promise<T> {
+  const start = performance.now()
+  
+  try {
+    const result = await queryFn()
+    const duration = performance.now() - start
+    
+    logger.info('Database query performance', {
+      query: queryName,
+      duration: `${duration.toFixed(2)}ms`,
+      success: true
+    })
+    
+    return result
+  } catch (error) {
+    const duration = performance.now() - start
+    
+    logger.error('Database query failed', error as Error, {
+      query: queryName,
+      duration: `${duration.toFixed(2)}ms`,
+      success: false
+    })
+    
+    throw error
+  }
+}</div>
+
+                <h2 id="securite-tech">Implémentation sécurité</h2>
+
+                <h3>Authentification et autorisation</h3>
+
+                <div class="architecture-section">
+                    <h4>NextAuth.js Configuration</h4>
+                    <div class="code-block">// auth.ts - Configuration sécurisée
+import NextAuth from 'next-auth'
+import CredentialsProvider from 'next-auth/providers/credentials'
+import { prisma } from '@/lib/db'
+import { verifyPassword } from '@/lib/crypto'
+
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  providers: [
+    CredentialsProvider({
+      name: 'credentials',
+      credentials: {
+        username: { label: 'Username', type: 'text' },
+        password: { label: 'Password', type: 'password' }
+      },
+      async authorize(credentials) {
+        if (!credentials?.username || !credentials?.password) {
+          return null
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { username: credentials.username }
+        })
+
+        if (!user || !user.isActive) {
+          return null
+        }
+
+        const isValidPassword = await verifyPassword(
+          credentials.password,
+          user.passwordHash
+        )
+
+        if (!isValidPassword) {
+          return null
+        }
+
+        return {
+          id: user.id.toString(),
+          username: user.username,
+          role: user.role,
+          language: user.language
+        }
+      }
+    })
+  ],
+  session: { 
+    strategy: 'jwt',
+    maxAge: 8 * 60 * 60 // 8 heures
+  },
+  jwt: {
+    maxAge: 8 * 60 * 60
+  },
+  pages: {
+    signIn: '/login'
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role
+        token.username = user.username
+        token.language = user.language
+      }
+      return token
+    },
+    async session({ session, token }) {
+      session.user.id = token.sub
+      session.user.role = token.role
+      session.user.username = token.username
+      session.user.language = token.language
+      return session
+    }
+  }
+})</div>
+                </div>
+
+                <h3>Protection CSRF et XSS</h3>
+
+                <div class="architecture-section">
+                    <h4>Middleware de sécurité</h4>
+                    <div class="code-block">// middleware.ts
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { auth } from '@/auth'
+
+export async function middleware(request: NextRequest) {
+  const session = await auth()
+  const { pathname } = request.nextUrl
+
+  // Headers de sécurité
+  const response = NextResponse.next()
+  
+  response.headers.set('X-Frame-Options', 'DENY')
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('X-XSS-Protection', '1; mode=block')
+  response.headers.set(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+  )
+
+  // Protection des routes API
+  if (pathname.startsWith('/api/')) {
+    if (!session && !pathname.startsWith('/api/auth')) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+  }
+
+  // Protection des routes d'administration
+  if (pathname.startsWith('/admin')) {
+    if (!session || session.user.role !== 'admin') {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+  }
+
+  return response
+}
+
+export const config = {
+  matcher: [
+    '/api/:path*',
+    '/admin/:path*',
+    '/matrices/:path*',
+    '/workflow/:path*'
+  ]
+}</div>
+                </div>
+
+                <h3>Validation et sanitization</h3>
+
+                <div class="code-block">// lib/validate.ts - Schémas de validation Zod
+import { z } from 'zod'
+
+export const CreateMatrixSchema = z.object({
+  name: z.string()
+    .min(1, 'Le nom est requis')
+    .max(100, 'Le nom ne peut pas dépasser 100 caractères')
+    .regex(/^[a-zA-Z0-9\s\-_]+$/, 'Le nom contient des caractères invalides'),
+  
+  description: z.string()
+    .max(500, 'La description ne peut pas dépasser 500 caractères')
+    .optional(),
+  
+  requiredApprovals: z.number()
+    .int()
+    .min(1, 'Au moins une approbation requise')
+    .max(10, 'Maximum 10 approbations')
+    .optional()
+})
+
+export const FlowEntrySchema = z.object({
+  rule_name: z.string()
+    .min(1, 'Le nom de règle est requis')
+    .max(50, 'Le nom de règle ne peut pas dépasser 50 caractères')
+    .regex(/^[A-Z0-9_]+$/, 'Format de nom de règle invalide'),
+  
+  src_cidr: z.string()
+    .regex(/^(\d{1,3}\.){3}\d{1,3}(\/\d{1,2})?$/, 'Format CIDR invalide')
+    .optional(),
+  
+  dst_cidr: z.string()
+    .regex(/^(\d{1,3}\.){3}\d{1,3}(\/\d{1,2})?$/, 'Format CIDR invalide')
+    .optional(),
+  
+  action: z.enum(['ALLOW', 'DENY', 'LOG'], {
+    errorMap: () => ({ message: 'Action doit être ALLOW, DENY ou LOG' })
+  })
+})</div>
+
+                <div class="alert alert-success">
+                    <strong>✅ Sécurité par conception :</strong> Matrix Flow intègre les meilleures pratiques de sécurité à tous les niveaux de l'architecture, de la validation des entrées utilisateur au chiffrement des données sensibles.
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

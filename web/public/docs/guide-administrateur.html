@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide Administrateur - Matrix Flow</title>
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --secondary-color: #64748b;
+            --background-color: #f8fafc;
+            --surface-color: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+            --accent-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --admin-color: #8b5cf6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--admin-color), var(--primary-color));
+            color: white;
+            padding: 2rem 0;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .breadcrumb {
+            opacity: 0.9;
+            margin-top: 0.5rem;
+        }
+
+        .breadcrumb a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav {
+            background-color: var(--admin-color);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-list {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .main {
+            padding: 2rem 0;
+            display: flex;
+            gap: 2rem;
+        }
+
+        .sidebar {
+            width: 280px;
+            background-color: var(--surface-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+            border: 1px solid var(--border-color);
+        }
+
+        .sidebar h3 {
+            color: var(--admin-color);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+            display: block;
+            padding: 0.25rem 0;
+        }
+
+        .sidebar a:hover {
+            color: var(--admin-color);
+        }
+
+        .content {
+            flex: 1;
+            background-color: var(--surface-color);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .content h1 {
+            color: var(--admin-color);
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            border-bottom: 3px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .content h2 {
+            color: var(--admin-color);
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .content h3 {
+            color: var(--text-color);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .content p {
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+
+        .content ul, .content ol {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+        }
+
+        .content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background-color: #eff6ff;
+            border-color: var(--primary-color);
+            color: #1d4ed8;
+        }
+
+        .alert-warning {
+            background-color: #fffbeb;
+            border-color: var(--warning-color);
+            color: #92400e;
+        }
+
+        .alert-success {
+            background-color: #ecfdf5;
+            border-color: var(--accent-color);
+            color: #047857;
+        }
+
+        .alert-danger {
+            background-color: #fef2f2;
+            border-color: var(--danger-color);
+            color: #dc2626;
+        }
+
+        .alert-admin {
+            background-color: #f3f4f6;
+            border-color: var(--admin-color);
+            color: #6b21a8;
+        }
+
+        .code-block {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        }
+
+        .step {
+            background-color: var(--background-color);
+            border-left: 4px solid var(--admin-color);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .step-number {
+            background-color: var(--admin-color);
+            color: white;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            background-color: var(--background-color);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .feature-card h4 {
+            color: var(--admin-color);
+            margin-bottom: 1rem;
+        }
+
+        .admin-card {
+            border-left: 4px solid var(--admin-color);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background-color: var(--surface-color);
+        }
+
+        .table th,
+        .table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table th {
+            background-color: var(--background-color);
+            font-weight: 600;
+            color: var(--admin-color);
+        }
+
+        .config-section {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .config-section h4 {
+            color: var(--admin-color);
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+
+            .main {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                position: static;
+            }
+
+            .content h1 {
+                font-size: 2rem;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .nav-list {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>🛡️ Guide Administrateur Matrix Flow</h1>
+            <div class="breadcrumb">
+                <a href="index.html">Documentation</a> / Guide Administrateur
+            </div>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <div class="container">
+            <ul class="nav-list">
+                <li><a href="index.html" class="nav-link">← Retour</a></li>
+                <li><a href="#installation" class="nav-link">Installation</a></li>
+                <li><a href="#utilisateurs" class="nav-link">Utilisateurs</a></li>
+                <li><a href="#rbac" class="nav-link">RBAC</a></li>
+                <li><a href="#systeme" class="nav-link">Système</a></li>
+                <li><a href="#securite" class="nav-link">Sécurité</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main">
+        <div class="container">
+            <aside class="sidebar">
+                <h3>🔧 Administration</h3>
+                <ul>
+                    <li><a href="#introduction">Introduction</a></li>
+                    <li><a href="#installation">Installation et déploiement</a></li>
+                    <li><a href="#configuration">Configuration initiale</a></li>
+                    <li><a href="#utilisateurs">Gestion des utilisateurs</a>
+                        <ul style="margin-left: 1rem; margin-top: 0.5rem;">
+                            <li><a href="#creation-utilisateur">Création</a></li>
+                            <li><a href="#roles-globaux">Rôles globaux</a></li>
+                            <li><a href="#gestion-mots-passe">Mots de passe</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#rbac">RBAC et permissions</a>
+                        <ul style="margin-left: 1rem; margin-top: 0.5rem;">
+                            <li><a href="#groupes-utilisateurs">Groupes</a></li>
+                            <li><a href="#permissions-matrices">Permissions matrices</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#authentification">Authentification</a></li>
+                    <li><a href="#systeme">Paramètres système</a></li>
+                    <li><a href="#email">Configuration email</a></li>
+                    <li><a href="#sauvegarde">Sauvegardes</a></li>
+                    <li><a href="#audit-admin">Audit et monitoring</a></li>
+                    <li><a href="#securite">Sécurité</a></li>
+                    <li><a href="#maintenance">Maintenance</a></li>
+                </ul>
+            </aside>
+
+            <div class="content">
+                <h1 id="introduction">Guide Administrateur Matrix Flow</h1>
+
+                <div class="alert alert-admin">
+                    <strong>🛡️ Accès administrateur requis :</strong> Ce guide s'adresse aux administrateurs système disposant des privilèges d'administration sur Matrix Flow.
+                </div>
+
+                <h2 id="installation">Installation et déploiement</h2>
+
+                <h3>Prérequis système</h3>
+
+                <div class="config-section">
+                    <h4>Logiciels requis</h4>
+                    <ul>
+                        <li><strong>Node.js :</strong> Version 18+ (LTS recommandée)</li>
+                        <li><strong>PostgreSQL :</strong> Version 13+ (17 recommandée)</li>
+                        <li><strong>Docker :</strong> Version 20+ (pour déploiement containerisé)</li>
+                        <li><strong>Docker Compose :</strong> Version 2+</li>
+                        <li><strong>Make :</strong> Pour l'utilisation des commandes de développement</li>
+                    </ul>
+                </div>
+
+                <div class="config-section">
+                    <h4>Ressources serveur recommandées</h4>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Environnement</th>
+                                <th>CPU</th>
+                                <th>RAM</th>
+                                <th>Stockage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Développement</td>
+                                <td>2 cores</td>
+                                <td>4 GB</td>
+                                <td>50 GB</td>
+                            </tr>
+                            <tr>
+                                <td>Test/Staging</td>
+                                <td>4 cores</td>
+                                <td>8 GB</td>
+                                <td>100 GB</td>
+                            </tr>
+                            <tr>
+                                <td>Production</td>
+                                <td>8+ cores</td>
+                                <td>16+ GB</td>
+                                <td>200+ GB SSD</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Installation via Docker (Recommandée)</h3>
+
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <div>
+                        <strong>Cloner le repository</strong>
+                        <div class="code-block">git clone https://github.com/votre-org/matrix-flow-app.git
+cd matrix-flow-app</div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <div>
+                        <strong>Configuration des variables d'environnement</strong>
+                        <div class="code-block">cp .env.example .env
+# Éditez le fichier .env avec vos paramètres</div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <div>
+                        <strong>Démarrage avec Docker Compose</strong>
+                        <div class="code-block">make prod
+# ou directement
+docker-compose -f docker-compose.prod.yml up -d</div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">4</span>
+                    <div>
+                        <strong>Initialisation de la base de données</strong>
+                        <div class="code-block">make db-push
+make db-seed</div>
+                    </div>
+                </div>
+
+                <h3>Installation manuelle</h3>
+
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <div>
+                        <strong>Installation des dépendances</strong>
+                        <div class="code-block">make install
+# ou
+cd web && npm install</div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <div>
+                        <strong>Configuration de PostgreSQL</strong>
+                        <div class="code-block">createdb matrixflow
+createuser matrixflow_user --pwprompt</div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <div>
+                        <strong>Configuration du fichier .env</strong>
+                        <div class="code-block">DATABASE_URL="postgresql://matrixflow_user:password@localhost:5432/matrixflow"
+NEXTAUTH_URL="https://votre-domaine.com"
+NEXTAUTH_SECRET="votre-clé-secrète-min-32-chars"
+NODE_ENV="production"</div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">4</span>
+                    <div>
+                        <strong>Build et démarrage</strong>
+                        <div class="code-block">npm run build
+npm run start</div>
+                    </div>
+                </div>
+
+                <h2 id="configuration">Configuration initiale</h2>
+
+                <h3>Première connexion administrateur</h3>
+
+                <div class="alert alert-warning">
+                    <strong>Sécurité critique :</strong> Changez immédiatement les identifiants par défaut après l'installation !
+                </div>
+
+                <div class="config-section">
+                    <h4>Identifiants par défaut</h4>
+                    <ul>
+                        <li><strong>Nom d'utilisateur :</strong> admin</li>
+                        <li><strong>Mot de passe :</strong> admin</li>
+                        <li><strong>Rôle :</strong> Administrateur global</li>
+                    </ul>
+                </div>
+
+                <h3>Configuration des variables d'environnement</h3>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Description</th>
+                            <th>Exemple</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>DATABASE_URL</td>
+                            <td>URL de connexion PostgreSQL</td>
+                            <td>postgresql://user:pass@host:5432/db</td>
+                        </tr>
+                        <tr>
+                            <td>NEXTAUTH_URL</td>
+                            <td>URL publique de l'application</td>
+                            <td>https://matrix-flow.company.com</td>
+                        </tr>
+                        <tr>
+                            <td>NEXTAUTH_SECRET</td>
+                            <td>Clé de chiffrement des sessions</td>
+                            <td>random-string-min-32-chars</td>
+                        </tr>
+                        <tr>
+                            <td>NODE_ENV</td>
+                            <td>Environnement d'exécution</td>
+                            <td>production</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2 id="utilisateurs">Gestion des utilisateurs</h2>
+
+                <h3 id="creation-utilisateur">Création d'utilisateurs</h3>
+
+                <p>En tant qu'administrateur, vous pouvez créer des utilisateurs via le panneau d'administration :</p>
+
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <div>
+                        <strong>Accès au panneau d'administration</strong><br>
+                        Menu principal > Administration > Gestion des utilisateurs
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <div>
+                        <strong>Création d'un nouvel utilisateur</strong><br>
+                        Cliquez sur "Nouvel utilisateur" et remplissez :
+                        <ul>
+                            <li>Nom d'utilisateur (unique)</li>
+                            <li>Nom complet</li>
+                            <li>Adresse email</li>
+                            <li>Mot de passe temporaire</li>
+                            <li>Rôle global</li>
+                            <li>Langue par défaut</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <div>
+                        <strong>Configuration initiale</strong><br>
+                        L'utilisateur recevra un email avec ses identifiants et devra changer son mot de passe à la première connexion.
+                    </div>
+                </div>
+
+                <h3 id="roles-globaux">Rôles globaux</h3>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Rôle</th>
+                            <th>Permissions globales</th>
+                            <th>Cas d'usage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>admin</strong></td>
+                            <td>Accès complet au système, administration</td>
+                            <td>Administrateurs système, responsables sécurité</td>
+                        </tr>
+                        <tr>
+                            <td><strong>user</strong></td>
+                            <td>Création de matrices, gestion de ses propres matrices</td>
+                            <td>Ingénieurs réseau, architectes, analystes</td>
+                        </tr>
+                        <tr>
+                            <td><strong>viewer</strong></td>
+                            <td>Consultation uniquement des matrices autorisées</td>
+                            <td>Auditeurs, consultants externes, stagiaires</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3 id="gestion-mots-passe">Gestion des mots de passe</h3>
+
+                <div class="feature-grid">
+                    <div class="feature-card admin-card">
+                        <h4>🔒 Politique de sécurité</h4>
+                        <ul>
+                            <li>Minimum 8 caractères</li>
+                            <li>Au moins une majuscule</li>
+                            <li>Au moins une minuscule</li>
+                            <li>Au moins un chiffre</li>
+                            <li>Expiration configurable</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card admin-card">
+                        <h4>🛠️ Actions administrateur</h4>
+                        <ul>
+                            <li>Réinitialisation de mot de passe</li>
+                            <li>Forcer le changement</li>
+                            <li>Verrouillage de compte</li>
+                            <li>Historique des connexions</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h2 id="rbac">RBAC et permissions</h2>
+
+                <h3>Architecture des permissions</h3>
+
+                <p>Matrix Flow utilise un système de permissions à deux niveaux :</p>
+
+                <div class="config-section">
+                    <h4>Niveaux de permissions</h4>
+                    <ol>
+                        <li><strong>Permissions globales :</strong> Rôles système (admin, user, viewer)</li>
+                        <li><strong>Permissions matricielles :</strong> Rôles spécifiques à chaque matrice (owner, editor, viewer)</li>
+                    </ol>
+                </div>
+
+                <h3 id="groupes-utilisateurs">Groupes d'utilisateurs</h3>
+
+                <p>Les groupes permettent de simplifier la gestion des permissions en regroupant les utilisateurs par fonction ou département.</p>
+
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <div>
+                        <strong>Création d'un groupe</strong><br>
+                        Administration > RBAC > Groupes d'utilisateurs > Nouveau groupe
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <div>
+                        <strong>Configuration du groupe</strong><br>
+                        <ul>
+                            <li>Nom du groupe</li>
+                            <li>Description</li>
+                            <li>Permissions par défaut</li>
+                            <li>Membres du groupe</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <div>
+                        <strong>Attribution des permissions</strong><br>
+                        Les permissions du groupe sont automatiquement héritées par tous les membres.
+                    </div>
+                </div>
+
+                <h3 id="permissions-matrices">Permissions sur les matrices</h3>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Permission</th>
+                            <th>Owner</th>
+                            <th>Editor</th>
+                            <th>Viewer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Consulter la matrice</td>
+                            <td>✅</td>
+                            <td>✅</td>
+                            <td>✅</td>
+                        </tr>
+                        <tr>
+                            <td>Créer des flux</td>
+                            <td>✅</td>
+                            <td>✅</td>
+                            <td>❌</td>
+                        </tr>
+                        <tr>
+                            <td>Modifier des flux</td>
+                            <td>✅</td>
+                            <td>✅</td>
+                            <td>❌</td>
+                        </tr>
+                        <tr>
+                            <td>Supprimer des flux</td>
+                            <td>✅</td>
+                            <td>✅</td>
+                            <td>❌</td>
+                        </tr>
+                        <tr>
+                            <td>Approuver les changements</td>
+                            <td>✅</td>
+                            <td>❌*</td>
+                            <td>❌</td>
+                        </tr>
+                        <tr>
+                            <td>Gérer les permissions</td>
+                            <td>✅</td>
+                            <td>❌</td>
+                            <td>❌</td>
+                        </tr>
+                        <tr>
+                            <td>Supprimer la matrice</td>
+                            <td>✅</td>
+                            <td>❌</td>
+                            <td>❌</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p><em>* Les éditeurs peuvent approuver selon la configuration de la matrice</em></p>
+
+                <h2 id="authentification">Configuration de l'authentification</h2>
+
+                <h3>Fournisseurs d'authentification</h3>
+
+                <p>Matrix Flow supporte plusieurs méthodes d'authentification :</p>
+
+                <div class="feature-grid">
+                    <div class="feature-card admin-card">
+                        <h4>🏠 Authentification locale</h4>
+                        <p>Base de données interne avec gestion complète des utilisateurs et mots de passe.</p>
+                    </div>
+                    <div class="feature-card admin-card">
+                        <h4>🌐 LDAP/Active Directory</h4>
+                        <p>Intégration avec votre annuaire d'entreprise existant.</p>
+                    </div>
+                    <div class="feature-card admin-card">
+                        <h4>🔐 OIDC/OAuth2</h4>
+                        <p>Authentification via des fournisseurs externes (Azure AD, Google, etc.).</p>
+                    </div>
+                    <div class="feature-card admin-card">
+                        <h4>🏢 SAML 2.0</h4>
+                        <p>Single Sign-On pour les environnements d'entreprise.</p>
+                    </div>
+                </div>
+
+                <h3>Configuration LDAP</h3>
+
+                <div class="config-section">
+                    <h4>Paramètres LDAP</h4>
+                    <div class="code-block">{
+  "server": "ldap://votre-dc.company.com:389",
+  "bindDN": "CN=service-account,OU=Service Accounts,DC=company,DC=com",
+  "bindPassword": "mot-de-passe-service",
+  "searchBase": "OU=Users,DC=company,DC=com",
+  "searchFilter": "(sAMAccountName={{username}})",
+  "attributes": {
+    "username": "sAMAccountName",
+    "email": "mail",
+    "fullName": "displayName"
+  }
+}</div>
+                </div>
+
+                <h2 id="systeme">Paramètres système</h2>
+
+                <h3>Configuration générale</h3>
+
+                <div class="config-section">
+                    <h4>Paramètres de l'application</h4>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Paramètre</th>
+                                <th>Description</th>
+                                <th>Valeur par défaut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>session_timeout</td>
+                                <td>Durée de session en minutes</td>
+                                <td>480 (8h)</td>
+                            </tr>
+                            <tr>
+                                <td>password_expiry_days</td>
+                                <td>Expiration des mots de passe en jours</td>
+                                <td>90</td>
+                            </tr>
+                            <tr>
+                                <td>max_login_attempts</td>
+                                <td>Tentatives de connexion avant verrouillage</td>
+                                <td>5</td>
+                            </tr>
+                            <tr>
+                                <td>account_lockout_duration</td>
+                                <td>Durée de verrouillage en minutes</td>
+                                <td>30</td>
+                            </tr>
+                            <tr>
+                                <td>audit_retention_days</td>
+                                <td>Rétention des logs d'audit en jours</td>
+                                <td>365</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Notifications système</h3>
+
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <div>
+                        <strong>Configuration des alertes</strong><br>
+                        Administration > Système > Notifications
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <div>
+                        <strong>Types de notifications</strong><br>
+                        <ul>
+                            <li>Connexions administrateur</li>
+                            <li>Modifications de configuration</li>
+                            <li>Erreurs système critiques</li>
+                            <li>Échec de sauvegarde</li>
+                            <li>Utilisation excessive des ressources</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h2 id="email">Configuration email</h2>
+
+                <h3>Paramètres SMTP</h3>
+
+                <div class="config-section">
+                    <h4>Configuration du serveur email</h4>
+                    <div class="code-block">{
+  "smtp_host": "smtp.company.com",
+  "smtp_port": 587,
+  "smtp_secure": true,
+  "smtp_user": "noreply@company.com",
+  "smtp_password": "mot-de-passe-smtp",
+  "from_address": "Matrix Flow <noreply@company.com>",
+  "reply_to": "support@company.com"
+}</div>
+                </div>
+
+                <h3>Templates d'emails</h3>
+
+                <p>Personnalisez les templates d'emails pour différents événements :</p>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>📧 Bienvenue</h4>
+                        <p>Email envoyé lors de la création d'un compte utilisateur.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🔐 Réinitialisation</h4>
+                        <p>Email de réinitialisation de mot de passe.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>✅ Approbation</h4>
+                        <p>Notification de demande d'approbation.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🚨 Alertes</h4>
+                        <p>Alertes de sécurité et notifications système.</p>
+                    </div>
+                </div>
+
+                <h2 id="sauvegarde">Sauvegardes</h2>
+
+                <h3>Configuration automatique</h3>
+
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <div>
+                        <strong>Planification des sauvegardes</strong><br>
+                        Administration > Système > Sauvegardes > Planificateur
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <div>
+                        <strong>Configuration</strong><br>
+                        <ul>
+                            <li>Fréquence : Quotidienne, Hebdomadaire, Mensuelle</li>
+                            <li>Heure d'exécution</li>
+                            <li>Rétention : Nombre de sauvegardes à conserver</li>
+                            <li>Destination : Locale, S3, FTP</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>Sauvegarde manuelle</h3>
+
+                <div class="code-block">make backup
+# ou directement
+pg_dump $DATABASE_URL > backup_$(date +%Y%m%d_%H%M%S).sql</div>
+
+                <h3>Restauration</h3>
+
+                <div class="alert alert-danger">
+                    <strong>⚠️ Attention :</strong> La restauration remplace complètement la base de données existante. Créez une sauvegarde avant de procéder.
+                </div>
+
+                <div class="code-block">make db-restore BACKUP_FILE=backup_20240315_143000.sql
+# ou
+psql $DATABASE_URL < backup_20240315_143000.sql</div>
+
+                <h2 id="audit-admin">Audit et monitoring</h2>
+
+                <h3>Dashboard de monitoring</h3>
+
+                <p>Le dashboard administrateur fournit une vue d'ensemble de l'état du système :</p>
+
+                <div class="feature-grid">
+                    <div class="feature-card admin-card">
+                        <h4>📊 Métriques système</h4>
+                        <ul>
+                            <li>Nombre d'utilisateurs actifs</li>
+                            <li>Matrices créées/modifiées</li>
+                            <li>Demandes d'approbation en cours</li>
+                            <li>Erreurs et alertes</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card admin-card">
+                        <h4>🔍 Surveillance</h4>
+                        <ul>
+                            <li>Connexions échouées</li>
+                            <li>Actions privilégiées</li>
+                            <li>Modifications de configuration</li>
+                            <li>Performance des requêtes</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>Logs d'audit avancés</h3>
+
+                <p>En tant qu'administrateur, vous avez accès à l'audit complet :</p>
+
+                <ul>
+                    <li><strong>Filtrage avancé :</strong> Par utilisateur, action, période, IP source</li>
+                    <li><strong>Export :</strong> Génération de rapports d'audit</li>
+                    <li><strong>Rétention :</strong> Configuration de la durée de conservation</li>
+                    <li><strong>Alertes :</strong> Notifications sur événements sensibles</li>
+                </ul>
+
+                <h2 id="securite">Sécurité</h2>
+
+                <h3>Bonnes pratiques</h3>
+
+                <div class="alert alert-admin">
+                    <strong>🛡️ Checklist sécurité :</strong> Suivez cette liste pour maintenir un niveau de sécurité optimal.
+                </div>
+
+                <div class="config-section">
+                    <h4>Configuration sécurisée</h4>
+                    <ul>
+                        <li>✅ Changement des mots de passe par défaut</li>
+                        <li>✅ Configuration HTTPS avec certificats valides</li>
+                        <li>✅ Pare-feu configuré (ports 80/443 uniquement)</li>
+                        <li>✅ Sauvegardes régulières et testées</li>
+                        <li>✅ Mise à jour système et applicative</li>
+                        <li>✅ Monitoring des logs de sécurité</li>
+                        <li>✅ Politique de mots de passe renforcée</li>
+                        <li>✅ Sessions limitées dans le temps</li>
+                    </ul>
+                </div>
+
+                <h3>Hardening du système</h3>
+
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <div>
+                        <strong>Configuration du reverse proxy</strong><br>
+                        Utilisez Nginx ou Apache comme reverse proxy avec :
+                        <div class="code-block">proxy_hide_header X-Powered-By;
+add_header X-Frame-Options DENY;
+add_header X-Content-Type-Options nosniff;
+add_header X-XSS-Protection "1; mode=block";
+add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload";</div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <div>
+                        <strong>Configuration de la base de données</strong><br>
+                        <ul>
+                            <li>Utilisateur dédié avec privilèges minimaux</li>
+                            <li>Connexions SSL obligatoires</li>
+                            <li>Restriction des adresses IP autorisées</li>
+                            <li>Chiffrement de la base au repos</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>Réponse aux incidents</h3>
+
+                <div class="alert alert-danger">
+                    <strong>🚨 En cas de compromission :</strong>
+                    <ol>
+                        <li>Isoler le système (déconnecter du réseau)</li>
+                        <li>Préserver les logs d'audit</li>
+                        <li>Changer tous les mots de passe administrateur</li>
+                        <li>Analyser les logs pour identifier les actions malveillantes</li>
+                        <li>Restaurer depuis une sauvegarde saine si nécessaire</li>
+                        <li>Implémenter des mesures correctives</li>
+                    </ol>
+                </div>
+
+                <h2 id="maintenance">Maintenance</h2>
+
+                <h3>Tâches régulières</h3>
+
+                <div class="config-section">
+                    <h4>Planning de maintenance recommandé</h4>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Fréquence</th>
+                                <th>Tâches</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Quotidien</td>
+                                <td>Vérification des sauvegardes, surveillance des logs</td>
+                            </tr>
+                            <tr>
+                                <td>Hebdomadaire</td>
+                                <td>Analyse des performances, nettoyage des logs</td>
+                            </tr>
+                            <tr>
+                                <td>Mensuel</td>
+                                <td>Mise à jour sécurité, révision des comptes utilisateur</td>
+                            </tr>
+                            <tr>
+                                <td>Trimestriel</td>
+                                <td>Audit sécurité, test de restauration, mise à jour majeure</td>
+                            </tr>
+                            <tr>
+                                <td>Annuel</td>
+                                <td>Révision complète de sécurité, renouvellement certificats</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Mise à jour du système</h3>
+
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <div>
+                        <strong>Préparation</strong><br>
+                        <ul>
+                            <li>Créer une sauvegarde complète</li>
+                            <li>Tester la mise à jour en environnement de test</li>
+                            <li>Planifier une fenêtre de maintenance</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <div>
+                        <strong>Déploiement</strong><br>
+                        <div class="code-block">git pull origin main
+docker-compose -f docker-compose.prod.yml down
+docker-compose -f docker-compose.prod.yml pull
+docker-compose -f docker-compose.prod.yml up -d</div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <div>
+                        <strong>Vérification post-mise à jour</strong><br>
+                        <ul>
+                            <li>Test de connexion et fonctionnalités critiques</li>
+                            <li>Vérification des logs d'erreur</li>
+                            <li>Surveillance des performances</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>Dépannage</h3>
+
+                <div class="config-section">
+                    <h4>Problèmes courants et solutions</h4>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Problème</th>
+                                <th>Cause probable</th>
+                                <th>Solution</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Connexions échouent</td>
+                                <td>Base de données inaccessible</td>
+                                <td>Vérifier le service PostgreSQL, connexions réseau</td>
+                            </tr>
+                            <tr>
+                                <td>Performance dégradée</td>
+                                <td>Manque de ressources</td>
+                                <td>Augmenter RAM/CPU, optimiser les requêtes</td>
+                            </tr>
+                            <tr>
+                                <td>Sessions expirées rapidement</td>
+                                <td>Configuration session_timeout</td>
+                                <td>Ajuster les paramètres de session</td>
+                            </tr>
+                            <tr>
+                                <td>Emails non envoyés</td>
+                                <td>Configuration SMTP incorrecte</td>
+                                <td>Vérifier paramètres email, connectivité serveur</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-info">
+                    <strong>💡 Support :</strong> Pour un support technique approfondi, consultez la documentation technique ou contactez l'équipe de développement.
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

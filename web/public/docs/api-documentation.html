@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation API - Matrix Flow</title>
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --secondary-color: #64748b;
+            --background-color: #f8fafc;
+            --surface-color: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+            --accent-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --api-color: #7c3aed;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--api-color), var(--primary-color));
+            color: white;
+            padding: 2rem 0;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .breadcrumb {
+            opacity: 0.9;
+            margin-top: 0.5rem;
+        }
+
+        .breadcrumb a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav {
+            background-color: var(--api-color);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-list {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .main {
+            padding: 2rem 0;
+            display: flex;
+            gap: 2rem;
+        }
+
+        .sidebar {
+            width: 280px;
+            background-color: var(--surface-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+            border: 1px solid var(--border-color);
+        }
+
+        .sidebar h3 {
+            color: var(--api-color);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+            display: block;
+            padding: 0.25rem 0;
+        }
+
+        .sidebar a:hover {
+            color: var(--api-color);
+        }
+
+        .content {
+            flex: 1;
+            background-color: var(--surface-color);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .content h1 {
+            color: var(--api-color);
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            border-bottom: 3px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .content h2 {
+            color: var(--api-color);
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .content h3 {
+            color: var(--text-color);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .content p {
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+
+        .content ul, .content ol {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+        }
+
+        .content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background-color: #eff6ff;
+            border-color: var(--primary-color);
+            color: #1d4ed8;
+        }
+
+        .alert-warning {
+            background-color: #fffbeb;
+            border-color: var(--warning-color);
+            color: #92400e;
+        }
+
+        .alert-success {
+            background-color: #ecfdf5;
+            border-color: var(--accent-color);
+            color: #047857;
+        }
+
+        .alert-api {
+            background-color: #f3f4f6;
+            border-color: var(--api-color);
+            color: #6b21a8;
+        }
+
+        .code-block {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .endpoint {
+            background-color: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            margin: 2rem 0;
+            overflow: hidden;
+        }
+
+        .endpoint-header {
+            background-color: var(--api-color);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .method {
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .method-get {
+            background-color: var(--accent-color);
+        }
+
+        .method-post {
+            background-color: #3b82f6;
+        }
+
+        .method-put {
+            background-color: var(--warning-color);
+        }
+
+        .method-delete {
+            background-color: var(--danger-color);
+        }
+
+        .endpoint-content {
+            padding: 1.5rem;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background-color: var(--surface-color);
+        }
+
+        .table th,
+        .table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table th {
+            background-color: var(--background-color);
+            font-weight: 600;
+            color: var(--api-color);
+        }
+
+        .parameter {
+            background-color: #f1f5f9;
+            border-left: 4px solid var(--api-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.25rem 0.25rem 0;
+        }
+
+        .parameter-name {
+            font-weight: bold;
+            color: var(--api-color);
+        }
+
+        .parameter-type {
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+
+        .response-example {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .status-code {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: bold;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+        }
+
+        .status-200 { background-color: #dcfce7; color: #166534; }
+        .status-201 { background-color: #dcfce7; color: #166534; }
+        .status-400 { background-color: #fef3c7; color: #92400e; }
+        .status-401 { background-color: #fee2e2; color: #dc2626; }
+        .status-403 { background-color: #fee2e2; color: #dc2626; }
+        .status-404 { background-color: #fee2e2; color: #dc2626; }
+        .status-500 { background-color: #fecaca; color: #991b1b; }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+
+            .main {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                position: static;
+            }
+
+            .content h1 {
+                font-size: 2rem;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .nav-list {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .endpoint-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>🔌 Documentation API Matrix Flow</h1>
+            <div class="breadcrumb">
+                <a href="index.html">Documentation</a> / API Documentation
+            </div>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <div class="container">
+            <ul class="nav-list">
+                <li><a href="index.html" class="nav-link">← Retour</a></li>
+                <li><a href="#introduction" class="nav-link">Introduction</a></li>
+                <li><a href="#authentification" class="nav-link">Authentification</a></li>
+                <li><a href="#matrices" class="nav-link">Matrices</a></li>
+                <li><a href="#flux" class="nav-link">Flux</a></li>
+                <li><a href="#workflow" class="nav-link">Workflow</a></li>
+                <li><a href="#admin" class="nav-link">Administration</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main">
+        <div class="container">
+            <aside class="sidebar">
+                <h3>🔌 API Endpoints</h3>
+                <ul>
+                    <li><a href="#introduction">Introduction</a></li>
+                    <li><a href="#authentification">Authentification</a>
+                        <ul style="margin-left: 1rem; margin-top: 0.5rem;">
+                            <li><a href="#auth-login">Login</a></li>
+                            <li><a href="#auth-register">Register</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#matrices">Matrices</a>
+                        <ul style="margin-left: 1rem; margin-top: 0.5rem;">
+                            <li><a href="#matrices-list">Lister</a></li>
+                            <li><a href="#matrices-create">Créer</a></li>
+                            <li><a href="#matrices-get">Détails</a></li>
+                            <li><a href="#matrices-update">Modifier</a></li>
+                            <li><a href="#matrices-delete">Supprimer</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#flux">Flux</a>
+                        <ul style="margin-left: 1rem; margin-top: 0.5rem;">
+                            <li><a href="#flux-create">Créer</a></li>
+                            <li><a href="#flux-update">Modifier</a></li>
+                            <li><a href="#flux-delete">Supprimer</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#workflow">Workflow</a></li>
+                    <li><a href="#admin">Administration</a></li>
+                    <li><a href="#schemas">Schémas de données</a></li>
+                    <li><a href="#errors">Codes d'erreur</a></li>
+                </ul>
+            </aside>
+
+            <div class="content">
+                <h1 id="introduction">Documentation API Matrix Flow</h1>
+
+                <div class="alert alert-api">
+                    <strong>🔌 API REST :</strong> Matrix Flow expose une API REST complète pour l'intégration avec vos systèmes externes et l'automatisation des tâches.
+                </div>
+
+                <h2>URL de base</h2>
+                <div class="code-block">https://votre-domaine.com/api</div>
+
+                <h2>Format des réponses</h2>
+                <p>Toutes les réponses API suivent un format JSON standardisé :</p>
+
+                <div class="response-example">
+                    <strong>Réponse de succès :</strong>
+                    <div class="code-block">{
+  "success": true,
+  "data": { ... },
+  "message": "Opération réussie"
+}</div>
+                </div>
+
+                <div class="response-example">
+                    <strong>Réponse d'erreur :</strong>
+                    <div class="code-block">{
+  "success": false,
+  "error": "Type d'erreur",
+  "message": "Description détaillée de l'erreur"
+}</div>
+                </div>
+
+                <h2 id="authentification">Authentification</h2>
+
+                <p>L'API Matrix Flow utilise l'authentification basée sur les sessions via NextAuth.js. Les requêtes doivent inclure les cookies de session appropriés.</p>
+
+                <h3 id="auth-login">Connexion</h3>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method method-post">POST</span>
+                        <span>/api/auth/signin</span>
+                    </div>
+                    <div class="endpoint-content">
+                        <p>Authentifie un utilisateur et crée une session.</p>
+                        
+                        <h4>Corps de la requête</h4>
+                        <div class="code-block">{
+  "username": "admin",
+  "password": "motdepasse"
+}</div>
+
+                        <h4>Réponses</h4>
+                        <div class="parameter">
+                            <div class="parameter-name">
+                                <span class="status-code status-200">200</span>
+                                Connexion réussie
+                            </div>
+                            <div class="code-block">{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "1",
+      "username": "admin",
+      "fullName": "Administrateur",
+      "role": "admin",
+      "language": "fr"
+    }
+  }
+}</div>
+                        </div>
+
+                        <div class="parameter">
+                            <div class="parameter-name">
+                                <span class="status-code status-401">401</span>
+                                Identifiants invalides
+                            </div>
+                            <div class="code-block">{
+  "success": false,
+  "error": "Unauthorized",
+  "message": "Nom d'utilisateur ou mot de passe incorrect"
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 id="auth-register">Inscription</h3>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method method-post">POST</span>
+                        <span>/api/auth/register</span>
+                    </div>
+                    <div class="endpoint-content">
+                        <p>Crée un nouveau compte utilisateur (disponible selon la configuration).</p>
+                        
+                        <h4>Corps de la requête</h4>
+                        <div class="code-block">{
+  "username": "nouveau_user",
+  "fullName": "Nom Complet",
+  "email": "user@example.com",
+  "password": "motdepasse123"
+}</div>
+
+                        <h4>Réponses</h4>
+                        <div class="parameter">
+                            <div class="parameter-name">
+                                <span class="status-code status-201">201</span>
+                                Compte créé
+                            </div>
+                            <div class="code-block">{
+  "success": true,
+  "message": "Compte créé avec succès"
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 id="matrices">Gestion des matrices</h2>
+
+                <h3 id="matrices-list">Lister les matrices</h3>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method method-get">GET</span>
+                        <span>/api/matrices</span>
+                    </div>
+                    <div class="endpoint-content">
+                        <p>Récupère la liste des matrices accessibles à l'utilisateur.</p>
+                        
+                        <h4>Paramètres de requête</h4>
+                        <div class="parameter">
+                            <div class="parameter-name">page <span class="parameter-type">integer (optionnel)</span></div>
+                            <p>Numéro de page pour la pagination (défaut: 1)</p>
+                        </div>
+                        <div class="parameter">
+                            <div class="parameter-name">limit <span class="parameter-type">integer (optionnel)</span></div>
+                            <p>Nombre d'éléments par page (défaut: 10, max: 100)</p>
+                        </div>
+
+                        <h4>Exemple de requête</h4>
+                        <div class="code-block">GET /api/matrices?page=1&limit=20</div>
+
+                        <h4>Réponse</h4>
+                        <div class="parameter">
+                            <div class="parameter-name">
+                                <span class="status-code status-200">200</span>
+                                Liste récupérée
+                            </div>
+                            <div class="code-block">{
+  "success": true,
+  "data": {
+    "matrices": [
+      {
+        "id": 1,
+        "name": "Matrice Production",
+        "description": "Flux de production",
+        "createdAt": "2024-01-15T10:00:00Z",
+        "updatedAt": "2024-01-20T15:30:00Z",
+        "owner": {
+          "username": "admin",
+          "fullName": "Administrateur"
+        },
+        "publishedVersion": {
+          "version": 2,
+          "status": "approved"
+        },
+        "_count": {
+          "entries": 25,
+          "versions": 3
+        }
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 45,
+      "hasMore": true
+    }
+  }
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 id="matrices-create">Créer une matrice</h3>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method method-post">POST</span>
+                        <span>/api/matrices</span>
+                    </div>
+                    <div class="endpoint-content">
+                        <p>Crée une nouvelle matrice de flux.</p>
+                        
+                        <h4>Corps de la requête</h4>
+                        <div class="code-block">{
+  "name": "Nouvelle Matrice",
+  "description": "Description de la matrice",
+  "requiredApprovals": 2
+}</div>
+
+                        <h4>Paramètres</h4>
+                        <div class="parameter">
+                            <div class="parameter-name">name <span class="parameter-type">string (requis)</span></div>
+                            <p>Nom de la matrice (unique)</p>
+                        </div>
+                        <div class="parameter">
+                            <div class="parameter-name">description <span class="parameter-type">string (optionnel)</span></div>
+                            <p>Description détaillée de la matrice</p>
+                        </div>
+                        <div class="parameter">
+                            <div class="parameter-name">requiredApprovals <span class="parameter-type">integer (optionnel)</span></div>
+                            <p>Nombre d'approbations requises (défaut: 1)</p>
+                        </div>
+
+                        <h4>Réponses</h4>
+                        <div class="parameter">
+                            <div class="parameter-name">
+                                <span class="status-code status-201">201</span>
+                                Matrice créée
+                            </div>
+                            <div class="code-block">{
+  "success": true,
+  "data": {
+    "id": 15,
+    "name": "Nouvelle Matrice",
+    "description": "Description de la matrice",
+    "requiredApprovals": 2,
+    "createdAt": "2024-03-15T14:30:00Z",
+    "updatedAt": "2024-03-15T14:30:00Z",
+    "owner": {
+      "username": "admin",
+      "fullName": "Administrateur"
+    }
+  },
+  "message": "Matrice créée avec succès"
+}</div>
+                        </div>
+
+                        <div class="parameter">
+                            <div class="parameter-name">
+                                <span class="status-code status-403">403</span>
+                                Permissions insuffisantes
+                            </div>
+                            <div class="code-block">{
+  "success": false,
+  "error": "Forbidden",
+  "message": "Les utilisateurs avec le rôle 'viewer' ne peuvent pas créer de matrices"
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 id="matrices-get">Obtenir les détails d'une matrice</h3>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method method-get">GET</span>
+                        <span>/api/matrices/{id}</span>
+                    </div>
+                    <div class="endpoint-content">
+                        <p>Récupère les détails complets d'une matrice, incluant ses flux et son historique.</p>
+                        
+                        <h4>Paramètres d'URL</h4>
+                        <div class="parameter">
+                            <div class="parameter-name">id <span class="parameter-type">integer (requis)</span></div>
+                            <p>Identifiant unique de la matrice</p>
+                        </div>
+
+                        <h4>Réponse</h4>
+                        <div class="parameter">
+                            <div class="parameter-name">
+                                <span class="status-code status-200">200</span>
+                                Détails de la matrice
+                            </div>
+                            <div class="code-block">{
+  "success": true,
+  "data": {
+    "id": 1,
+    "name": "Matrice Production",
+    "description": "Flux de production",
+    "requiredApprovals": 1,
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-20T15:30:00Z",
+    "owner": {
+      "username": "admin",
+      "fullName": "Administrateur"
+    },
+    "entries": [
+      {
+        "id": 1,
+        "rule_name": "ALLOW_HTTP",
+        "device": "FW-01",
+        "src_zone": "DMZ",
+        "dst_zone": "LAN",
+        "protocol_group": "HTTP",
+        "action": "ALLOW",
+        "createdAt": "2024-01-15T11:00:00Z"
+      }
+    ],
+    "versions": [
+      {
+        "id": 5,
+        "version": 2,
+        "status": "approved",
+        "createdAt": "2024-01-20T15:30:00Z"
+      }
+    ],
+    "permissions": [
+      {
+        "id": 1,
+        "role": "editor",
+        "user": {
+          "username": "user1",
+          "fullName": "Utilisateur 1"
+        }
+      }
+    ]
+  }
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 id="matrices-update">Modifier une matrice</h3>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method method-put">PUT</span>
+                        <span>/api/matrices/{id}</span>
+                    </div>
+                    <div class="endpoint-content">
+                        <p>Met à jour les informations d'une matrice existante.</p>
+                        
+                        <h4>Corps de la requête</h4>
+                        <div class="code-block">{
+  "name": "Nouveau nom",
+  "description": "Nouvelle description",
+  "requiredApprovals": 3
+}</div>
+
+                        <h4>Réponses</h4>
+                        <div class="parameter">
+                            <div class="parameter-name">
+                                <span class="status-code status-200">200</span>
+                                Matrice mise à jour
+                            </div>
+                            <div class="code-block">{
+  "success": true,
+  "data": {
+    "id": 1,
+    "name": "Nouveau nom",
+    "description": "Nouvelle description",
+    "requiredApprovals": 3,
+    "updatedAt": "2024-03-15T16:45:00Z"
+  },
+  "message": "Matrice mise à jour avec succès"
+}</div>
+                        </div>
+
+                        <div class="parameter">
+                            <div class="parameter-name">
+                                <span class="status-code status-403">403</span>
+                                Permissions insuffisantes
+                            </div>
+                            <div class="code-block">{
+  "success": false,
+  "error": "Forbidden",
+  "message": "Permissions insuffisantes pour modifier cette matrice"
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 id="matrices-delete">Supprimer une matrice</h3>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method method-delete">DELETE</span>
+                        <span>/api/matrices/{id}</span>
+                    </div>
+                    <div class="endpoint-content">
+                        <p>Supprime définitivement une matrice (administrateurs uniquement).</p>
+                        
+                        <div class="alert alert-warning">
+                            <strong>⚠️ Attention :</strong> Cette opération est irréversible et supprime tous les flux associés.
+                        </div>
+
+                        <h4>Réponses</h4>
+                        <div class="parameter">
+                            <div class="parameter-name">
+                                <span class="status-code status-200">200</span>
+                                Matrice supprimée
+                            </div>
+                            <div class="code-block">{
+  "success": true,
+  "message": "Matrice \"Production\" supprimée avec succès"
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 id="flux">Gestion des flux</h2>
+
+                <h3 id="flux-create">Créer un flux</h3>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method method-post">POST</span>
+                        <span>/api/matrices/{matrixId}/entries</span>
+                    </div>
+                    <div class="endpoint-content">
+                        <p>Ajoute un nouveau flux à une matrice.</p>
+                        
+                        <h4>Corps de la requête</h4>
+                        <div class="code-block">{
+  "request_type": "Nouveau flux",
+  "rule_status": "Active",
+  "rule_name": "ALLOW_HTTPS_WEB",
+  "device": "FW-PROD-01",
+  "src_zone": "DMZ",
+  "src_name": "Serveurs Web",
+  "src_cidr": "192.168.100.0/24",
+  "src_service": "ANY",
+  "dst_zone": "Internet",
+  "dst_name": "Tout Internet",
+  "dst_cidr": "0.0.0.0/0",
+  "protocol_group": "HTTPS",
+  "dst_service": "TCP/443",
+  "action": "ALLOW",
+  "implementation_date": "2024-03-20T00:00:00Z",
+  "requester": "admin@company.com",
+  "comment": "Accès HTTPS pour les serveurs web"
+}</div>
+
+                        <h4>Réponses</h4>
+                        <div class="parameter">
+                            <div class="parameter-name">
+                                <span class="status-code status-201">201</span>
+                                Flux créé
+                            </div>
+                            <div class="code-block">{
+  "success": true,
+  "data": {
+    "id": 50,
+    "matrixId": 1,
+    "rule_name": "ALLOW_HTTPS_WEB",
+    "device": "FW-PROD-01",
+    "action": "ALLOW",
+    "createdAt": "2024-03-15T16:30:00Z"
+  },
+  "message": "Flux créé avec succès"
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 id="flux-update">Modifier un flux</h3>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method method-put">PUT</span>
+                        <span>/api/matrices/{matrixId}/entries/{entryId}</span>
+                    </div>
+                    <div class="endpoint-content">
+                        <p>Met à jour un flux existant dans une matrice.</p>
+                        
+                        <h4>Corps de la requête</h4>
+                        <div class="code-block">{
+  "rule_status": "Inactive",
+  "comment": "Désactivation temporaire pour maintenance",
+  "implementation_date": "2024-03-25T02:00:00Z"
+}</div>
+
+                        <h4>Réponses</h4>
+                        <div class="parameter">
+                            <div class="parameter-name">
+                                <span class="status-code status-200">200</span>
+                                Flux mis à jour
+                            </div>
+                            <div class="code-block">{
+  "success": true,
+  "data": {
+    "id": 50,
+    "rule_status": "Inactive",
+    "comment": "Désactivation temporaire pour maintenance",
+    "updatedAt": "2024-03-15T16:45:00Z"
+  },
+  "message": "Flux mis à jour avec succès"
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 id="flux-delete">Supprimer un flux</h3>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method method-delete">DELETE</span>
+                        <span>/api/matrices/{matrixId}/entries/{entryId}</span>
+                    </div>
+                    <div class="endpoint-content">
+                        <p>Supprime un flux d'une matrice.</p>
+                        
+                        <h4>Réponses</h4>
+                        <div class="parameter">
+                            <div class="parameter-name">
+                                <span class="status-code status-200">200</span>
+                                Flux supprimé
+                            </div>
+                            <div class="code-block">{
+  "success": true,
+  "message": "Flux supprimé avec succès"
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 id="workflow">Système de workflow</h2>
+
+                <h3>Lister les demandes de changement</h3>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method method-get">GET</span>
+                        <span>/api/workflow/changes</span>
+                    </div>
+                    <div class="endpoint-content">
+                        <p>Récupère les demandes de changement selon les permissions de l'utilisateur.</p>
+                        
+                        <h4>Paramètres de requête</h4>
+                        <div class="parameter">
+                            <div class="parameter-name">status <span class="parameter-type">string (optionnel)</span></div>
+                            <p>Filtrer par statut : pending, approved, rejected</p>
+                        </div>
+                        <div class="parameter">
+                            <div class="parameter-name">matrixId <span class="parameter-type">integer (optionnel)</span></div>
+                            <p>Filtrer par matrice</p>
+                        </div>
+
+                        <h4>Réponse</h4>
+                        <div class="parameter">
+                            <div class="parameter-name">
+                                <span class="status-code status-200">200</span>
+                                Liste des demandes
+                            </div>
+                            <div class="code-block">{
+  "success": true,
+  "data": {
+    "changes": [
+      {
+        "id": 25,
+        "matrixId": 1,
+        "requestType": "create_entry",
+        "status": "pending",
+        "description": "Nouveau flux HTTPS pour serveur web",
+        "requestedData": {
+          "rule_name": "ALLOW_HTTPS_NEW",
+          "action": "ALLOW"
+        },
+        "requestedBy": {
+          "username": "user1",
+          "fullName": "Utilisateur 1"
+        },
+        "requestedAt": "2024-03-15T14:20:00Z"
+      }
+    ]
+  }
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>Approuver/Rejeter une demande</h3>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method method-put">PUT</span>
+                        <span>/api/workflow/changes/{id}</span>
+                    </div>
+                    <div class="endpoint-content">
+                        <p>Approuve ou rejette une demande de changement.</p>
+                        
+                        <h4>Corps de la requête</h4>
+                        <div class="code-block">{
+  "action": "approve",
+  "comment": "Demande validée, conforme à la politique de sécurité"
+}</div>
+
+                        <h4>Paramètres</h4>
+                        <div class="parameter">
+                            <div class="parameter-name">action <span class="parameter-type">string (requis)</span></div>
+                            <p>Action à effectuer : "approve" ou "reject"</p>
+                        </div>
+                        <div class="parameter">
+                            <div class="parameter-name">comment <span class="parameter-type">string (optionnel)</span></div>
+                            <p>Commentaire justifiant la décision</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 id="admin">API d'administration</h2>
+
+                <h3>Gestion des utilisateurs</h3>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method method-get">GET</span>
+                        <span>/api/users</span>
+                    </div>
+                    <div class="endpoint-content">
+                        <p>Liste tous les utilisateurs (administrateurs uniquement).</p>
+                        
+                        <div class="alert alert-warning">
+                            <strong>🔒 Accès restreint :</strong> Cette endpoint nécessite des privilèges administrateur.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method method-post">POST</span>
+                        <span>/api/users</span>
+                    </div>
+                    <div class="endpoint-content">
+                        <p>Crée un nouvel utilisateur.</p>
+                        
+                        <h4>Corps de la requête</h4>
+                        <div class="code-block">{
+  "username": "nouvel_user",
+  "fullName": "Nom Complet",
+  "email": "user@example.com",
+  "password": "motdepasse123",
+  "role": "user",
+  "language": "fr"
+}</div>
+                    </div>
+                </div>
+
+                <h3>Logs d'audit</h3>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method method-get">GET</span>
+                        <span>/api/audit</span>
+                    </div>
+                    <div class="endpoint-content">
+                        <p>Récupère les logs d'audit avec filtrage.</p>
+                        
+                        <h4>Paramètres de requête</h4>
+                        <div class="parameter">
+                            <div class="parameter-name">startDate <span class="parameter-type">string (optionnel)</span></div>
+                            <p>Date de début (format ISO 8601)</p>
+                        </div>
+                        <div class="parameter">
+                            <div class="parameter-name">endDate <span class="parameter-type">string (optionnel)</span></div>
+                            <p>Date de fin (format ISO 8601)</p>
+                        </div>
+                        <div class="parameter">
+                            <div class="parameter-name">action <span class="parameter-type">string (optionnel)</span></div>
+                            <p>Type d'action : create, update, delete</p>
+                        </div>
+                        <div class="parameter">
+                            <div class="parameter-name">entity <span class="parameter-type">string (optionnel)</span></div>
+                            <p>Type d'entité : Matrix, FlowEntry, User</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 id="schemas">Schémas de données</h2>
+
+                <h3>Matrix</h3>
+                <div class="code-block">{
+  "id": "integer",
+  "name": "string",
+  "description": "string | null",
+  "createdAt": "datetime",
+  "updatedAt": "datetime",
+  "ownerId": "integer",
+  "publishedVersionId": "integer | null",
+  "requiredApprovals": "integer"
+}</div>
+
+                <h3>FlowEntry</h3>
+                <div class="code-block">{
+  "id": "integer",
+  "matrixId": "integer",
+  "request_type": "string | null",
+  "rule_status": "string | null",
+  "rule_name": "string | null",
+  "device": "string | null",
+  "src_zone": "string | null",
+  "src_name": "string | null",
+  "src_cidr": "string | null",
+  "src_service": "string | null",
+  "dst_zone": "string | null",
+  "dst_name": "string | null",
+  "dst_cidr": "string | null",
+  "protocol_group": "string | null",
+  "dst_service": "string | null",
+  "action": "string | null",
+  "implementation_date": "datetime | null",
+  "requester": "string | null",
+  "comment": "string | null",
+  "createdAt": "datetime",
+  "updatedAt": "datetime"
+}</div>
+
+                <h3>User</h3>
+                <div class="code-block">{
+  "id": "integer",
+  "username": "string",
+  "fullName": "string | null",
+  "email": "string | null",
+  "role": "admin | user | viewer",
+  "language": "string",
+  "isActive": "boolean",
+  "createdAt": "datetime",
+  "lastPasswordChange": "datetime"
+}</div>
+
+                <h2 id="errors">Codes d'erreur</h2>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Code HTTP</th>
+                            <th>Type d'erreur</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="status-code status-400">400</span></td>
+                            <td>Bad Request</td>
+                            <td>Données de requête invalides ou manquantes</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-code status-401">401</span></td>
+                            <td>Unauthorized</td>
+                            <td>Authentification requise ou session expirée</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-code status-403">403</span></td>
+                            <td>Forbidden</td>
+                            <td>Permissions insuffisantes pour cette opération</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-code status-404">404</span></td>
+                            <td>Not Found</td>
+                            <td>Ressource demandée introuvable</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-code status-500">500</span></td>
+                            <td>Internal Server Error</td>
+                            <td>Erreur interne du serveur</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Exemples d'erreurs courantes</h3>
+
+                <div class="response-example">
+                    <strong>Validation échouée :</strong>
+                    <div class="code-block">{
+  "success": false,
+  "error": "Données invalides",
+  "message": "Le nom de la matrice est requis"
+}</div>
+                </div>
+
+                <div class="response-example">
+                    <strong>Permissions insuffisantes :</strong>
+                    <div class="code-block">{
+  "success": false,
+  "error": "Forbidden",
+  "message": "Permissions insuffisantes pour modifier cette matrice"
+}</div>
+                </div>
+
+                <div class="response-example">
+                    <strong>Ressource non trouvée :</strong>
+                    <div class="code-block">{
+  "success": false,
+  "error": "Not Found",
+  "message": "Matrice avec l'ID 999 introuvable"
+}</div>
+                </div>
+
+                <div class="alert alert-info">
+                    <strong>💡 Note :</strong> Toutes les dates sont retournées au format ISO 8601 UTC. Les endpoints nécessitant une authentification retourneront une erreur 401 si aucune session valide n'est présente.
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
