@@ -27,19 +27,73 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
+      # Base de données
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-changeme}@${POSTGRES_IP:-db}:5432/${POSTGRES_DB:-matrixflow}
+      # URLs (automatiquement HTTPS si ENABLE_HTTPS=true)
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-change-me-nextauth-secret}
       - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-${NEXTAUTH_URL:-http://localhost:3000}}
       - AUTH_TRUST_HOST=true
-      - NODE_ENV=production
+      - NODE_ENV=${NODE_ENV:-production}
+      # Redis cache (optionnel)
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      # Configuration HTTPS
+      - ENABLE_HTTPS=${ENABLE_HTTPS:-false}
+      - HTTPS_PORT=${HTTPS_PORT:-443}
+      - GENERATE_SELF_SIGNED=${GENERATE_SELF_SIGNED:-true}
+      - FORCE_HTTPS=${FORCE_HTTPS:-true}
+      # Configuration ACME multi-CA
+      - ACME_CA_SERVER=${ACME_CA_SERVER:-letsencrypt}
+      - ACME_EMAIL=${ACME_EMAIL:-admin@localhost}
+      - ACME_CLIENT=${ACME_CLIENT:-acme.sh}
+      - CHALLENGE_METHOD=${CHALLENGE_METHOD:-http}
+      - DNS_PROVIDER=${DNS_PROVIDER:-}
+      - SSL_KEY_SIZE=${SSL_KEY_SIZE:-4096}
+      # Clés d'API pour CAs commerciaux
+      - ZEROSSL_API_KEY=${ZEROSSL_API_KEY:-}
+      - SSLCOM_API_KEY=${SSLCOM_API_KEY:-}
+      # Configuration Step-CA
+      - STEP_CA_URL=${STEP_CA_URL:-}
+      - STEP_CA_ROOT=${STEP_CA_ROOT:-}
+      - STEP_CA_PROVISIONER=${STEP_CA_PROVISIONER:-}
+      - STEP_CA_PASSWORD=${STEP_CA_PASSWORD:-}
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     ports:
-      - "3000:3000"  # Accès via http://localhost:3000
+      - "${HTTP_PORT:-3000}:3000"    # Port HTTP
+      - "${HTTPS_PORT:-443}:443"     # Port HTTPS (si ENABLE_HTTPS=true)
     volumes:
       - /srv/backups:/backups
+      # Certificats SSL personnalisés
+      - ${SSL_CERTS_PATH:-./ssl}:/app/ssl:rw
+      # Support Let's Encrypt
+      - ${LETSENCRYPT_PATH:-/etc/letsencrypt}:/etc/letsencrypt:ro
+      # Support acme.sh (tous les CAs)
+      - ${ACME_HOME:-./acme}:/root/.acme.sh:rw
+      # Support ZeroSSL
+      - ${ZEROSSL_PATH:-./zerossl}:/etc/ssl/zerossl:ro
+      # Support Buypass
+      - ${BUYPASS_PATH:-./buypass}:/etc/ssl/buypass:ro
+      # Support certificats génériques
+      - ${CUSTOM_CERTS_PATH:-./custom-certs}:/etc/ssl/custom:ro
+
+  # Cache Redis (Phase 2 - Optionnel)
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
 volumes:
   dbdata:
+  redisdata:

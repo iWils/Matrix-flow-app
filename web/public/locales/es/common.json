@@ -18,6 +18,138 @@
   "updated": "modificó",
   "deleted": "eliminó",
   "matrixEntity": "una matriz",
+  "twoFactorAuth": {
+    "title": "Autenticación de Dos Factores (2FA)",
+    "enable": "🔐 Activar 2FA",
+    "disable": "🚫 Desactivar 2FA",
+    "enabled": "Activado",
+    "disabled": "Desactivado",
+    "setup": {
+      "title": "Activar Autenticación de Dos Factores",
+      "description": "La autenticación de dos factores (2FA) añade una capa extra de seguridad a tu cuenta. Necesitarás introducir un código de tu aplicación de autenticación además de tu contraseña.",
+      "beforeStart": "🛡️ Antes de empezar",
+      "requirements": {
+        "app": "• Instala una app de autenticación (Google Authenticator, Authy, etc.)",
+        "phone": "• Asegúrate de tener acceso a tu teléfono",
+        "backup": "• Prepárate para guardar los códigos de recuperación"
+      },
+      "startSetup": "Iniciar Configuración",
+      "scanQR": "Escanear Código QR",
+      "scanDescription": "Escanea este código QR con tu aplicación de autenticación o introduce la clave manualmente.",
+      "manualEntry": "Clave de entrada manual:",
+      "copy": "Copiar",
+      "verificationCode": "Código de verificación (6 dígitos):",
+      "verify": "Verificar y Activar",
+      "generating": "Generando...",
+      "verifying": "Verificando..."
+    },
+    "success": {
+      "title": "🔐 ¡2FA Activado con Éxito!",
+      "description": "Guarda estos códigos de recuperación en un lugar seguro. Te permitirán acceder a tu cuenta si pierdes tu teléfono.",
+      "important": "⚠️ Importante",
+      "importantNote": "Cada código solo puede usarse una vez. Imprímelos o guárdalos en un gestor de contraseñas.",
+      "backupCodes": "Códigos de recuperación:",
+      "copyAll": "Copiar Todos",
+      "saved": "He guardado mis códigos"
+    },
+    "status": {
+      "enabled": "Tu cuenta está protegida por autenticación de dos factores.",
+      "disabled": "Refuerza la seguridad de tu cuenta activando la autenticación de dos factores.",
+      "appConfigured": "📱 Aplicación de autenticación configurada",
+      "backupCodesRemaining": "🔑 {{count}} código(s) de recuperación restante(s)",
+      "generateNewCodes": "🔑 Nuevos Códigos de Recuperación",
+      "generating": "Generando...",
+      "disableConfirm": "⚠️ Desactivar 2FA",
+      "disableDescription": "¿Estás seguro de que quieres desactivar la autenticación de dos factores? Esto reducirá la seguridad de tu cuenta.",
+      "disableConfirmButton": "Sí, desactivar",
+      "disabling": "Desactivando..."
+    },
+    "errors": {
+      "invalidToken": "Código de verificación inválido",
+      "setupFailed": "Fallo en la configuración",
+      "verificationFailed": "Fallo en la verificación",
+      "disableFailed": "Fallo al desactivar",
+      "generateFailed": "Fallo en la generación de códigos",
+      "loadFailed": "Fallo al cargar el estado"
+    },
+    "adminTitle": "Gestión 2FA del Sistema",
+    "sessionsTitle": "Sesiones activas",
+    "admin": {
+      "title": "Gestión 2FA del Sistema",
+      "description": "Administración de la autenticación de dos factores para todos los usuarios",
+      "stats": {
+        "totalUsers": "Total usuarios",
+        "enabled": "2FA Activado",
+        "disabled": "2FA Desactivado",
+        "adoptionRate": "Tasa de adopción"
+      },
+      "quickActions": "Acciones rápidas",
+      "refresh": "Actualizar",
+      "userStatus": "Estado 2FA por usuario",
+      "actions": {
+        "disable": "Desactivar 2FA",
+        "regenerateCodes": "Códigos de recup.",
+        "confirmDisable": "¿Estás seguro de que quieres desactivar 2FA para este usuario?",
+        "confirmRegenerate": "¿Quieres regenerar los códigos de recuperación para este usuario?",
+        "successRegenerate": "Nuevos códigos de recuperación generados ({{count}} códigos)"
+      },
+      "memberSince": "Miembro desde:",
+      "lastAuth": "Último 2FA:",
+      "backupCodes": "{{count}} códigos de recuperación",
+      "userMustEnable": "El usuario debe activar por sí mismo",
+      "securityInfo": {
+        "title": "Información sobre 2FA",
+        "canOnlyEnable": "2FA solo puede ser activado por el usuario mismo",
+        "adminCanDisable": "Los administradores solo pueden desactivar 2FA en emergencias",
+        "codesEncrypted": "Los códigos de recuperación están cifrados y no se pueden ver",
+        "tenCodes": "Cada usuario recibe 10 códigos de recuperación de un solo uso",
+        "regenerationInvalidates": "Regenerar códigos invalida todos los códigos anteriores"
+      },
+      "loading": "Cargando datos 2FA...",
+      "noUsers": "No se encontraron usuarios"
+    }
+  },
+  "sessions": {
+    "title": "Mis sesiones activas",
+    "adminTitle": "Sesiones Activas",
+    "adminDescription": "Gestiona y supervisa todas las sesiones de usuario activas",
+    "refresh": "Actualizar",
+    "closeOthers": "Cerrar otras",
+    "close": "Cerrar",
+    "closeAll": "Cerrar todas (usuario)",
+    "loading": "Cargando sesiones...",
+    "count": "{{count}} sesión(es) activa(s)",
+    "autoExpire": "Las sesiones expiran automáticamente después de inactividad",
+    "currentSession": "Sesión actual",
+    "unknownBrowser": "Navegador desconocido",
+    "unknownOS": "SO desconocido",
+    "createdOn": "Creada el:",
+    "lastActivity": "Última actividad:",
+    "expiresOn": "Expira el:",
+    "noSessions": "No se encontraron sesiones activas",
+    "admin": {
+      "stats": {
+        "activeSessions": "Sesiones activas",
+        "connectedUsers": "Usuarios conectados",
+        "mobileDevices": "Dispositivos móviles",
+        "expiringSoon": "Expiran pronto"
+      },
+      "securityInfo": {
+        "title": "Información de seguridad",
+        "autoExpire": "Las sesiones expiran automáticamente después de inactividad",
+        "monitorSuspicious": "Supervisa conexiones sospechosas o no reconocidas",
+        "userManagement": "Los usuarios pueden gestionar sus propias sesiones",
+        "noGeolocation": "No se recopilan datos de geolocalización"
+      }
+    },
+    "securityTips": {
+      "title": "Consejos de seguridad",
+      "closeSuspicious": "Cierra sesiones sospechosas o en dispositivos que ya no uses",
+      "checkRegularly": "Verifica regularmente tus sesiones activas",
+      "autoExpireHours": "Las sesiones expiran automáticamente después de {{hours}} horas de inactividad",
+      "logoutShared": "Cierra sesión manualmente en computadoras compartidas"
+    }
+  },
   "entryEntity": "una entrada",
   "userEntity": "un usuario",
   "system": "Sistema",

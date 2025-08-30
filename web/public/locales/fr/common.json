@@ -18,6 +18,138 @@
   "updated": "a modifié",
   "deleted": "a supprimé",
   "matrixEntity": "une matrice",
+  "twoFactorAuth": {
+    "title": "Authentification à deux facteurs (2FA)",
+    "enable": "Activer la 2FA",
+    "disable": "Désactiver la 2FA",
+    "enabled": "Activé",
+    "disabled": "Désactivé",
+    "setup": {
+      "title": "Activer l'authentification à deux facteurs",
+      "description": "L'authentification à deux facteurs (2FA) ajoute une couche de sécurité supplémentaire à votre compte. Vous devrez saisir un code de votre application d'authentification en plus de votre mot de passe.",
+      "beforeStart": "🛡️ Avant de commencer",
+      "requirements": {
+        "app": "• Installez une app d'authentification (Google Authenticator, Authy, etc.)",
+        "phone": "• Assurez-vous d'avoir accès à votre téléphone",
+        "backup": "• Préparez-vous à sauvegarder les codes de récupération"
+      },
+      "startSetup": "Commencer la configuration",
+      "scanQR": "Scanner le QR code",
+      "scanDescription": "Scannez ce QR code avec votre application d'authentification ou saisissez la clé manuellement.",
+      "manualEntry": "Clé de saisie manuelle:",
+      "copy": "Copier",
+      "verificationCode": "Code de vérification (6 chiffres):",
+      "verify": "Vérifier et activer",
+      "generating": "Génération...",
+      "verifying": "Vérification..."
+    },
+    "success": {
+      "title": "🔐 2FA activé avec succès!",
+      "description": "Sauvegardez ces codes de récupération dans un endroit sûr. Ils vous permettront d'accéder à votre compte si vous perdez votre téléphone.",
+      "important": "⚠️ Important",
+      "importantNote": "Chaque code ne peut être utilisé qu'une seule fois. Imprimez-les ou sauvegardez-les dans un gestionnaire de mots de passe.",
+      "backupCodes": "Codes de récupération:",
+      "copyAll": "Copier tous",
+      "saved": "J'ai sauvegardé mes codes"
+    },
+    "status": {
+      "enabled": "Votre compte est protégé par l'authentification à deux facteurs.",
+      "disabled": "Renforcez la sécurité de votre compte en activant l'authentification à deux facteurs.",
+      "appConfigured": "📱 Application d'authentification configurée",
+      "backupCodesRemaining": "🔑 {{count}} code(s) de récupération restant(s)",
+      "generateNewCodes": "🔑 Nouveaux codes de récupération",
+      "generating": "Génération...",
+      "disableConfirm": "⚠️ Désactiver la 2FA",
+      "disableDescription": "Êtes-vous sûr de vouloir désactiver l'authentification à deux facteurs ? Cela réduira la sécurité de votre compte.",
+      "disableConfirmButton": "Oui, désactiver",
+      "disabling": "Désactivation..."
+    },
+    "errors": {
+      "invalidToken": "Code de vérification invalide",
+      "setupFailed": "Échec de la configuration",
+      "verificationFailed": "Échec de la vérification",
+      "disableFailed": "Échec de la désactivation",
+      "generateFailed": "Échec de la génération des codes",
+      "loadFailed": "Échec du chargement du statut"
+    },
+    "adminTitle": "Gestion 2FA Système",
+    "sessionsTitle": "Sessions actives",
+    "admin": {
+      "title": "Gestion 2FA Système",
+      "description": "Administration de l'authentification à deux facteurs pour tous les utilisateurs",
+      "stats": {
+        "totalUsers": "Total utilisateurs",
+        "enabled": "2FA Activée",
+        "disabled": "2FA Désactivée",
+        "adoptionRate": "Taux d'adoption"
+      },
+      "quickActions": "Actions rapides",
+      "refresh": "Actualiser",
+      "userStatus": "Statut 2FA par utilisateur",
+      "actions": {
+        "disable": "Désactiver 2FA",
+        "regenerateCodes": "Codes de récup.",
+        "confirmDisable": "Êtes-vous sûr de vouloir désactiver la 2FA pour cet utilisateur ?",
+        "confirmRegenerate": "Voulez-vous régénérer les codes de récupération pour cet utilisateur ?",
+        "successRegenerate": "Nouveaux codes de récupération générés ({{count}} codes)"
+      },
+      "memberSince": "Membre depuis:",
+      "lastAuth": "Dernière 2FA:",
+      "backupCodes": "{{count}} codes de récupération",
+      "userMustEnable": "L'utilisateur doit activer lui-même",
+      "securityInfo": {
+        "title": "Informations sur la 2FA",
+        "canOnlyEnable": "La 2FA ne peut être activée que par l'utilisateur lui-même",
+        "adminCanDisable": "Les administrateurs peuvent uniquement désactiver la 2FA en cas d'urgence",
+        "codesEncrypted": "Les codes de récupération sont chiffrés et ne peuvent pas être consultés",
+        "tenCodes": "Chaque utilisateur reçoit 10 codes de récupération à usage unique",
+        "regenerationInvalidates": "La régénération des codes invalide tous les codes précédents"
+      },
+      "loading": "Chargement des données 2FA...",
+      "noUsers": "Aucun utilisateur trouvé"
+    }
+  },
+  "sessions": {
+    "title": "Mes sessions actives",
+    "adminTitle": "Sessions Actives",
+    "adminDescription": "Gérez et surveillez toutes les sessions utilisateur actives",
+    "refresh": "Actualiser",
+    "closeOthers": "Fermer les autres",
+    "close": "Fermer",
+    "closeAll": "Tout fermer (utilisateur)",
+    "loading": "Chargement des sessions...",
+    "count": "{{count}} session(s) active(s)",
+    "autoExpire": "Les sessions expirent automatiquement après inactivité",
+    "currentSession": "Session actuelle",
+    "unknownBrowser": "Navigateur inconnu",
+    "unknownOS": "OS inconnu",
+    "createdOn": "Créée le:",
+    "lastActivity": "Dernière activité:",
+    "expiresOn": "Expire le:",
+    "noSessions": "Aucune session active trouvée",
+    "admin": {
+      "stats": {
+        "activeSessions": "Sessions actives",
+        "connectedUsers": "Utilisateurs connectés",
+        "mobileDevices": "Appareils mobiles",
+        "expiringSoon": "Expirent bientôt"
+      },
+      "securityInfo": {
+        "title": "Informations de sécurité",
+        "autoExpire": "Les sessions expirent automatiquement après inactivité",
+        "monitorSuspicious": "Surveillez les connexions suspectes ou non reconnues",
+        "userManagement": "Les utilisateurs peuvent gérer leurs propres sessions",
+        "noGeolocation": "Les données de géolocalisation ne sont pas collectées"
+      }
+    },
+    "securityTips": {
+      "title": "Conseils de sécurité",
+      "closeSuspicious": "Fermez les sessions suspectes ou sur des appareils que vous n'utilisez plus",
+      "checkRegularly": "Vérifiez régulièrement vos sessions actives",
+      "autoExpireHours": "Les sessions expirent automatiquement après {{hours}} heures d'inactivité",
+      "logoutShared": "Déconnectez-vous manuellement sur les ordinateurs partagés"
+    }
+  },
   "entryEntity": "une entrée",
   "userEntity": "un utilisateur",
   "system": "Système",
@@ -186,5 +318,91 @@
   "total": "Total",
   "active": "Actif",
   "inactive": "Inactif",
-  "audit": "Audit"
+  "audit": "Audit",
+  "security": {
+    "rateLimit": {
+      "exceeded": "Limite de débit dépassée",
+      "authExceeded": "Trop de tentatives d'authentification. Réessayez dans {{minutes}} minutes.",
+      "loginExceeded": "Trop de tentatives de connexion. Réessayez dans {{minutes}} minutes.",
+      "apiExceeded": "Trop de requêtes API. Réessayez plus tard.",
+      "globalExceeded": "Trop de requêtes depuis votre adresse IP. Réessayez plus tard.",
+      "retryAfter": "Réessayez dans {{seconds}} secondes",
+      "remaining": "{{count}} requête(s) restante(s)",
+      "resetTime": "Limite réinitialisée à {{time}}"
+    },
+    "headers": {
+      "cspViolation": "Violation de la politique de sécurité du contenu détectée",
+      "unsafeContent": "Contenu non sécurisé bloqué pour votre protection",
+      "mixedContent": "Contenu mixte HTTP/HTTPS non autorisé"
+    },
+    "session": {
+      "expired": "Votre session a expiré. Veuillez vous reconnecter.",
+      "terminated": "Session terminée avec succès",
+      "terminateOthers": "Fermer les autres sessions",
+      "terminateAll": "Fermer toutes les sessions",
+      "suspiciousActivity": "Activité suspecte détectée sur votre compte",
+      "maxSessionsReached": "Nombre maximum de sessions atteint. Session la plus ancienne fermée.",
+      "invalidSession": "Session invalide ou expirée",
+      "sessionCreated": "Nouvelle session créée",
+      "deviceFingerprint": "Empreinte de l'appareil",
+      "currentSession": "Session actuelle (ne peut pas être fermée)",
+      "lastActivity": "Dernière activité: {{time}}",
+      "createdOn": "Créée le: {{date}}",
+      "expiresOn": "Expire le: {{date}}",
+      "browserInfo": "{{browser}} sur {{os}}",
+      "unknownDevice": "Appareil inconnu",
+      "location": "Localisation approximative",
+      "ipAddress": "Adresse IP: {{ip}}"
+    }
+  },
+  "monitoring": {
+    "healthCheck": {
+      "title": "État du système",
+      "healthy": "Sain",
+      "degraded": "Dégradé", 
+      "unhealthy": "Non sain",
+      "unknown": "Inconnu",
+      "database": "Base de données",
+      "redis": "Redis (Cache)",
+      "fileSystem": "Système de fichiers",
+      "memory": "Mémoire",
+      "cpu": "Processeur",
+      "uptime": "Temps de fonctionnement",
+      "lastCheck": "Dernière vérification",
+      "responseTime": "Temps de réponse",
+      "errorRate": "Taux d'erreur",
+      "throughput": "Débit",
+      "connections": "Connexions actives"
+    },
+    "logs": {
+      "title": "Journalisation",
+      "level": {
+        "debug": "Débogage",
+        "info": "Information",
+        "warn": "Avertissement",
+        "error": "Erreur",
+        "fatal": "Fatal"
+      },
+      "categories": {
+        "security": "Sécurité",
+        "auth": "Authentification",
+        "api": "API",
+        "database": "Base de données",
+        "system": "Système"
+      },
+      "events": {
+        "loginAttempt": "Tentative de connexion",
+        "loginSuccess": "Connexion réussie",
+        "loginFailure": "Échec de connexion",
+        "sessionCreated": "Session créée",
+        "sessionExpired": "Session expirée",
+        "rateLimitExceeded": "Limite de débit dépassée",
+        "suspiciousActivity": "Activité suspecte",
+        "securityViolation": "Violation de sécurité",
+        "dataAccess": "Accès aux données",
+        "dataModification": "Modification des données",
+        "systemError": "Erreur système"
+      }
+    }
+  }
 }

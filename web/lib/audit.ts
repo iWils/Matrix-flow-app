@@ -57,3 +57,31 @@ export async function auditLogFromRequest(
     userAgent
   })
 }
+
+// Interface pour l'audit simplifié (compatibilité avec les APIs Phase 2)
+export interface LogAuditOptions {
+  userId: number
+  action: string
+  resource: string
+  resourceId: string
+  details?: Record<string, unknown>
+}
+
+// Fonction simplifiée pour les APIs Phase 2
+export async function logAudit(options: LogAuditOptions): Promise<void> {
+  try {
+    await prisma.auditLog.create({
+      data: {
+        userId: options.userId,
+        entity: options.resource,
+        entityId: parseInt(options.resourceId),
+        action: options.action as AuditAction,
+        changes: options.details ? JSON.parse(JSON.stringify(options.details)) : null,
+        at: new Date()
+      }
+    })
+  } catch (error) {
+    logger.error('Failed to log audit', error as Error, options)
+    // Ne pas faire échouer l'opération principale
+  }
+}

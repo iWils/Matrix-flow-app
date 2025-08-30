@@ -7,6 +7,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-blue?logo=postgresql)](https://www.postgresql.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://www.docker.com/)
+[![HTTPS](https://img.shields.io/badge/HTTPS-Native-green?logo=letsencrypt)](https://github.com)
 
 ## 📋 Table des matières
 
@@ -189,9 +190,13 @@ cd matrix-flow
 cp .env.example .env
 
 # Lancer avec Docker Compose
-docker-compose up -d
+make up
 
 # L'application est disponible sur http://localhost:3000
+
+# Pour HTTPS avec certificats auto-signés
+make https
+# Application disponible sur https://localhost
 ```
 
 ### Installation manuelle

@@ -14,6 +14,7 @@ type DashboardStats = {
   totalMatrices: number
   totalEntries: number
   totalUsers: number
+  activeSessions: number
   recentActivity: Array<{
     id: number
     entity: string
@@ -165,16 +166,15 @@ export default function DashboardPage() {
           <div className="flex items-center">
             <div className="p-3 bg-gradient-to-br from-emerald-50 dark:from-emerald-900/200 to-emerald-600 rounded-xl shadow-lg shadow-emerald-500/25 group-hover:shadow-emerald-500/40 transition-all duration-200">
               <svg className="w-6 h-6 text-slate-600 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.031 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
             <div className="ml-4 flex-1">
-              <div className="text-slate-500 dark:text-slate-400 text-sm font-medium">{t('rbacSecurity')}</div>
-              {/* <div className="text-lg font-bold text-slate-900 dark:text-slate-400">{t('activeUsers')}</div> */}
-              <div className="text-lg font-bold">{t('activeUsers')}</div>
+              <div className="text-slate-500 dark:text-slate-400 text-sm font-medium">{t('activeSessions')}</div>
+              <div className="text-2xl font-bold">{stats?.activeSessions || 0}</div>
               <div className="text-xs text-green-600 font-medium flex items-center gap-1">
                 <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                {t('operational')}
+                {t('sessionsTracked')}
               </div>
             </div>
           </div>

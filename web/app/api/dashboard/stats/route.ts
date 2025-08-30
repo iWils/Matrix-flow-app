@@ -35,12 +35,19 @@ export async function GET() {
       totalEntries,
       totalUsers,
       activeUsers,
+      activeSessions,
       recentActivity
     ] = await Promise.all([
       prisma.matrix.count(),
       prisma.flowEntry.count(),
       prisma.user.count(),
       prisma.user.count({ where: { isActive: true } }),
+      prisma.userSession.count({
+        where: {
+          isActive: true,
+          expiresAt: { gt: new Date() }
+        }
+      }),
       prisma.auditLog.findMany({
         take: 15,
         orderBy: { at: 'desc' },
@@ -191,6 +198,7 @@ export async function GET() {
       totalMatrices,
       totalEntries,
       totalUsers,
+      activeSessions,
       recentActivity: formattedRecentActivity,
       ...(adminStats && { adminStats })
     }

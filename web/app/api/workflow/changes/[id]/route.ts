@@ -5,6 +5,7 @@ import { auditLog } from '@/lib/audit'
 import { logger } from '@/lib/logger'
 import { ReviewChangeRequestSchema } from '@/lib/validate'
 import { ApiResponse, ChangeRequest } from '@/types'
+import { emailService } from '@/lib/email-notifications'
 
 export async function PATCH(
   req: NextRequest,
@@ -267,6 +268,44 @@ export async function PATCH(
       description: result.description,
       changes: result.requestedData,
       reviewComment: result.reviewComment
+    }
+
+    // Envoyer notification email
+    try {
+      const requesterUser = await prisma.user.findUnique({
+        where: { id: changeRequest.requestedById },
+        select: { email: true }
+      })
+
+      if (requesterUser?.email) {
+        const reviewerName = session.user.name || 'Admin'
+        
+        if (validatedData.action === 'approve') {
+          await emailService.sendChangeNotification({
+            matrixName: changeRequest.matrix.name,
+            actionType: changeRequest.requestType,
+            approverName: reviewerName,
+            matrixId: changeRequest.matrixId,
+            recipientEmail: requesterUser.email
+          })
+        } else {
+          await emailService.sendChangeRejection({
+            matrixName: changeRequest.matrix.name,
+            actionType: changeRequest.requestType,
+            approverName: reviewerName,
+            reason: validatedData.reviewComment,
+            matrixId: changeRequest.matrixId,
+            recipientEmail: requesterUser.email
+          })
+        }
+      }
+    } catch (emailError) {
+      // Log l'erreur mais ne pas faire échouer la requête
+      logger.warn('Failed to send notification email', {
+        changeRequestId: requestId,
+        action: validatedData.action,
+        error: emailError instanceof Error ? emailError.message : 'Unknown email error'
+      })
     }
 
     logger.info('Change request reviewed successfully', {

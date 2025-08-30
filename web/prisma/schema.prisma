@@ -58,6 +58,16 @@ model User {
   lastPasswordChange    DateTime   @default(now())
   emailVerified         DateTime?
   
+  // 2FA fields
+  twoFactorEnabled      Boolean    @default(false)
+  twoFactorSecret       String?
+  backupCodes           String?    // JSON array of backup codes
+  
+  // Session management
+  maxConcurrentSessions Int        @default(5)
+  sessionTimeoutMinutes Int        @default(720) // 12 hours default
+  lastActiveAt          DateTime?
+  
   // Relations
   ownedMatrices         Matrix[]
   matrixPermissions     MatrixPermission[]
@@ -67,13 +77,39 @@ model User {
   auditLogs             AuditLog[]
   requestedChanges      ChangeRequest[]       @relation("RequestedBy")
   reviewedChanges       ChangeRequest[]       @relation("ReviewedBy")
+  userSessions          UserSession[]
+  systemLogs            SystemLog[]
   groupMemberships      UserGroupMember[]
   accounts              Account[]
   sessions              Session[]
+  sentEmails            EmailLog[]
 
   @@index([isActive, role])
   @@index([createdAt(sort: Desc)])
+  @@index([lastActiveAt(sort: Desc)])
   @@map("users")
+}
+
+model UserSession {
+  id            String   @id @default(cuid())
+  userId        Int
+  sessionToken  String   @unique
+  ipAddress     String?
+  userAgent     String?
+  deviceInfo    String?  // JSON with device details
+  createdAt     DateTime @default(now())
+  lastActiveAt  DateTime @default(now())
+  expiresAt     DateTime
+  isActive      Boolean  @default(true)
+  
+  // Relations
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, isActive])
+  @@index([sessionToken])
+  @@index([expiresAt])
+  @@index([lastActiveAt(sort: Desc)])
+  @@map("user_sessions")
 }
 
 model Matrix {
@@ -358,3 +394,55 @@ model EmailTemplate {
   @@index([isActive])
   @@map("email_templates")
 }
+
+// Tables pour Phase 3 - Sécurité & Monitoring
+
+model SystemLog {
+  id           String    @id @default(cuid())
+  level        String    // 'debug', 'info', 'warn', 'error', 'fatal'
+  category     String    // 'security', 'auth', 'api', 'database', 'system'
+  message      String
+  timestamp    DateTime  @default(now())
+  userId       Int?
+  ipAddress    String?
+  userAgent    String?
+  requestId    String?
+  sessionId    String?
+  metadata     String?   @db.Text // JSON serialized
+  errorName    String?
+  errorMessage String?
+  errorStack   String?   @db.Text
+  
+  // Relations
+  user         User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([timestamp(sort: Desc)])
+  @@index([level, timestamp(sort: Desc)])
+  @@index([category, timestamp(sort: Desc)])
+  @@index([userId, timestamp(sort: Desc)])
+  @@index([level, category, timestamp(sort: Desc)])
+  @@map("system_logs")
+}
+
+model EmailLog {
+  id           Int      @id @default(autoincrement())
+  recipient    String
+  subject      String
+  templateType String
+  status       String   // 'sent', 'failed', 'pending'
+  sentBy       Int?
+  metadata     String?  @db.Text // JSON with template data
+  error        String?
+  createdAt    DateTime @default(now())
+  sentAt       DateTime?
+
+  // Relations
+  sender       User?    @relation(fields: [sentBy], references: [id], onDelete: SetNull)
+
+  @@index([createdAt(sort: Desc)])
+  @@index([status, createdAt(sort: Desc)])
+  @@index([templateType, createdAt(sort: Desc)])
+  @@index([recipient, createdAt(sort: Desc)])
+  @@map("email_logs")
+}
+

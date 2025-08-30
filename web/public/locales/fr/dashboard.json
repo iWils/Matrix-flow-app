@@ -45,5 +45,7 @@
   "rbacManagement": "Gestion RBAC",
   "rolesAndPermissions": "Rôles et permissions",
   "systemSettings": "Paramètres système",
-  "generalConfiguration": "Configuration générale"
+  "generalConfiguration": "Configuration générale",
+  "activeSessions": "Sessions actives",
+  "sessionsTracked": "Sessions suivies"
 }

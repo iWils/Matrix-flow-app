@@ -23,6 +23,8 @@ help:
 	@echo "  make install      - Installation complète (dépendances + DB)"
 	@echo "  make dev          - Démarre en mode développement"
 	@echo "  make prod         - Démarre en mode production"
+	@echo "  make https        - Démarre en HTTPS avec certificats auto-signés"
+	@echo "  make https-custom - Démarre en HTTPS avec certificats personnalisés"
 	@echo ""
 	@echo "$(YELLOW)🐳 Docker:$(NC)"
 	@echo "  make build        - Reconstruit les images Docker"
@@ -43,6 +45,14 @@ help:
 	@echo "  make logs         - Affiche tous les logs"
 	@echo "  make logs-web     - Logs de l'application web"
 	@echo "  make logs-db      - Logs de PostgreSQL"
+	@echo ""
+	@echo "$(YELLOW)🔒 HTTPS & ACME:$(NC)"
+	@echo "  make ssl-dev      - Génère des certificats SSL de développement"
+	@echo "  make acme-letsencrypt - Configure ACME avec Let's Encrypt"
+	@echo "  make acme-zerossl     - Configure ACME avec ZeroSSL" 
+	@echo "  make acme-buypass     - Configure ACME avec Buypass"
+	@echo "  make acme-google      - Configure ACME avec Google Trust Services"
+	@echo "  make acme-step-ca     - Configure ACME avec Step-CA (CA privée)"
 	@echo ""
 	@echo "$(YELLOW)🧪 Développement:$(NC)"
 	@echo "  make lint         - Lance ESLint"
@@ -77,6 +87,60 @@ prod:
 	@echo "$(GREEN)Démarrage en mode production...$(NC)"
 	@$(COMPOSE_PROD) up -d
 	@echo "$(GREEN)✅ Application disponible sur $(APP_URL)$(NC)"
+
+# Mode HTTPS avec certificats auto-générés
+https:
+	@echo "$(GREEN)Démarrage en mode HTTPS...$(NC)"
+	@ENABLE_HTTPS=true NEXTAUTH_URL=https://localhost NEXT_PUBLIC_APP_URL=https://localhost HTTP_PORT=80 $(COMPOSE) up -d
+	@echo "$(GREEN)✅ Application disponible sur https://localhost$(NC)"
+	@echo "$(YELLOW)⚠️  Certificats auto-signés - Accepter l'exception de sécurité dans le navigateur$(NC)"
+
+# Génération de certificats SSL pour le développement
+ssl-dev:
+	@echo "$(GREEN)Génération des certificats SSL pour le développement...$(NC)"
+	@mkdir -p ssl
+	@openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+		-keyout ssl/key.pem \
+		-out ssl/cert.pem \
+		-subj "/C=FR/ST=IDF/L=Paris/O=MatrixFlow/CN=localhost"
+	@echo "$(GREEN)✅ Certificats SSL générés dans ./ssl/$(NC)"
+
+# Configuration ACME avec différents CAs
+acme-letsencrypt:
+	@echo "$(GREEN)Configuration ACME avec Let's Encrypt...$(NC)"
+	@ACME_CA_SERVER=letsencrypt $(COMPOSE) exec web /app/scripts/acme-init.sh
+	@echo "$(GREEN)✅ Certificat Let's Encrypt configuré$(NC)"
+
+acme-zerossl:
+	@echo "$(GREEN)Configuration ACME avec ZeroSSL...$(NC)"
+	@ACME_CA_SERVER=zerossl $(COMPOSE) exec web /app/scripts/acme-init.sh
+	@echo "$(GREEN)✅ Certificat ZeroSSL configuré$(NC)"
+
+acme-buypass:
+	@echo "$(GREEN)Configuration ACME avec Buypass...$(NC)"
+	@ACME_CA_SERVER=buypass $(COMPOSE) exec web /app/scripts/acme-init.sh
+	@echo "$(GREEN)✅ Certificat Buypass configuré$(NC)"
+
+acme-google:
+	@echo "$(GREEN)Configuration ACME avec Google Trust Services...$(NC)"
+	@ACME_CA_SERVER=google $(COMPOSE) exec web /app/scripts/acme-init.sh
+	@echo "$(GREEN)✅ Certificat Google Trust Services configuré$(NC)"
+
+acme-step-ca:
+	@echo "$(GREEN)Configuration ACME avec Step-CA...$(NC)"
+	@ACME_CA_SERVER=step-ca $(COMPOSE) exec web /app/scripts/acme-init.sh
+	@echo "$(GREEN)✅ Certificat Step-CA configuré$(NC)"
+
+# Mode HTTPS avec certificats personnalisés
+https-custom:
+	@echo "$(GREEN)Démarrage en mode HTTPS avec certificats personnalisés...$(NC)"
+	@if [ ! -f ssl/key.pem ] || [ ! -f ssl/cert.pem ]; then \
+		echo "$(RED)❌ Certificats SSL introuvables dans ./ssl/$(NC)"; \
+		echo "$(YELLOW)Utilisez 'make ssl-dev' pour générer des certificats de développement$(NC)"; \
+		exit 1; \
+	fi
+	@ENABLE_HTTPS=true SSL_CERTS_PATH=./ssl NEXTAUTH_URL=https://localhost NEXT_PUBLIC_APP_URL=https://localhost HTTP_PORT=80 $(COMPOSE) up -d
+	@echo "$(GREEN)✅ Application disponible sur https://localhost$(NC)"
 
 # Construction des images Docker
 build:

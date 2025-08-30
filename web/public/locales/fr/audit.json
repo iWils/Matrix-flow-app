@@ -1,0 +1,43 @@
+{
+  "visualHistory": "Historique Visuel",
+  "entriesCount": "{{count}} entrées d'audit",
+  "timeline": "Chronologie",
+  "activity": "Activité",
+  "chart": "Graphique",
+  "filters": "Filtres",
+  "clearFilters": "Effacer Tout",
+  "searchPlaceholder": "Rechercher dans les logs d'audit...",
+  "allEntities": "Toutes les Entités",
+  "allActions": "Toutes les Actions", 
+  "allUsers": "Tous les Utilisateurs",
+  "dateFrom": "Du",
+  "dateTo": "Au",
+  "noEntries": "Aucune Entrée d'Audit",
+  "noEntriesDescription": "Aucune entrée d'audit ne correspond aux filtres actuels.",
+  "by": "par",
+  "systemAction": "Système",
+  "system": "Système",
+  "inMatrix": "dans la matrice",
+  "changes": "Modifications",
+  "fieldsChanged": "champs modifiés",
+  "activityTimeline": "Chronologie d'Activité",
+  "days": "jours",
+  "actionBreakdown": "Répartition des Actions",
+  "entityActivity": "Activité par Entité",
+  "topUsers": "Utilisateurs les Plus Actifs",
+  "entities": {
+    "Matrix": "Matrice",
+    "FlowEntry": "Entrée de Flux",
+    "User": "Utilisateur",
+    "MatrixPermission": "Permission de Matrice",
+    "AuditLog": "Log d'Audit",
+    "SystemNotification": "Notification Système",
+    "EmailTemplate": "Modèle d'Email",
+    "SystemSetting": "Paramètre Système"
+  },
+  "actions": {
+    "create": "Créé",
+    "update": "Modifié", 
+    "delete": "Supprimé"
+  }
+}

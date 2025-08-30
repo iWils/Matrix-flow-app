@@ -1,0 +1,43 @@
+{
+  "visualHistory": "Historial Visual",
+  "entriesCount": "{{count}} entradas de auditoría",
+  "timeline": "Cronología",
+  "activity": "Actividad",
+  "chart": "Gráfico",
+  "filters": "Filtros",
+  "clearFilters": "Limpiar Todo",
+  "searchPlaceholder": "Buscar en los logs de auditoría...",
+  "allEntities": "Todas las Entidades",
+  "allActions": "Todas las Acciones", 
+  "allUsers": "Todos los Usuarios",
+  "dateFrom": "Desde",
+  "dateTo": "Hasta",
+  "noEntries": "Sin Entradas de Auditoría",
+  "noEntriesDescription": "Ninguna entrada de auditoría coincide con los filtros actuales.",
+  "by": "por",
+  "systemAction": "Sistema",
+  "system": "Sistema",
+  "inMatrix": "en la matriz",
+  "changes": "Cambios",
+  "fieldsChanged": "campos modificados",
+  "activityTimeline": "Cronología de Actividad",
+  "days": "días",
+  "actionBreakdown": "Desglose de Acciones",
+  "entityActivity": "Actividad por Entidad",
+  "topUsers": "Usuarios Más Activos",
+  "entities": {
+    "Matrix": "Matriz",
+    "FlowEntry": "Entrada de Flujo",
+    "User": "Usuario",
+    "MatrixPermission": "Permiso de Matriz",
+    "AuditLog": "Log de Auditoría",
+    "SystemNotification": "Notificación del Sistema",
+    "EmailTemplate": "Plantilla de Email",
+    "SystemSetting": "Configuración del Sistema"
+  },
+  "actions": {
+    "create": "Creado",
+    "update": "Actualizado", 
+    "delete": "Eliminado"
+  }
+}

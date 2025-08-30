@@ -52,5 +52,7 @@
   "deleted": "deleted",
   "matrixEntity": "matrix",
   "entryEntity": "entry",
-  "userEntity": "user"
+  "userEntity": "user",
+  "activeSessions": "Active Sessions",
+  "sessionsTracked": "Sessions tracked"
 }

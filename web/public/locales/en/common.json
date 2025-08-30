@@ -18,6 +18,138 @@
   "updated": "updated",
   "deleted": "deleted",
   "matrixEntity": "a matrix",
+  "twoFactorAuth": {
+    "title": "Two-Factor Authentication (2FA)",
+    "enable": "🔐 Enable 2FA",
+    "disable": "🚫 Disable 2FA",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "setup": {
+      "title": "Enable Two-Factor Authentication",
+      "description": "Two-factor authentication (2FA) adds an extra layer of security to your account. You will need to enter a code from your authentication app in addition to your password.",
+      "beforeStart": "🛡️ Before you start",
+      "requirements": {
+        "app": "• Install an authentication app (Google Authenticator, Authy, etc.)",
+        "phone": "• Make sure you have access to your phone",
+        "backup": "• Prepare to save recovery codes"
+      },
+      "startSetup": "Start Configuration",
+      "scanQR": "Scan QR Code",
+      "scanDescription": "Scan this QR code with your authentication app or enter the key manually.",
+      "manualEntry": "Manual entry key:",
+      "copy": "Copy",
+      "verificationCode": "Verification code (6 digits):",
+      "verify": "Verify and Enable",
+      "generating": "Generating...",
+      "verifying": "Verifying..."
+    },
+    "success": {
+      "title": "🔐 2FA Successfully Enabled!",
+      "description": "Save these recovery codes in a safe place. They will allow you to access your account if you lose your phone.",
+      "important": "⚠️ Important",
+      "importantNote": "Each code can only be used once. Print them or save them in a password manager.",
+      "backupCodes": "Recovery codes:",
+      "copyAll": "Copy All",
+      "saved": "I have saved my codes"
+    },
+    "status": {
+      "enabled": "Your account is protected by two-factor authentication.",
+      "disabled": "Strengthen your account security by enabling two-factor authentication.",
+      "appConfigured": "📱 Authentication app configured",
+      "backupCodesRemaining": "🔑 {{count}} recovery code(s) remaining",
+      "generateNewCodes": "🔑 New Recovery Codes",
+      "generating": "Generating...",
+      "disableConfirm": "⚠️ Disable 2FA",
+      "disableDescription": "Are you sure you want to disable two-factor authentication? This will reduce your account security.",
+      "disableConfirmButton": "Yes, disable",
+      "disabling": "Disabling..."
+    },
+    "errors": {
+      "invalidToken": "Invalid verification code",
+      "setupFailed": "Setup failed",
+      "verificationFailed": "Verification failed",
+      "disableFailed": "Disable failed",
+      "generateFailed": "Code generation failed",
+      "loadFailed": "Status loading failed"
+    },
+    "adminTitle": "System 2FA Management",
+    "sessionsTitle": "Active sessions",
+    "admin": {
+      "title": "System 2FA Management",
+      "description": "Administration of two-factor authentication for all users",
+      "stats": {
+        "totalUsers": "Total users",
+        "enabled": "2FA Enabled",
+        "disabled": "2FA Disabled",
+        "adoptionRate": "Adoption rate"
+      },
+      "quickActions": "Quick actions",
+      "refresh": "Refresh",
+      "userStatus": "2FA status by user",
+      "actions": {
+        "disable": "Disable 2FA",
+        "regenerateCodes": "Recovery codes",
+        "confirmDisable": "Are you sure you want to disable 2FA for this user?",
+        "confirmRegenerate": "Do you want to regenerate recovery codes for this user?",
+        "successRegenerate": "New recovery codes generated ({{count}} codes)"
+      },
+      "memberSince": "Member since:",
+      "lastAuth": "Last 2FA:",
+      "backupCodes": "{{count}} recovery codes",
+      "userMustEnable": "User must enable themselves",
+      "securityInfo": {
+        "title": "2FA Information",
+        "canOnlyEnable": "2FA can only be enabled by the user themselves",
+        "adminCanDisable": "Administrators can only disable 2FA in emergencies",
+        "codesEncrypted": "Recovery codes are encrypted and cannot be viewed",
+        "tenCodes": "Each user receives 10 single-use recovery codes",
+        "regenerationInvalidates": "Regenerating codes invalidates all previous codes"
+      },
+      "loading": "Loading 2FA data...",
+      "noUsers": "No users found"
+    }
+  },
+  "sessions": {
+    "title": "My active sessions",
+    "adminTitle": "Active Sessions",
+    "adminDescription": "Manage and monitor all active user sessions",
+    "refresh": "Refresh",
+    "closeOthers": "Close others",
+    "close": "Close",
+    "closeAll": "Close all (user)",
+    "loading": "Loading sessions...",
+    "count": "{{count}} active session(s)",
+    "autoExpire": "Sessions expire automatically after inactivity",
+    "currentSession": "Current session",
+    "unknownBrowser": "Unknown browser",
+    "unknownOS": "Unknown OS",
+    "createdOn": "Created on:",
+    "lastActivity": "Last activity:",
+    "expiresOn": "Expires on:",
+    "noSessions": "No active sessions found",
+    "admin": {
+      "stats": {
+        "activeSessions": "Active sessions",
+        "connectedUsers": "Connected users",
+        "mobileDevices": "Mobile devices",
+        "expiringSoon": "Expiring soon"
+      },
+      "securityInfo": {
+        "title": "Security information",
+        "autoExpire": "Sessions expire automatically after inactivity",
+        "monitorSuspicious": "Monitor suspicious or unrecognized connections",
+        "userManagement": "Users can manage their own sessions",
+        "noGeolocation": "Geolocation data is not collected"
+      }
+    },
+    "securityTips": {
+      "title": "Security tips",
+      "closeSuspicious": "Close suspicious sessions or on devices you no longer use",
+      "checkRegularly": "Check your active sessions regularly",
+      "autoExpireHours": "Sessions expire automatically after {{hours}} hours of inactivity",
+      "logoutShared": "Log out manually on shared computers"
+    }
+  },
   "entryEntity": "an entry",
   "userEntity": "a user",
   "system": "System",
@@ -188,5 +320,91 @@
   "total": "Total",
   "active": "Active",
   "inactive": "Inactive",
-  "audit": "Audit"
+  "audit": "Audit",
+  "security": {
+    "rateLimit": {
+      "exceeded": "Rate limit exceeded",
+      "authExceeded": "Too many authentication attempts. Try again in {{minutes}} minutes.",
+      "loginExceeded": "Too many login attempts. Try again in {{minutes}} minutes.",
+      "apiExceeded": "Too many API requests. Try again later.",
+      "globalExceeded": "Too many requests from your IP address. Try again later.",
+      "retryAfter": "Try again in {{seconds}} seconds",
+      "remaining": "{{count}} request(s) remaining",
+      "resetTime": "Limit resets at {{time}}"
+    },
+    "headers": {
+      "cspViolation": "Content Security Policy violation detected",
+      "unsafeContent": "Unsafe content blocked for your protection",
+      "mixedContent": "Mixed HTTP/HTTPS content not allowed"
+    },
+    "session": {
+      "expired": "Your session has expired. Please log in again.",
+      "terminated": "Session terminated successfully",
+      "terminateOthers": "Close other sessions",
+      "terminateAll": "Close all sessions",
+      "suspiciousActivity": "Suspicious activity detected on your account",
+      "maxSessionsReached": "Maximum sessions reached. Oldest session closed.",
+      "invalidSession": "Invalid or expired session",
+      "sessionCreated": "New session created",
+      "deviceFingerprint": "Device fingerprint",
+      "currentSession": "Current session (cannot be closed)",
+      "lastActivity": "Last activity: {{time}}",
+      "createdOn": "Created on: {{date}}",
+      "expiresOn": "Expires on: {{date}}",
+      "browserInfo": "{{browser}} on {{os}}",
+      "unknownDevice": "Unknown device",
+      "location": "Approximate location",
+      "ipAddress": "IP Address: {{ip}}"
+    }
+  },
+  "monitoring": {
+    "healthCheck": {
+      "title": "System Status",
+      "healthy": "Healthy",
+      "degraded": "Degraded",
+      "unhealthy": "Unhealthy",
+      "unknown": "Unknown",
+      "database": "Database",
+      "redis": "Redis (Cache)",
+      "fileSystem": "File System",
+      "memory": "Memory",
+      "cpu": "CPU",
+      "uptime": "Uptime",
+      "lastCheck": "Last check",
+      "responseTime": "Response time",
+      "errorRate": "Error rate",
+      "throughput": "Throughput",
+      "connections": "Active connections"
+    },
+    "logs": {
+      "title": "Logging",
+      "level": {
+        "debug": "Debug",
+        "info": "Information",
+        "warn": "Warning",
+        "error": "Error",
+        "fatal": "Fatal"
+      },
+      "categories": {
+        "security": "Security",
+        "auth": "Authentication",
+        "api": "API",
+        "database": "Database",
+        "system": "System"
+      },
+      "events": {
+        "loginAttempt": "Login attempt",
+        "loginSuccess": "Login successful",
+        "loginFailure": "Login failure",
+        "sessionCreated": "Session created",
+        "sessionExpired": "Session expired",
+        "rateLimitExceeded": "Rate limit exceeded",
+        "suspiciousActivity": "Suspicious activity",
+        "securityViolation": "Security violation",
+        "dataAccess": "Data access",
+        "dataModification": "Data modification",
+        "systemError": "System error"
+      }
+    }
+  }
 }

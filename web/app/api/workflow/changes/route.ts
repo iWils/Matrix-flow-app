@@ -5,6 +5,7 @@ import { auditLog } from '@/lib/audit'
 import { logger } from '@/lib/logger'
 import { CreateChangeRequestSchema, GetChangeRequestsSchema } from '@/lib/validate'
 import { ApiResponse, ChangeRequest } from '@/types'
+import { emailService } from '@/lib/email-notifications'
 
 export async function GET(req: NextRequest) {
   const session = await auth()
@@ -277,6 +278,27 @@ export async function POST(req: NextRequest) {
       description: changeRequest.description,
       changes: changeRequest.requestedData,
       reviewComment: null
+    }
+
+    // Envoyer notification de demande d'approbation aux admins
+    try {
+      const requesterName = session.user.name || 'Utilisateur'
+      const ipAddress = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
+      
+      await emailService.sendChangeApprovalRequest({
+        matrixName: matrix.name,
+        requesterName,
+        actionType: validatedData.requestType,
+        changes: validatedData.description,
+        changeRequestId: changeRequest.id,
+        ipAddress
+      })
+    } catch (emailError) {
+      // Log l'erreur mais ne pas faire échouer la création
+      logger.warn('Failed to send approval request notification', {
+        changeRequestId: changeRequest.id,
+        error: emailError instanceof Error ? emailError.message : 'Unknown email error'
+      })
     }
 
     logger.info('Change request created successfully', {

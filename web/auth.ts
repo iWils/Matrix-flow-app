@@ -40,7 +40,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       name: "credentials",
       credentials: {
         username: { label: "Username", type: "text" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
+        verified2FA: { label: "2FA Verified", type: "text" }
       },
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) return null
@@ -51,6 +52,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               { username: credentials.username as string },
               { email: credentials.username as string }
             ]
+          },
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            fullName: true,
+            passwordHash: true,
+            role: true,
+            language: true,
+            isActive: true,
+            twoFactorEnabled: true
           }
         })
         
@@ -58,6 +70,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         
         const isValid = await bcrypt.compare(credentials.password as string, user.passwordHash)
         if (!isValid) return null
+
+        // For 2FA enabled users, we only authorize after 2FA verification
+        // This will be handled by the login flow in the frontend
+        // We'll use a special flag to bypass this for 2FA-verified logins
+        if (user.twoFactorEnabled && !(credentials as any).verified2FA) {
+          // Return null to prevent login, 2FA verification required
+          return null
+        }
         
         return {
           id: user.id.toString(),

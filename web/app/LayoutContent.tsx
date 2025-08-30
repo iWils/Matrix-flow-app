@@ -10,15 +10,24 @@ import { ChangeNameModal } from '../components/ui/ChangeNameModal'
 import { LanguageModal } from '../components/ui/LanguageModal'
 import { ThemeToggle } from '../components/ui/ThemeToggle'
 import LanguageSelector from '../components/ui/LanguageSelector'
+import { TwoFactorStatus } from '../components/ui/TwoFactorStatus'
+import { UserSessionsModal } from '../components/ui/UserSessionsModal'
+import { ToastProvider } from '../components/ui/Toast'
+import { useSessionTracking } from '@/lib/hooks/useSessionTracking'
 import { useTranslation } from 'react-i18next'
 
 export function LayoutContent({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession()
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  
+  // Hook pour tracker les sessions utilisateur
+  useSessionTracking()
   const [changePasswordModalOpen, setChangePasswordModalOpen] = useState(false)
   const [changeNameModalOpen, setChangeNameModalOpen] = useState(false)
   const [languageModalOpen, setLanguageModalOpen] = useState(false)
+  const [twoFactorModalOpen, setTwoFactorModalOpen] = useState(false)
+  const [sessionsModalOpen, setSessionsModalOpen] = useState(false)
   const { t } = useTranslation(['dashboard', 'common', 'admin', 'workflow', 'matrices'])
   
   // Pages qui ne doivent pas avoir la sidebar
@@ -124,6 +133,26 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
         </svg>
       ),
       adminOnly: true
+    },
+    {
+      href: '/admin-2fa',
+      label: t('common:twoFactorAuth.adminTitle'),
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+      ),
+      adminOnly: true
+    },
+    {
+      href: '/admin-sessions',
+      label: t('common:sessions.adminTitle'),
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      adminOnly: true
     }
   ]
 
@@ -137,7 +166,8 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
   
   // Utilisateur authentifié, afficher avec sidebar
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex">
+    <ToastProvider>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
@@ -192,6 +222,8 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
             <UserMenu
               onChangePassword={() => setChangePasswordModalOpen(true)}
               onChangeName={() => setChangeNameModalOpen(true)}
+              onManage2FA={() => setTwoFactorModalOpen(true)}
+              onManageSessions={() => setSessionsModalOpen(true)}
               onLogout={() => {
                 import('next-auth/react').then(({ signOut }) => signOut())
               }}
@@ -241,6 +273,8 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
                 {pathname === '/admin-auth' && 'Authentification - '}
                 {pathname === '/admin-email' && 'Messagerie - '}
                 {pathname === '/admin-system' && 'Système - '}
+                {pathname === '/admin-2fa' && t('common:twoFactorAuth.adminTitle') + ' - '}
+                {pathname === '/admin-sessions' && t('common:sessions.adminTitle') + ' - '}
                 {pathname.startsWith('/admin') && t('admin:administration')}
               </h2>
             </div>
@@ -278,7 +312,37 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
         isOpen={languageModalOpen}
         onClose={() => setLanguageModalOpen(false)}
       />
-    </div>
+      
+      {/* Modales 2FA et sessions */}
+      {twoFactorModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white dark:bg-slate-800 rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                  🔐 {t('twoFactorAuth.title')}
+                </h2>
+                <button
+                  onClick={() => setTwoFactorModalOpen(false)}
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <TwoFactorStatus />
+            </div>
+          </div>
+        </div>
+      )}
+
+      <UserSessionsModal
+        isOpen={sessionsModalOpen}
+        onClose={() => setSessionsModalOpen(false)}
+      />
+      </div>
+    </ToastProvider>
   )
 }
 

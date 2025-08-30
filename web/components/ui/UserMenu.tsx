@@ -8,9 +8,11 @@ interface UserMenuProps {
   onChangePassword: () => void
   onChangeName: () => void
   onLogout: () => void
+  onManage2FA?: () => void
+  onManageSessions?: () => void
 }
 
-export function UserMenu({ onChangePassword, onChangeName, onLogout }: UserMenuProps) {
+export function UserMenu({ onChangePassword, onChangeName, onLogout, onManage2FA, onManageSessions }: UserMenuProps) {
   const { data: session } = useSession()
   const { t } = useTranslation('common')
   const [isOpen, setIsOpen] = useState(false)
@@ -91,6 +93,35 @@ export function UserMenu({ onChangePassword, onChangeName, onLogout }: UserMenuP
             {t('changePassword')}
           </button>
           
+          {onManage2FA && (
+            <button
+              onClick={() => {
+                onManage2FA()
+                setIsOpen(false)
+              }}
+              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              {t('twoFactorAuth.title')}
+            </button>
+          )}
+
+          {onManageSessions && (
+            <button
+              onClick={() => {
+                onManageSessions()
+                setIsOpen(false)
+              }}
+              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {t('sessions.title')}
+            </button>
+          )}
 
           <hr className="my-2 border-slate-200 dark:border-slate-600" />
           

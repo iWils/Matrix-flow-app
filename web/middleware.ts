@@ -1,20 +1,75 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+// Conditional import to avoid Edge Runtime issues
+async function getRateLimitFunctions() {
+  if (process.env.NEXT_RUNTIME === 'edge') {
+    // Return no-op functions for Edge Runtime
+    return {
+      authRateLimit: async () => null,
+      loginRateLimit: async () => null,
+      apiRateLimit: async () => null,
+      globalRateLimit: async () => null
+    }
+  }
+  
+  const { authRateLimit, loginRateLimit, apiRateLimit, globalRateLimit } = await import('./middleware/rateLimit')
+  return { authRateLimit, loginRateLimit, apiRateLimit, globalRateLimit }
+}
+import { 
+  applySecurityHeaders, 
+  shouldApplySecurityHeaders 
+} from './lib/security/headers'
 
-export default function middleware(request: NextRequest) {
+export default async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl
+
+  // Helper pour appliquer les headers de sécurité à toute réponse
+  const applySecurityIfNeeded = (response: NextResponse): NextResponse => {
+    if (shouldApplySecurityHeaders(request)) {
+      return applySecurityHeaders(response, request)
+    }
+    return response
+  }
+
+  // Get rate limit functions (conditional for Edge Runtime)
+  const { authRateLimit, loginRateLimit, apiRateLimit, globalRateLimit } = await getRateLimitFunctions()
+
+  // Appliquer le rate limiting global en premier
+  const globalRateLimitResponse = await globalRateLimit(request)
+  if (globalRateLimitResponse && globalRateLimitResponse.status === 429) {
+    return applySecurityIfNeeded(globalRateLimitResponse)
+  }
 
   // Pages publiques qui ne nécessitent pas d'authentification
   const publicPaths = ['/login', '/api/auth']
   const isPublicPath = publicPaths.some(path => pathname.startsWith(path))
 
-  if (isPublicPath) {
-    return NextResponse.next()
+  // Rate limiting spécialisé pour les endpoints d'authentification
+  if (pathname.startsWith('/api/auth/login') || pathname === '/login') {
+    const loginRateLimitResponse = await loginRateLimit(request)
+    if (loginRateLimitResponse && loginRateLimitResponse.status === 429) {
+      return applySecurityIfNeeded(loginRateLimitResponse)
+    }
+  } else if (pathname.startsWith('/api/auth')) {
+    const authRateLimitResponse = await authRateLimit(request)
+    if (authRateLimitResponse && authRateLimitResponse.status === 429) {
+      return applySecurityIfNeeded(authRateLimitResponse)
+    }
   }
 
-  // Pour les routes API, laisser les endpoints gérer leur propre authentification
+  if (isPublicPath) {
+    const response = NextResponse.next()
+    return applySecurityIfNeeded(response)
+  }
+
+  // Pour les routes API, appliquer le rate limiting API
   if (pathname.startsWith('/api/')) {
-    return NextResponse.next()
+    const apiRateLimitResponse = await apiRateLimit(request)
+    if (apiRateLimitResponse && apiRateLimitResponse.status === 429) {
+      return applySecurityIfNeeded(apiRateLimitResponse)
+    }
+    const response = NextResponse.next()
+    return applySecurityIfNeeded(response)
   }
 
   // Vérifier la présence du token de session uniquement pour les pages web
@@ -30,10 +85,13 @@ export default function middleware(request: NextRequest) {
     const callbackUrl = pathname + search
     loginUrl.searchParams.set('callbackUrl', callbackUrl)
     
-    return NextResponse.redirect(loginUrl)
+    const redirectResponse = NextResponse.redirect(loginUrl)
+    return applySecurityIfNeeded(redirectResponse)
   }
 
-  return NextResponse.next()
+  // Créer la réponse finale
+  const response = NextResponse.next()
+  return applySecurityIfNeeded(response)
 }
  
 export const config = {

@@ -1,0 +1,43 @@
+{
+  "visualHistory": "Visual History",
+  "entriesCount": "{{count}} audit entries",
+  "timeline": "Timeline",
+  "activity": "Activity",
+  "chart": "Chart",
+  "filters": "Filters",
+  "clearFilters": "Clear All",
+  "searchPlaceholder": "Search in audit logs...",
+  "allEntities": "All Entities",
+  "allActions": "All Actions", 
+  "allUsers": "All Users",
+  "dateFrom": "From",
+  "dateTo": "To",
+  "noEntries": "No Audit Entries",
+  "noEntriesDescription": "No audit entries match the current filters.",
+  "by": "by",
+  "systemAction": "System",
+  "system": "System",
+  "inMatrix": "in matrix",
+  "changes": "Changes",
+  "fieldsChanged": "fields changed",
+  "activityTimeline": "Activity Timeline",
+  "days": "days",
+  "actionBreakdown": "Action Breakdown",
+  "entityActivity": "Entity Activity",
+  "topUsers": "Most Active Users",
+  "entities": {
+    "Matrix": "Matrix",
+    "FlowEntry": "Flow Entry",
+    "User": "User",
+    "MatrixPermission": "Matrix Permission",
+    "AuditLog": "Audit Log",
+    "SystemNotification": "System Notification",
+    "EmailTemplate": "Email Template",
+    "SystemSetting": "System Setting"
+  },
+  "actions": {
+    "create": "Created",
+    "update": "Updated", 
+    "delete": "Deleted"
+  }
+}
