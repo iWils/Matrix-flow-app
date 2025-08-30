@@ -123,6 +123,17 @@ export function UserMenu({ onChangePassword, onChangeName, onLogout, onManage2FA
             </button>
           )}
 
+          <a
+            href="/profile/notifications"
+            onClick={() => setIsOpen(false)}
+            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4 6v10c0 1.1.9 2 2 2h9v5l5-5H6a2 2 0 01-2-2V6a2 2 0 012-2h8v2H6v10z" />
+            </svg>
+            Préférences de notification
+          </a>
+
           <hr className="my-2 border-slate-200 dark:border-slate-600" />
           
           <button

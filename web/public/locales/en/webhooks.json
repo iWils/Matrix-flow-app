@@ -1,0 +1,281 @@
+{
+  "title": "Advanced Webhooks",
+  "description": "Configure and manage your webhooks with automatic retry, circuit breaker, and custom transformations.",
+  
+  "sections": {
+    "overview": {
+      "title": "Overview",
+      "description": "Delivery statistics and webhook monitoring"
+    },
+    "templates": {
+      "title": "Webhook Templates",
+      "description": "Configure reusable templates for your webhooks"
+    },
+    "deliveries": {
+      "title": "Delivery History",
+      "description": "Track the status of all your sent webhooks"
+    },
+    "testing": {
+      "title": "Webhook Testing",
+      "description": "Test your configurations before activating them"
+    }
+  },
+
+  "stats": {
+    "totalDeliveries": "Total deliveries",
+    "successRate": "Success rate",
+    "averageResponseTime": "Average response time",
+    "failedDeliveries": "Failed deliveries",
+    "activeCircuitBreakers": "Active circuit breakers",
+    "timeRanges": {
+      "hour": "Last hour",
+      "day": "Last 24h",
+      "week": "Last week",
+      "month": "Last month"
+    }
+  },
+
+  "templates": {
+    "create": {
+      "title": "Create template",
+      "button": "New template"
+    },
+    "edit": {
+      "title": "Edit template",
+      "button": "Edit"
+    },
+    "delete": {
+      "title": "Delete template",
+      "confirmation": "Are you sure you want to delete this template?",
+      "button": "Delete"
+    },
+    "fields": {
+      "name": {
+        "label": "Template name",
+        "placeholder": "My custom webhook",
+        "description": "Descriptive name for this template"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Webhook description...",
+        "description": "Optional description of the template usage"
+      },
+      "events": {
+        "label": "Events",
+        "placeholder": "Select events...",
+        "description": "Event types that will trigger this webhook",
+        "options": {
+          "matrix_created": "Matrix created",
+          "matrix_updated": "Matrix updated", 
+          "matrix_deleted": "Matrix deleted",
+          "flow_entry_added": "Flow entry added",
+          "flow_entry_updated": "Flow entry updated",
+          "flow_entry_deleted": "Flow entry deleted",
+          "change_request_created": "Change request created",
+          "change_request_approved": "Change request approved",
+          "change_request_rejected": "Change request rejected",
+          "security_alert": "Security alert",
+          "system_alert": "System alert",
+          "user_login": "User login",
+          "user_logout": "User logout",
+          "*": "All events"
+        }
+      },
+      "payloadTransform": {
+        "label": "Payload transformation",
+        "placeholder": "// Transform payload with JavaScript\npayload.data.customField = 'value';\n// Use payload.event, payload.timestamp, etc.",
+        "description": "JavaScript code to transform payload before sending"
+      },
+      "customHeaders": {
+        "label": "Custom headers",
+        "description": "Additional HTTP headers to include",
+        "add": "Add header",
+        "key": "Header name",
+        "value": "Value"
+      },
+      "retryPolicy": {
+        "label": "Retry policy",
+        "description": "Retry configuration for failed attempts",
+        "maxRetries": {
+          "label": "Max retry attempts",
+          "description": "Maximum number of retry attempts (0-10)"
+        },
+        "initialDelay": {
+          "label": "Initial delay (ms)",
+          "description": "Delay before first retry attempt"
+        },
+        "maxDelay": {
+          "label": "Max delay (ms)",
+          "description": "Maximum delay between attempts"
+        },
+        "backoffMultiplier": {
+          "label": "Backoff multiplier",
+          "description": "Factor to increase delay by"
+        },
+        "enableCircuitBreaker": {
+          "label": "Enable circuit breaker",
+          "description": "Suspend attempts after too many consecutive failures"
+        },
+        "circuitBreakerThreshold": {
+          "label": "Circuit breaker threshold",
+          "description": "Number of failures before opening circuit"
+        },
+        "circuitBreakerTimeout": {
+          "label": "Circuit breaker timeout (ms)",
+          "description": "Time before attempting to close circuit"
+        }
+      },
+      "enabled": {
+        "label": "Template enabled",
+        "description": "Enable or disable this template"
+      }
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "eventsRequired": "At least one event must be selected",
+      "invalidJavaScript": "Invalid JavaScript code",
+      "invalidRetryConfig": "Invalid retry configuration"
+    },
+    "status": {
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "lastUsed": "Last used",
+      "never": "Never used"
+    }
+  },
+
+  "deliveries": {
+    "status": {
+      "pending": "Pending",
+      "delivered": "Delivered",
+      "failed": "Failed",
+      "circuit_open": "Circuit open"
+    },
+    "columns": {
+      "id": "ID",
+      "event": "Event",
+      "url": "URL",
+      "status": "Status",
+      "attempt": "Attempt",
+      "statusCode": "HTTP Code",
+      "responseTime": "Response time",
+      "createdAt": "Created",
+      "deliveredAt": "Delivered",
+      "nextRetry": "Next retry",
+      "error": "Error"
+    },
+    "filters": {
+      "status": "Filter by status",
+      "event": "Filter by event",
+      "timeRange": "Time range"
+    },
+    "actions": {
+      "retry": "Retry",
+      "viewPayload": "View payload",
+      "viewError": "View error"
+    }
+  },
+
+  "testing": {
+    "title": "Test webhook",
+    "description": "Send a test webhook to verify your configuration",
+    "form": {
+      "url": {
+        "label": "Test URL",
+        "placeholder": "https://webhook.site/unique-url",
+        "description": "URL where to send the test webhook"
+      },
+      "event": {
+        "label": "Event type",
+        "placeholder": "Select a test event",
+        "description": "Type of event to simulate"
+      },
+      "template": {
+        "label": "Template to use",
+        "placeholder": "Select a template (optional)",
+        "description": "Webhook template to apply"
+      },
+      "customData": {
+        "label": "Custom data",
+        "placeholder": "{\n  \"test\": true,\n  \"message\": \"Test webhook\"\n}",
+        "description": "JSON data to include in payload"
+      }
+    },
+    "actions": {
+      "send": "Send test",
+      "sending": "Sending...",
+      "clear": "Clear"
+    },
+    "results": {
+      "title": "Test result",
+      "deliveryId": "Delivery ID",
+      "status": "Status",
+      "responseTime": "Response time",
+      "statusCode": "Response code",
+      "error": "Error",
+      "payload": "Sent payload"
+    }
+  },
+
+  "monitoring": {
+    "title": "Webhook monitoring",
+    "healthStatus": "Health status",
+    "healthy": "Healthy",
+    "degraded": "Degraded", 
+    "unhealthy": "Unhealthy",
+    "circuitBreakers": {
+      "title": "Circuit breakers",
+      "none": "No open circuit breakers",
+      "status": {
+        "closed": "Closed",
+        "open": "Open",
+        "half_open": "Half-open"
+      },
+      "actions": {
+        "reset": "Reset",
+        "forceOpen": "Force open"
+      }
+    },
+    "recentErrors": {
+      "title": "Recent errors",
+      "none": "No recent errors",
+      "viewAll": "View all errors"
+    }
+  },
+
+  "notifications": {
+    "templateCreated": "Webhook template created successfully",
+    "templateUpdated": "Webhook template updated",
+    "templateDeleted": "Webhook template deleted",
+    "webhookSent": "Webhook sent successfully",
+    "testCompleted": "Webhook test completed",
+    "errorOccurred": "An error occurred",
+    "invalidConfiguration": "Invalid configuration"
+  },
+
+  "help": {
+    "payloadTransform": {
+      "title": "Help - Payload transformation",
+      "description": "JavaScript code has access to the following variables:",
+      "variables": {
+        "payload": "Complete payload object with event, timestamp, data, metadata",
+        "utils": "Utility functions (formatDate, maskEmail, truncate)"
+      },
+      "examples": {
+        "title": "Examples:",
+        "example1": "// Add custom field\npayload.data.environment = 'production';",
+        "example2": "// Mask emails\nif (payload.data.email) {\n  payload.data.email = utils.maskEmail(payload.data.email);\n}",
+        "example3": "// Format dates\npayload.data.formattedDate = utils.formatDate(payload.timestamp);"
+      }
+    },
+    "retryPolicy": {
+      "title": "Help - Retry policy",
+      "description": "Configuration of behavior when delivery fails:",
+      "strategies": {
+        "exponentialBackoff": "Exponential backoff: delay doubled on each attempt",
+        "circuitBreaker": "Circuit breaker: suspension after too many failures",
+        "maxRetries": "Stop after maximum number of attempts"
+      }
+    }
+  }
+}

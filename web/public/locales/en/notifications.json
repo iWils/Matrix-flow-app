@@ -1,0 +1,145 @@
+{
+  "title": "Notification Preferences",
+  "description": "Customize your notifications to stay informed about important events.",
+  
+  "sections": {
+    "email": {
+      "title": "📧 Email Notifications",
+      "description": "Configure email notifications to stay informed about important events."
+    },
+    "push": {
+      "title": "📱 Push Notifications", 
+      "description": "Receive push notifications on your devices (requires compatible browser)."
+    },
+    "inApp": {
+      "title": "🔔 In-App Notifications",
+      "description": "Notifications displayed directly in the application interface."
+    },
+    "timing": {
+      "title": "⏰ Timing Preferences",
+      "description": "Control when and how often you receive notifications."
+    },
+    "webhooks": {
+      "title": "🔗 Webhooks",
+      "description": "Send notifications to external systems via HTTP webhooks."
+    }
+  },
+
+  "toggles": {
+    "emailEnabled": {
+      "label": "Enable email notifications",
+      "description": "Master switch for all email notifications"
+    },
+    "emailChangeRequests": {
+      "label": "Approval requests",
+      "description": "New changes pending approval"
+    },
+    "emailChangeApprovals": {
+      "label": "Approvals and rejections",
+      "description": "Change request results"
+    },
+    "emailSecurityAlerts": {
+      "label": "Security alerts",
+      "description": "Suspicious logins and security events"
+    },
+    "emailSystemAlerts": {
+      "label": "System alerts",
+      "description": "Technical issues and maintenance"
+    },
+    "emailDailyDigest": {
+      "label": "Daily digest",
+      "description": "Summary of the day's activities"
+    },
+    "emailWeeklyReport": {
+      "label": "Weekly report",
+      "description": "Detailed report of the week's activities"
+    },
+    "pushEnabled": {
+      "label": "Enable push notifications",
+      "description": "Master switch for all push notifications"
+    },
+    "pushChangeRequests": {
+      "label": "Approval requests"
+    },
+    "pushChangeApprovals": {
+      "label": "Approvals and rejections"
+    },
+    "pushSecurityAlerts": {
+      "label": "Security alerts"
+    },
+    "pushSystemAlerts": {
+      "label": "System alerts"
+    },
+    "pushInstantAlerts": {
+      "label": "Instant alerts",
+      "description": "Real-time notifications for critical actions"
+    },
+    "inAppEnabled": {
+      "label": "Enable in-app notifications",
+      "description": "Master switch for all in-app notifications"
+    },
+    "inAppChangeRequests": {
+      "label": "Approval requests"
+    },
+    "inAppChangeApprovals": {
+      "label": "Approvals and rejections"
+    },
+    "inAppSecurityAlerts": {
+      "label": "Security alerts"
+    },
+    "inAppSystemAlerts": {
+      "label": "System alerts"
+    },
+    "webhookEnabled": {
+      "label": "Enable webhooks",
+      "description": "Send notifications to external URL"
+    },
+    "quietHoursEnabled": {
+      "label": "Quiet hours",
+      "description": "Disable non-critical notifications during certain hours"
+    }
+  },
+
+  "timing": {
+    "digestFrequency": "Digest frequency",
+    "digestTime": "Digest time",
+    "quietHoursStart": "Quiet hours start",
+    "quietHoursEnd": "Quiet hours end",
+    "frequencies": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "never": "Never"
+    }
+  },
+
+  "webhooks": {
+    "urlLabel": "Webhook URL",
+    "urlPlaceholder": "https://your-server.com/webhook",
+    "secretLabel": "Webhook secret (optional)",
+    "secretPlaceholder": "Secret for HMAC validation"
+  },
+
+  "actions": {
+    "save": "Save preferences",
+    "saving": "Saving...",
+    "reset": "Reset",
+    "testEmail": "Test email notifications",
+    "testEmailSending": "Testing...",
+    "testWebhook": "Test webhook",
+    "testWebhookSending": "Testing webhook..."
+  },
+
+  "messages": {
+    "preferencesLoaded": "Preferences loaded",
+    "preferencesSaved": "Preferences saved",
+    "preferencesReset": "Preferences reset to defaults",
+    "errorLoading": "Failed to load preferences",
+    "errorSaving": "Failed to save",
+    "errorConnection": "Connection error",
+    "testEmailSent": "Test email sent",
+    "testEmailFailed": "Test email failed",
+    "testWebhookSent": "Test webhook sent",
+    "testWebhookFailed": "Test webhook failed",
+    "resetConfirm": "Are you sure you want to reset all preferences?"
+  }
+}

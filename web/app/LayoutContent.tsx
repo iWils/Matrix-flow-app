@@ -2,7 +2,7 @@
 import { useSession } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { UserMenu } from '../components/ui/UserMenu'
 import { ChangePasswordModal } from '../components/ui/ChangePasswordModal'
@@ -23,6 +23,19 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
   
   // Hook pour tracker les sessions utilisateur
   useSessionTracking()
+  
+  // Register service worker for PWA and push notifications
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => {
+          console.log('Service Worker registered with scope:', registration.scope)
+        })
+        .catch((error) => {
+          console.error('Service Worker registration failed:', error)
+        })
+    }
+  }, [])
   const [changePasswordModalOpen, setChangePasswordModalOpen] = useState(false)
   const [changeNameModalOpen, setChangeNameModalOpen] = useState(false)
   const [languageModalOpen, setLanguageModalOpen] = useState(false)
@@ -153,6 +166,16 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
         </svg>
       ),
       adminOnly: true
+    },
+    {
+      href: '/admin-webhooks',
+      label: 'Webhooks Avancés',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+        </svg>
+      ),
+      adminOnly: true
     }
   ]
 
@@ -275,6 +298,7 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
                 {pathname === '/admin-system' && 'Système - '}
                 {pathname === '/admin-2fa' && t('common:twoFactorAuth.adminTitle') + ' - '}
                 {pathname === '/admin-sessions' && t('common:sessions.adminTitle') + ' - '}
+                {pathname === '/admin-webhooks' && 'Webhooks Avancés - '}
                 {pathname.startsWith('/admin') && t('admin:administration')}
               </h2>
             </div>

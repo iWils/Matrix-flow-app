@@ -83,6 +83,9 @@ model User {
   accounts              Account[]
   sessions              Session[]
   sentEmails            EmailLog[]
+  notificationPrefs     NotificationPreference?
+  pushSubscriptions     PushSubscription[]
+  webhookTemplates      WebhookTemplate[]
 
   @@index([isActive, role])
   @@index([createdAt(sort: Desc)])
@@ -446,3 +449,140 @@ model EmailLog {
   @@map("email_logs")
 }
 
+// Phase 3 - Notification Preferences System
+model NotificationPreference {
+  id                    Int      @id @default(autoincrement())
+  userId                Int      @unique
+  
+  // Email notifications
+  emailEnabled          Boolean  @default(true)
+  emailChangeRequests   Boolean  @default(true)   // Demandes d'approbation
+  emailChangeApprovals  Boolean  @default(true)   // Approbations/rejets
+  emailSecurityAlerts   Boolean  @default(true)   // Alertes sécurité
+  emailSystemAlerts     Boolean  @default(true)   // Alertes système critiques
+  emailDailyDigest      Boolean  @default(false)  // Résumé quotidien
+  emailWeeklyReport     Boolean  @default(false)  // Rapport hebdomadaire
+  
+  // Push notifications (PWA)
+  pushEnabled           Boolean  @default(false)
+  pushChangeRequests    Boolean  @default(true)
+  pushChangeApprovals   Boolean  @default(true)
+  pushSecurityAlerts    Boolean  @default(true)
+  pushSystemAlerts      Boolean  @default(true)
+  pushInstantAlerts     Boolean  @default(false)  // Notifications temps réel
+  
+  // In-app notifications
+  inAppEnabled          Boolean  @default(true)
+  inAppChangeRequests   Boolean  @default(true)
+  inAppChangeApprovals  Boolean  @default(true)
+  inAppSecurityAlerts   Boolean  @default(true)
+  inAppSystemAlerts     Boolean  @default(true)
+  
+  // Timing preferences
+  digestFrequency       String   @default("daily")    // 'daily', 'weekly', 'never'
+  digestTime            String   @default("09:00")    // Format HH:MM
+  quietHoursEnabled     Boolean  @default(false)
+  quietHoursStart       String?  // Format HH:MM
+  quietHoursEnd         String?  // Format HH:MM
+  
+  // Webhook preferences
+  webhookEnabled        Boolean  @default(false)
+  webhookUrl            String?  
+  webhookEvents         Json     @default("[]")       // Array of event types
+  webhookSecret         String?  // Pour validation HMAC
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  // Relations
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([emailEnabled, emailDailyDigest])
+  @@index([pushEnabled])
+  @@map("notification_preferences")
+}
+
+// Phase 3 - Push Notifications PWA
+model PushSubscription {
+  id                    Int      @id @default(autoincrement())
+  userId                Int
+  endpoint              String   @unique
+  p256dh                String   // Public key for message encryption
+  auth                  String   // Authentication secret
+  
+  // Device/browser information
+  userAgent             String?
+  deviceName            String?  // Custom device name set by user
+  ipAddress             String?
+  
+  // Subscription management
+  isActive              Boolean  @default(true)
+  lastUsed              DateTime @default(now())
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  // Relations
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+  @@index([endpoint])
+  @@index([lastUsed(sort: Desc)])
+  @@map("push_subscriptions")
+}
+
+// Phase 3 - Advanced Webhooks System
+model WebhookDelivery {
+  id                    String   @id
+  webhookUrl            String
+  event                 String
+  payload               Json
+  
+  // Delivery tracking
+  attempt               Int      @default(1)
+  maxRetries            Int      @default(3)
+  status                String   // pending, delivered, failed, circuit_open
+  statusCode            Int?
+  responseTime          Int?     // milliseconds
+  errorMessage          String?
+  
+  // Scheduling
+  nextRetryAt           DateTime?
+  deliveredAt           DateTime?
+  createdAt             DateTime @default(now())
+  
+  @@index([webhookUrl])
+  @@index([event])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@map("webhook_deliveries")
+}
+
+model WebhookTemplate {
+  id                    String   @id
+  userId                Int      // Owner of the template
+  name                  String
+  description           String?
+  events                String[] // Array of event types this template handles
+  
+  // Configuration
+  payloadTransform      String?  // JavaScript transformation code
+  customHeaders         Json?    // Additional headers to send
+  retryPolicy           Json?    // Custom retry configuration
+  enabled               Boolean  @default(true)
+  
+  // Metadata
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  lastUsed              DateTime?
+  
+  // Relations
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([enabled])
+  @@index([events])
+  @@map("webhook_templates")
+}
+
+// Extend User model for webhook templates relationship

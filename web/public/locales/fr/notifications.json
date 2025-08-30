@@ -1,0 +1,145 @@
+{
+  "title": "Préférences de Notification",
+  "description": "Personnalisez vos notifications pour rester informé des événements importants.",
+  
+  "sections": {
+    "email": {
+      "title": "📧 Notifications Email",
+      "description": "Configurez les notifications par email pour rester informé des événements importants."
+    },
+    "push": {
+      "title": "📱 Notifications Push",
+      "description": "Recevez des notifications push sur vos appareils (nécessite un navigateur compatible)."
+    },
+    "inApp": {
+      "title": "🔔 Notifications In-App",
+      "description": "Notifications affichées directement dans l'interface de l'application."
+    },
+    "timing": {
+      "title": "⏰ Préférences de Timing",
+      "description": "Contrôlez quand et à quelle fréquence vous recevez les notifications."
+    },
+    "webhooks": {
+      "title": "🔗 Webhooks",
+      "description": "Envoyez des notifications vers des systèmes externes via des webhooks HTTP."
+    }
+  },
+
+  "toggles": {
+    "emailEnabled": {
+      "label": "Activer les notifications email",
+      "description": "Interrupteur principal pour toutes les notifications email"
+    },
+    "emailChangeRequests": {
+      "label": "Demandes d'approbation",
+      "description": "Nouveaux changements en attente d'approbation"
+    },
+    "emailChangeApprovals": {
+      "label": "Approbations et rejets",
+      "description": "Résultats des demandes de changement"
+    },
+    "emailSecurityAlerts": {
+      "label": "Alertes de sécurité",
+      "description": "Connexions suspectes et événements de sécurité"
+    },
+    "emailSystemAlerts": {
+      "label": "Alertes système",
+      "description": "Problèmes techniques et maintenance"
+    },
+    "emailDailyDigest": {
+      "label": "Résumé quotidien",
+      "description": "Résumé des activités de la journée"
+    },
+    "emailWeeklyReport": {
+      "label": "Rapport hebdomadaire",
+      "description": "Rapport détaillé des activités de la semaine"
+    },
+    "pushEnabled": {
+      "label": "Activer les notifications push",
+      "description": "Interrupteur principal pour toutes les notifications push"
+    },
+    "pushChangeRequests": {
+      "label": "Demandes d'approbation"
+    },
+    "pushChangeApprovals": {
+      "label": "Approbations et rejets"
+    },
+    "pushSecurityAlerts": {
+      "label": "Alertes de sécurité"
+    },
+    "pushSystemAlerts": {
+      "label": "Alertes système"
+    },
+    "pushInstantAlerts": {
+      "label": "Alertes instantanées",
+      "description": "Notifications en temps réel pour les actions critiques"
+    },
+    "inAppEnabled": {
+      "label": "Activer les notifications in-app",
+      "description": "Interrupteur principal pour toutes les notifications dans l'app"
+    },
+    "inAppChangeRequests": {
+      "label": "Demandes d'approbation"
+    },
+    "inAppChangeApprovals": {
+      "label": "Approbations et rejets"
+    },
+    "inAppSecurityAlerts": {
+      "label": "Alertes de sécurité"
+    },
+    "inAppSystemAlerts": {
+      "label": "Alertes système"
+    },
+    "webhookEnabled": {
+      "label": "Activer les webhooks",
+      "description": "Envoyer des notifications vers une URL externe"
+    },
+    "quietHoursEnabled": {
+      "label": "Heures silencieuses",
+      "description": "Désactiver les notifications non-critiques pendant certaines heures"
+    }
+  },
+
+  "timing": {
+    "digestFrequency": "Fréquence des résumés",
+    "digestTime": "Heure des résumés",
+    "quietHoursStart": "Début des heures silencieuses",
+    "quietHoursEnd": "Fin des heures silencieuses",
+    "frequencies": {
+      "daily": "Quotidien",
+      "weekly": "Hebdomadaire", 
+      "never": "Jamais"
+    }
+  },
+
+  "webhooks": {
+    "urlLabel": "URL du webhook",
+    "urlPlaceholder": "https://votre-serveur.com/webhook",
+    "secretLabel": "Secret du webhook (optionnel)",
+    "secretPlaceholder": "Secret pour validation HMAC"
+  },
+
+  "actions": {
+    "save": "Sauvegarder les préférences",
+    "saving": "Sauvegarde...",
+    "reset": "Réinitialiser",
+    "testEmail": "Tester les notifications email",
+    "testEmailSending": "Test en cours...",
+    "testWebhook": "Tester le webhook",
+    "testWebhookSending": "Test webhook..."
+  },
+
+  "messages": {
+    "preferencesLoaded": "Préférences chargées",
+    "preferencesSaved": "Préférences sauvegardées",
+    "preferencesReset": "Préférences réinitialisées aux valeurs par défaut",
+    "errorLoading": "Impossible de charger les préférences",
+    "errorSaving": "Échec de la sauvegarde", 
+    "errorConnection": "Erreur de connexion",
+    "testEmailSent": "Test email envoyé",
+    "testEmailFailed": "Échec du test email",
+    "testWebhookSent": "Test webhook envoyé",
+    "testWebhookFailed": "Échec du test webhook",
+    "resetConfirm": "Êtes-vous sûr de vouloir réinitialiser toutes les préférences ?"
+  }
+}

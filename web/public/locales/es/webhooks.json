@@ -1,0 +1,281 @@
+{
+  "title": "Webhooks Avanzados",
+  "description": "Configura y gestiona tus webhooks con reintentos automáticos, circuit breaker y transformaciones personalizadas.",
+  
+  "sections": {
+    "overview": {
+      "title": "Resumen",
+      "description": "Estadísticas de entrega y monitoreo de webhooks"
+    },
+    "templates": {
+      "title": "Plantillas de Webhook",
+      "description": "Configura plantillas reutilizables para tus webhooks"
+    },
+    "deliveries": {
+      "title": "Historial de entregas",
+      "description": "Rastrea el estado de todos tus webhooks enviados"
+    },
+    "testing": {
+      "title": "Pruebas de Webhook",
+      "description": "Prueba tus configuraciones antes de activarlas"
+    }
+  },
+
+  "stats": {
+    "totalDeliveries": "Total de entregas",
+    "successRate": "Tasa de éxito",
+    "averageResponseTime": "Tiempo de respuesta promedio",
+    "failedDeliveries": "Entregas fallidas",
+    "activeCircuitBreakers": "Circuit breakers activos",
+    "timeRanges": {
+      "hour": "Última hora",
+      "day": "Últimas 24h",
+      "week": "Última semana",
+      "month": "Último mes"
+    }
+  },
+
+  "templates": {
+    "create": {
+      "title": "Crear plantilla",
+      "button": "Nueva plantilla"
+    },
+    "edit": {
+      "title": "Editar plantilla",
+      "button": "Editar"
+    },
+    "delete": {
+      "title": "Eliminar plantilla",
+      "confirmation": "¿Estás seguro de que quieres eliminar esta plantilla?",
+      "button": "Eliminar"
+    },
+    "fields": {
+      "name": {
+        "label": "Nombre de la plantilla",
+        "placeholder": "Mi webhook personalizado",
+        "description": "Nombre descriptivo para esta plantilla"
+      },
+      "description": {
+        "label": "Descripción",
+        "placeholder": "Descripción del webhook...",
+        "description": "Descripción opcional del uso de la plantilla"
+      },
+      "events": {
+        "label": "Eventos",
+        "placeholder": "Selecciona eventos...",
+        "description": "Tipos de eventos que activarán este webhook",
+        "options": {
+          "matrix_created": "Matriz creada",
+          "matrix_updated": "Matriz actualizada", 
+          "matrix_deleted": "Matriz eliminada",
+          "flow_entry_added": "Entrada de flujo agregada",
+          "flow_entry_updated": "Entrada de flujo actualizada",
+          "flow_entry_deleted": "Entrada de flujo eliminada",
+          "change_request_created": "Solicitud de cambio creada",
+          "change_request_approved": "Solicitud de cambio aprobada",
+          "change_request_rejected": "Solicitud de cambio rechazada",
+          "security_alert": "Alerta de seguridad",
+          "system_alert": "Alerta del sistema",
+          "user_login": "Inicio de sesión de usuario",
+          "user_logout": "Cierre de sesión de usuario",
+          "*": "Todos los eventos"
+        }
+      },
+      "payloadTransform": {
+        "label": "Transformación del payload",
+        "placeholder": "// Transforma el payload con JavaScript\npayload.data.customField = 'valor';\n// Usa payload.event, payload.timestamp, etc.",
+        "description": "Código JavaScript para transformar el payload antes del envío"
+      },
+      "customHeaders": {
+        "label": "Headers personalizados",
+        "description": "Headers HTTP adicionales a incluir",
+        "add": "Agregar header",
+        "key": "Nombre del header",
+        "value": "Valor"
+      },
+      "retryPolicy": {
+        "label": "Política de reintentos",
+        "description": "Configuración de reintentos para intentos fallidos",
+        "maxRetries": {
+          "label": "Máx intentos de reintento",
+          "description": "Número máximo de intentos de reintento (0-10)"
+        },
+        "initialDelay": {
+          "label": "Retraso inicial (ms)",
+          "description": "Retraso antes del primer reintento"
+        },
+        "maxDelay": {
+          "label": "Retraso máximo (ms)",
+          "description": "Retraso máximo entre intentos"
+        },
+        "backoffMultiplier": {
+          "label": "Multiplicador de backoff",
+          "description": "Factor por el que aumentar el retraso"
+        },
+        "enableCircuitBreaker": {
+          "label": "Habilitar circuit breaker",
+          "description": "Suspender intentos después de demasiados fallos consecutivos"
+        },
+        "circuitBreakerThreshold": {
+          "label": "Umbral del circuit breaker",
+          "description": "Número de fallos antes de abrir el circuito"
+        },
+        "circuitBreakerTimeout": {
+          "label": "Timeout del circuit breaker (ms)",
+          "description": "Tiempo antes de intentar cerrar el circuito"
+        }
+      },
+      "enabled": {
+        "label": "Plantilla habilitada",
+        "description": "Habilitar o deshabilitar esta plantilla"
+      }
+    },
+    "validation": {
+      "nameRequired": "El nombre es requerido",
+      "eventsRequired": "Al menos un evento debe ser seleccionado",
+      "invalidJavaScript": "Código JavaScript inválido",
+      "invalidRetryConfig": "Configuración de reintentos inválida"
+    },
+    "status": {
+      "enabled": "Habilitado",
+      "disabled": "Deshabilitado",
+      "lastUsed": "Último uso",
+      "never": "Nunca usado"
+    }
+  },
+
+  "deliveries": {
+    "status": {
+      "pending": "Pendiente",
+      "delivered": "Entregado",
+      "failed": "Fallido",
+      "circuit_open": "Circuito abierto"
+    },
+    "columns": {
+      "id": "ID",
+      "event": "Evento",
+      "url": "URL",
+      "status": "Estado",
+      "attempt": "Intento",
+      "statusCode": "Código HTTP",
+      "responseTime": "Tiempo respuesta",
+      "createdAt": "Creado",
+      "deliveredAt": "Entregado",
+      "nextRetry": "Próximo reintento",
+      "error": "Error"
+    },
+    "filters": {
+      "status": "Filtrar por estado",
+      "event": "Filtrar por evento",
+      "timeRange": "Rango de tiempo"
+    },
+    "actions": {
+      "retry": "Reintentar",
+      "viewPayload": "Ver payload",
+      "viewError": "Ver error"
+    }
+  },
+
+  "testing": {
+    "title": "Probar webhook",
+    "description": "Envía un webhook de prueba para verificar tu configuración",
+    "form": {
+      "url": {
+        "label": "URL de prueba",
+        "placeholder": "https://webhook.site/unique-url",
+        "description": "URL donde enviar el webhook de prueba"
+      },
+      "event": {
+        "label": "Tipo de evento",
+        "placeholder": "Selecciona un evento de prueba",
+        "description": "Tipo de evento a simular"
+      },
+      "template": {
+        "label": "Plantilla a usar",
+        "placeholder": "Selecciona una plantilla (opcional)",
+        "description": "Plantilla de webhook a aplicar"
+      },
+      "customData": {
+        "label": "Datos personalizados",
+        "placeholder": "{\n  \"test\": true,\n  \"message\": \"Webhook de prueba\"\n}",
+        "description": "Datos JSON a incluir en el payload"
+      }
+    },
+    "actions": {
+      "send": "Enviar prueba",
+      "sending": "Enviando...",
+      "clear": "Limpiar"
+    },
+    "results": {
+      "title": "Resultado de la prueba",
+      "deliveryId": "ID de entrega",
+      "status": "Estado",
+      "responseTime": "Tiempo de respuesta",
+      "statusCode": "Código de respuesta",
+      "error": "Error",
+      "payload": "Payload enviado"
+    }
+  },
+
+  "monitoring": {
+    "title": "Monitoreo de webhooks",
+    "healthStatus": "Estado de salud",
+    "healthy": "Saludable",
+    "degraded": "Degradado", 
+    "unhealthy": "No saludable",
+    "circuitBreakers": {
+      "title": "Circuit breakers",
+      "none": "No hay circuit breakers abiertos",
+      "status": {
+        "closed": "Cerrado",
+        "open": "Abierto",
+        "half_open": "Semi-abierto"
+      },
+      "actions": {
+        "reset": "Reiniciar",
+        "forceOpen": "Forzar apertura"
+      }
+    },
+    "recentErrors": {
+      "title": "Errores recientes",
+      "none": "No hay errores recientes",
+      "viewAll": "Ver todos los errores"
+    }
+  },
+
+  "notifications": {
+    "templateCreated": "Plantilla de webhook creada exitosamente",
+    "templateUpdated": "Plantilla de webhook actualizada",
+    "templateDeleted": "Plantilla de webhook eliminada",
+    "webhookSent": "Webhook enviado exitosamente",
+    "testCompleted": "Prueba de webhook completada",
+    "errorOccurred": "Ocurrió un error",
+    "invalidConfiguration": "Configuración inválida"
+  },
+
+  "help": {
+    "payloadTransform": {
+      "title": "Ayuda - Transformación del payload",
+      "description": "El código JavaScript tiene acceso a las siguientes variables:",
+      "variables": {
+        "payload": "Objeto payload completo con event, timestamp, data, metadata",
+        "utils": "Funciones utilitarias (formatDate, maskEmail, truncate)"
+      },
+      "examples": {
+        "title": "Ejemplos:",
+        "example1": "// Agregar campo personalizado\npayload.data.environment = 'production';",
+        "example2": "// Enmascarar emails\nif (payload.data.email) {\n  payload.data.email = utils.maskEmail(payload.data.email);\n}",
+        "example3": "// Formatear fechas\npayload.data.formattedDate = utils.formatDate(payload.timestamp);"
+      }
+    },
+    "retryPolicy": {
+      "title": "Ayuda - Política de reintentos",
+      "description": "Configuración del comportamiento cuando falla la entrega:",
+      "strategies": {
+        "exponentialBackoff": "Backoff exponencial: retraso duplicado en cada intento",
+        "circuitBreaker": "Circuit breaker: suspensión después de demasiados fallos",
+        "maxRetries": "Parar después del número máximo de intentos"
+      }
+    }
+  }
+}
