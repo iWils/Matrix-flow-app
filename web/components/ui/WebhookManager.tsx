@@ -49,7 +49,7 @@ interface WebhookManagerProps {
 
 export const WebhookManager: React.FC<WebhookManagerProps> = ({ className = '' }) => {
   const { t } = useTranslation('webhooks')
-  const { showToast } = useToast()
+  const { success, error } = useToast()
 
   const [activeTab, setActiveTab] = useState<'overview' | 'templates' | 'deliveries' | 'testing'>('overview')
   const [loading, setLoading] = useState(true)
@@ -118,13 +118,13 @@ export const WebhookManager: React.FC<WebhookManagerProps> = ({ className = '' }
       const result = await response.json()
       
       if (result.success) {
-        showToast(t('notifications.templateDeleted'), 'success')
+        success(t('notifications.templateDeleted'))
         fetchTemplates()
       } else {
-        showToast(result.error || t('notifications.errorOccurred'), 'error')
+        error(result.error || t('notifications.errorOccurred'))
       }
-    } catch (error) {
-      showToast(t('notifications.errorOccurred'), 'error')
+    } catch (err) {
+      error(t('notifications.errorOccurred'))
     }
   }
 
@@ -295,7 +295,7 @@ export const WebhookManager: React.FC<WebhookManagerProps> = ({ className = '' }
               </div>
             )}
 
-            {stats?.activeCircuitBreakers > 0 && (
+            {stats?.activeCircuitBreakers && stats.activeCircuitBreakers > 0 && (
               <Alert variant="warning" className="mb-4">
                 <div className="flex items-center">
                   <span className="mr-2">⚡</span>
@@ -470,7 +470,7 @@ export const WebhookManager: React.FC<WebhookManagerProps> = ({ className = '' }
               {t('testing.description')}
             </p>
             
-            <Alert variant="info">
+            <Alert variant="default">
               <div className="flex items-center">
                 <span className="mr-2">💡</span>
                 Utilisez webhook.site ou requestbin.com pour créer des URLs de test temporaires.

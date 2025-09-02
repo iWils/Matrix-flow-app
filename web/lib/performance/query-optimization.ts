@@ -64,13 +64,14 @@ export class QueryOptimizer {
       selectClause.snapshot = true
     }
 
-    if (includeEntryCount) {
-      selectClause._count = {
-        select: {
-          flowEntries: true
-        }
-      }
-    }
+    // Entry count is calculated separately due to schema constraints
+    // if (includeEntryCount) {
+    //   selectClause._count = {
+    //     select: {
+    //       entries: true
+    //     }
+    //   }
+    // }
 
     const versions = await prisma.matrixVersion.findMany({
       where: {

@@ -135,7 +135,7 @@ export class SearchIndexEngine {
     // Récupérer l'index
     let index = this.indexes.get(indexKey)
     if (!index) {
-      index = await this.loadIndexFromCache(indexKey)
+      index = await this.loadIndexFromCache(indexKey) || undefined
       if (index) {
         this.indexes.set(indexKey, index)
       }
@@ -350,7 +350,7 @@ export class SearchIndexEngine {
         searchableTexts.push(value)
         
         // Ajuster le poids basé sur l'importance du champ
-        weight += (this.FIELD_WEIGHTS[field] || this.FIELD_WEIGHTS.default) * 0.1
+        weight += (this.FIELD_WEIGHTS[field as keyof typeof this.FIELD_WEIGHTS] || this.FIELD_WEIGHTS.default) * 0.1
       }
     })
 
@@ -495,7 +495,7 @@ export class SearchIndexEngine {
       // Bonus pour les matches dans des champs importants
       Object.entries(document.fields).forEach(([field, value]) => {
         if (value.toLowerCase().includes(term)) {
-          const fieldWeight = this.FIELD_WEIGHTS[field] || this.FIELD_WEIGHTS.default
+          const fieldWeight = this.FIELD_WEIGHTS[field as keyof typeof this.FIELD_WEIGHTS] || this.FIELD_WEIGHTS.default
           score += fieldWeight * termCount
         }
       })

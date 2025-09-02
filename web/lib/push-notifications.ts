@@ -9,7 +9,7 @@ const vapidKeys = {
 }
 
 webpush.setVapidDetails(
-  'mailto:admin@matrixflow.com',
+  `mailto:${process.env.VAPID_EMAIL || 'admin@localhost'}`,
   vapidKeys.publicKey,
   vapidKeys.privateKey
 )

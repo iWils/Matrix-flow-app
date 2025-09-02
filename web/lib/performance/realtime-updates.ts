@@ -63,12 +63,12 @@ export class RealtimeHistoryManager extends EventEmitter {
     this.connections.set(clientId, ws)
     this.subscriptions.set(clientId, new Set())
 
-    ws.on('close', () => {
+    ws.addEventListener('close', () => {
       this.removeConnection(clientId)
     })
 
-    ws.on('message', (message: string) => {
-      this.handleMessage(clientId, message, userId)
+    ws.addEventListener('message', (event: MessageEvent) => {
+      this.handleMessage(clientId, event.data, userId)
     })
 
     // Envoyer un message de bienvenue

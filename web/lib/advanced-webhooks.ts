@@ -162,7 +162,7 @@ export class AdvancedWebhookService {
       try {
         delivery.payload = this.transformPayload(payload, options.transform)
       } catch (error) {
-        logger.error('Webhook payload transformation failed', error, {
+        logger.error('Webhook payload transformation failed', error instanceof Error ? error : new Error(String(error)), {
           webhookUrl,
           event,
           transform: options.transform
@@ -227,7 +227,7 @@ export class AdvancedWebhookService {
         )
         deliveries.push(delivery)
       } catch (error) {
-        logger.error('Failed to send webhook', error, {
+        logger.error('Failed to send webhook', error instanceof Error ? error : new Error(String(error)), {
           webhookUrl: this.maskUrl(webhook.webhookUrl),
           event,
           userId: webhook.userId
@@ -320,7 +320,7 @@ export class AdvancedWebhookService {
         return // Don't save yet, will retry
       }
 
-      logger.error('Webhook delivery failed', error, {
+      logger.error('Webhook delivery failed', error instanceof Error ? error : new Error(String(error)), {
         deliveryId: delivery.id,
         webhookUrl: this.maskUrl(delivery.webhookUrl),
         event: delivery.event,
@@ -473,7 +473,7 @@ export class AdvancedWebhookService {
         }
       })
     } catch (error) {
-      logger.error('Failed to save webhook delivery result', error, {
+      logger.error('Failed to save webhook delivery result', error instanceof Error ? error : new Error(String(error)), {
         deliveryId: delivery.id,
         status: delivery.status
       })
@@ -534,8 +534,14 @@ export class AdvancedWebhookService {
 
     return deliveries.map(d => ({
       ...d,
-      payload: d.payload as WebhookPayload,
-      webhookUrl: this.maskUrl(d.webhookUrl)
+      payload: d.payload as unknown as WebhookPayload,
+      webhookUrl: this.maskUrl(d.webhookUrl),
+      status: d.status as 'pending' | 'delivered' | 'failed' | 'circuit_open',
+      statusCode: d.statusCode ?? undefined,
+      responseTime: d.responseTime ?? undefined,
+      errorMessage: d.errorMessage ?? undefined,
+      nextRetryAt: d.nextRetryAt ?? undefined,
+      deliveredAt: d.deliveredAt ?? undefined
     }))
   }
 

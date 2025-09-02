@@ -272,12 +272,12 @@ export class SnapshotCompressor {
         const compressed: any = {}
         
         Object.keys(entry).forEach(key => {
-          const compressedKey = this.FIELD_DICTIONARY[key] || key
+          const compressedKey = this.FIELD_DICTIONARY[key as keyof typeof this.FIELD_DICTIONARY] || key
           let value = entry[key]
           
           // Compresser les valeurs fréquentes
           if (typeof value === 'string') {
-            value = this.VALUE_DICTIONARY[value] || value
+            value = this.VALUE_DICTIONARY[value as keyof typeof this.VALUE_DICTIONARY] || value
           }
           
           compressed[compressedKey] = value
