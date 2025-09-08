@@ -215,7 +215,7 @@ describe('HealthCheckManager', () => {
       const result = await HealthCheckManager.checkMemory()
       
       expect(result.status).toBe('healthy')
-      expect(result.metadata?.systemMemory?.usagePercent).toBe(25)
+      expect((result.metadata as any)?.systemMemory?.usagePercent).toBe(25)
       expect(result.metadata?.processMemory).toBeDefined()
     })
 
@@ -226,7 +226,7 @@ describe('HealthCheckManager', () => {
       const result = await HealthCheckManager.checkMemory()
       
       expect(result.status).toBe('degraded')
-      expect(result.metadata?.systemMemory?.usagePercent).toBe(88) // Rounded
+      expect((result.metadata as any)?.systemMemory?.usagePercent).toBe(88) // Rounded
     })
 
     test('should return unhealthy status with critical memory usage', async () => {
@@ -236,7 +236,7 @@ describe('HealthCheckManager', () => {
       const result = await HealthCheckManager.checkMemory()
       
       expect(result.status).toBe('unhealthy')
-      expect(result.metadata?.systemMemory?.usagePercent).toBe(94) // Rounded
+      expect((result.metadata as any)?.systemMemory?.usagePercent).toBe(94) // Rounded
     })
 
     test('should handle memory check errors', async () => {
@@ -261,7 +261,7 @@ describe('HealthCheckManager', () => {
       expect(result.status).toBe('healthy')
       expect(result.metadata?.cpuCount).toBe(4)
       expect(result.metadata?.normalizedLoad).toBe(0.25) // 1.0 / 4 CPUs
-      expect(result.metadata?.loadAverage?.['1min']).toBe(1.0)
+      expect((result.metadata as any)?.loadAverage?.['1min']).toBe(1.0)
     })
 
     test('should return degraded status with high CPU load', async () => {

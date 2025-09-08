@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { ChevronDownIcon, ChevronRightIcon, ClockIcon, UserIcon } from '@heroicons/react/24/outline'
 import { DiffViewer } from './DiffViewer'
 import { MatrixDiff } from '@/lib/matrix-diff'

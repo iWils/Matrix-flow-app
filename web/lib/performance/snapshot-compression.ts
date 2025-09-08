@@ -78,7 +78,7 @@ export class SnapshotCompressor {
    * Compresse un snapshot avec optimisations avancées
    */
   static compress(snapshot: any): CompressedSnapshot {
-    const startTime = Date.now()
+    const _startTime = Date.now()
     
     // Étape 1: Normalisation et déduplication
     const normalized = this.normalizeSnapshot(snapshot)
@@ -105,7 +105,7 @@ export class SnapshotCompressor {
       checksum
     }
 
-    const processingTime = Date.now() - startTime
+    // const _processingTime = Date.now() - startTime
 
     return {
       data: compressedBuffer,

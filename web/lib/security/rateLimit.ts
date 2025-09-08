@@ -1,8 +1,10 @@
 // Conditional Redis import for Edge Runtime compatibility
-let Redis: typeof import('ioredis').Redis | null = null
+import type { Redis as IORedis } from 'ioredis'
+
+let RedisClass: typeof IORedis | null = null
 if (typeof window === 'undefined' && !process.env.NEXT_RUNTIME) {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  Redis = require('ioredis').Redis
+  RedisClass = require('ioredis').default || require('ioredis')
 }
 
 interface RateLimitOptions {
@@ -19,15 +21,15 @@ interface RateLimitResult {
 }
 
 export class RateLimiter {
-  private redis?: any
+  private redis?: IORedis
   private fallbackStore = new Map<string, { count: number; resetTime: number }>()
 
   constructor() {
     // Connexion Redis optionnelle (only in Node.js runtime)
-    if (process.env.REDIS_URL && Redis && !process.env.NEXT_RUNTIME) {
+    if (process.env.REDIS_URL && RedisClass && !process.env.NEXT_RUNTIME) {
       try {
-        this.redis = new Redis(process.env.REDIS_URL)
-        this.redis.on('error', () => {
+        this.redis = new (RedisClass as any)(process.env.REDIS_URL)
+        this.redis?.on('error', () => {
           console.warn('Redis unavailable for rate limiting, using in-memory fallback')
         })
       } catch {

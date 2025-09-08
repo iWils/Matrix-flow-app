@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { ArrowLeftIcon, ArrowsRightLeftIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
@@ -32,26 +32,17 @@ export default function HistoryPage() {
   const [selectedVersions, setSelectedVersions] = useState<number[]>([])
   const [diff, setDiff] = useState<MatrixDiff | null>(null)
   const [diffLoading, setDiffLoading] = useState(false)
-  const [matrix, setMatrix] = useState<any>(null)
+  const [matrix, setMatrix] = useState<{
+    id: number;
+    name: string;
+    description?: string;
+  } | null>(null)
   
   // Check if we're in compare mode from URL params
   const fromParam = searchParams.get('from')
   const toParam = searchParams.get('to')
   
-  useEffect(() => {
-    if (fromParam && toParam) {
-      setCompareMode(true)
-      setSelectedVersions([parseInt(fromParam), parseInt(toParam)])
-      loadCompare(parseInt(fromParam), parseInt(toParam))
-    }
-  }, [fromParam, toParam])
-
-  useEffect(() => {
-    loadMatrix()
-    loadVersionHistory()
-  }, [matrixId])
-
-  const loadMatrix = async () => {
+  const loadMatrix = useCallback(async () => {
     try {
       const response = await fetch(`/api/matrices/${matrixId}`)
       if (response.ok) {
@@ -61,9 +52,9 @@ export default function HistoryPage() {
     } catch (error) {
       console.error('Error loading matrix:', error)
     }
-  }
+  }, [matrixId])
 
-  const loadVersionHistory = async () => {
+  const loadVersionHistory = useCallback(async () => {
     setLoading(true)
     try {
       // Get all versions for the matrix
@@ -124,9 +115,9 @@ export default function HistoryPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [matrixId])
 
-  const loadCompare = async (fromVersion: number, toVersion: number) => {
+  const loadCompare = useCallback(async (fromVersion: number, toVersion: number) => {
     setDiffLoading(true)
     try {
       const response = await fetch(
@@ -142,18 +133,22 @@ export default function HistoryPage() {
     } finally {
       setDiffLoading(false)
     }
-  }
+  }, [matrixId])
 
-  const handleVersionSelect = (version: number) => {
-    if (selectedVersions.includes(version)) {
-      setSelectedVersions(selectedVersions.filter(v => v !== version))
-    } else if (selectedVersions.length < 2) {
-      setSelectedVersions([...selectedVersions, version])
-    } else {
-      // Replace last selection
-      setSelectedVersions([selectedVersions[0], version])
+  useEffect(() => {
+    if (fromParam && toParam) {
+      setCompareMode(true)
+      setSelectedVersions([parseInt(fromParam), parseInt(toParam)])
+      loadCompare(parseInt(fromParam), parseInt(toParam))
     }
-  }
+  }, [fromParam, toParam, loadCompare])
+
+  useEffect(() => {
+    loadMatrix()
+    loadVersionHistory()
+  }, [matrixId, loadMatrix, loadVersionHistory])
+
+  // handleVersionSelect removed - not used in this component
 
   const handleCompare = () => {
     if (selectedVersions.length === 2) {

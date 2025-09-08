@@ -13,9 +13,14 @@ export interface EmailTemplateData {
   date?: string
   totalChanges?: string
   pendingApprovals?: string
-  recentChanges?: any
+  recentChanges?: Array<{
+    matrixName: string;
+    actionType: string;
+    userName: string;
+    timestamp: string;
+  }>
   unsubscribeUrl?: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 // Template pour approbation de changement

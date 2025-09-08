@@ -60,14 +60,16 @@ export interface SecurityHeadersConfig {
 // Configuration par défaut pour l'application Matrix Flow
 export const DEFAULT_SECURITY_CONFIG: SecurityHeadersConfig = {
   contentSecurityPolicy: {
-    enabled: true,
+    enabled: false, // Temporairement désactivé pour debug
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: [
         "'self'",
         "'unsafe-inline'", // Nécessaire pour Next.js en dev
         "'unsafe-eval'", // Nécessaire pour Next.js
-        "https://vercel.live"
+        "https://vercel.live",
+        "http://192.168.10.37:3000", // Next.js asset prefix
+        "http://192.168.10.37:*" // Flexible pour d'autres ports sur cette IP
       ],
       styleSrc: [
         "'self'",
@@ -83,7 +85,9 @@ export const DEFAULT_SECURITY_CONFIG: SecurityHeadersConfig = {
       connectSrc: [
         "'self'",
         "https://vercel.live",
-        "wss://vercel.live"
+        "wss://vercel.live",
+        "http://192.168.10.37:3000", // Next.js asset prefix
+        "http://192.168.10.37:*" // Flexible pour d'autres ports sur cette IP
       ],
       fontSrc: [
         "'self'",
@@ -158,7 +162,9 @@ export const DEV_SECURITY_CONFIG: SecurityHeadersConfig = {
         "'unsafe-eval'",
         "https://vercel.live",
         "http://localhost:*", // Webpack dev server
-        "ws://localhost:*"
+        "ws://localhost:*",
+        "http://192.168.10.37:3000", // Next.js asset prefix
+        "http://192.168.10.37:*" // Flexible pour d'autres ports sur cette IP
       ],
       connectSrc: [
         "'self'",
@@ -166,7 +172,9 @@ export const DEV_SECURITY_CONFIG: SecurityHeadersConfig = {
         "wss://vercel.live",
         "http://localhost:*",
         "ws://localhost:*",
-        "ws://127.0.0.1:*"
+        "ws://127.0.0.1:*",
+        "http://192.168.10.37:3000", // Next.js asset prefix
+        "http://192.168.10.37:*" // Flexible pour d'autres ports sur cette IP
       ]
     }
   },

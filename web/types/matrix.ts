@@ -39,7 +39,37 @@ export interface MatrixVersion {
 }
 
 export interface MatrixSnapshot {
-  entries: MatrixEntry[]
+  entries: MatrixEntry[] | FirewallEntry[] | any[]
+}
+
+// Type pour les données de firewall utilisées dans les tests
+export interface FirewallEntry {
+  id: number
+  request_type: string
+  rule_status: string
+  rule_name: string
+  device: string
+  src_zone: string
+  src_name: string
+  src_cidr: string
+  src_service: string
+  dst_zone: string
+  dst_name: string
+  dst_cidr: string
+  protocol_group: string
+  dst_service: string
+  action: string
+  implementation_date: string
+  requester: string
+  comment: string
+}
+
+// Type générique pour les données de test
+export interface TestEntry {
+  id: number
+  rule_name: string
+  action: string
+  comment: string
 }
 
 export interface MatrixEntry {

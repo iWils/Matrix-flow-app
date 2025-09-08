@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from './Button'
 import { LoadingSpinner } from './LoadingSpinner'
@@ -22,7 +22,11 @@ interface WebhookTemplate {
   events: string[]
   payloadTransform?: string
   customHeaders?: Record<string, string>
-  retryPolicy?: any
+  retryPolicy?: {
+    maxRetries: number;
+    backoffMultiplier: number;
+    maxDelay: number;
+  }
   enabled: boolean
   createdAt: string
   updatedAt: string
@@ -59,17 +63,11 @@ export const WebhookManager: React.FC<WebhookManagerProps> = ({ className = '' }
   const [timeRange, setTimeRange] = useState<'hour' | 'day' | 'week' | 'month'>('day')
 
   // Modal states
-  const [showTemplateModal, setShowTemplateModal] = useState(false)
-  const [editingTemplate, setEditingTemplate] = useState<WebhookTemplate | null>(null)
-  const [showTestModal, setShowTestModal] = useState(false)
+  // showTemplateModal removed - not used
+  // editingTemplate removed - not used
+  // showTestModal removed - not used
 
-  useEffect(() => {
-    fetchStats()
-    fetchTemplates()
-    fetchDeliveries()
-  }, [timeRange])
-
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const response = await fetch(`/api/webhooks/deliveries?stats=true&timeRange=${timeRange}`)
       const result = await response.json()
@@ -79,9 +77,9 @@ export const WebhookManager: React.FC<WebhookManagerProps> = ({ className = '' }
     } catch (error) {
       console.error('Error fetching webhook stats:', error)
     }
-  }
+  }, [timeRange])
 
-  const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
     try {
       const response = await fetch('/api/webhooks/templates')
       const result = await response.json()
@@ -91,9 +89,9 @@ export const WebhookManager: React.FC<WebhookManagerProps> = ({ className = '' }
     } catch (error) {
       console.error('Error fetching webhook templates:', error)
     }
-  }
+  }, [])
 
-  const fetchDeliveries = async () => {
+  const fetchDeliveries = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch('/api/webhooks/deliveries?limit=100')
@@ -106,7 +104,13 @@ export const WebhookManager: React.FC<WebhookManagerProps> = ({ className = '' }
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchStats()
+    fetchTemplates()
+    fetchDeliveries()
+  }, [timeRange, fetchStats, fetchTemplates, fetchDeliveries])
 
   const deleteTemplate = async (templateId: string) => {
     if (!window.confirm(t('templates.delete.confirmation'))) return
@@ -124,6 +128,7 @@ export const WebhookManager: React.FC<WebhookManagerProps> = ({ className = '' }
         error(result.error || t('notifications.errorOccurred'))
       }
     } catch (err) {
+      console.error('Error sending test webhook:', err)
       error(t('notifications.errorOccurred'))
     }
   }
@@ -214,7 +219,7 @@ export const WebhookManager: React.FC<WebhookManagerProps> = ({ className = '' }
             </h2>
             <select
               value={timeRange}
-              onChange={(e) => setTimeRange(e.target.value as any)}
+              onChange={(e) => setTimeRange(e.target.value as 'hour' | 'day' | 'week' | 'month')}
               className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm"
             >
               <option value="hour">{t('stats.timeRanges.hour')}</option>
@@ -314,7 +319,7 @@ export const WebhookManager: React.FC<WebhookManagerProps> = ({ className = '' }
             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
               {t('sections.templates.title')}
             </h2>
-            <Button onClick={() => setShowTemplateModal(true)}>
+            <Button disabled>
               {t('templates.create.button')}
             </Button>
           </div>
@@ -359,10 +364,7 @@ export const WebhookManager: React.FC<WebhookManagerProps> = ({ className = '' }
                     <Button
                       variant="secondary"
                       size="sm"
-                      onClick={() => {
-                        setEditingTemplate(template)
-                        setShowTemplateModal(true)
-                      }}
+                      disabled
                     >
                       {t('templates.edit.button')}
                     </Button>
@@ -460,7 +462,7 @@ export const WebhookManager: React.FC<WebhookManagerProps> = ({ className = '' }
             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
               {t('sections.testing.title')}
             </h2>
-            <Button onClick={() => setShowTestModal(true)}>
+            <Button disabled>
               {t('testing.actions.send')}
             </Button>
           </div>

@@ -1,19 +1,21 @@
-import { MatrixSnapshot, MatrixEntry } from '@/types/matrix'
+import { MatrixSnapshot, MatrixEntry, FirewallEntry, TestEntry } from '@/types/matrix'
 
 export type DiffType = 'added' | 'removed' | 'modified' | 'unchanged'
 
+export type DiffEntryData = MatrixEntry | FirewallEntry | TestEntry | Record<string, unknown>
+
 export interface DiffEntry {
   type: DiffType
-  entry?: MatrixEntry
-  oldEntry?: MatrixEntry
-  newEntry?: MatrixEntry
+  entry?: DiffEntryData
+  oldEntry?: DiffEntryData
+  newEntry?: DiffEntryData
   changes?: FieldChange[]
 }
 
 export interface FieldChange {
   field: string
-  oldValue: any
-  newValue: any
+  oldValue: unknown
+  newValue: unknown
   type: 'added' | 'removed' | 'modified'
 }
 
@@ -50,8 +52,8 @@ export class MatrixDiffEngine {
     newSnapshot: MatrixSnapshot,
     metadata: DiffMetadata
   ): MatrixDiff {
-    const oldEntries = new Map<number, MatrixEntry>()
-    const newEntries = new Map<number, MatrixEntry>()
+    const oldEntries = new Map<number, any>()
+    const newEntries = new Map<number, any>()
     
     // Index entries by ID for efficient lookup
     oldSnapshot.entries.forEach(entry => {
@@ -129,7 +131,7 @@ export class MatrixDiffEngine {
   /**
    * Compare two entries and return field changes
    */
-  private static compareEntries(oldEntry: MatrixEntry, newEntry: MatrixEntry): FieldChange[] {
+  private static compareEntries(oldEntry: Record<string, unknown>, newEntry: Record<string, unknown>): FieldChange[] {
     const changes: FieldChange[] = []
     const fieldsToCompare = [
       'request_type', 'rule_status', 'rule_name', 'device',
@@ -140,8 +142,8 @@ export class MatrixDiffEngine {
     ]
     
     fieldsToCompare.forEach(field => {
-      const oldValue = (oldEntry as any)[field]
-      const newValue = (newEntry as any)[field]
+      const oldValue = oldEntry[field]
+      const newValue = newEntry[field]
       
       if (oldValue !== newValue) {
         changes.push({

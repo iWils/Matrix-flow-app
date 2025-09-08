@@ -36,7 +36,7 @@ type EmailTemplate = {
 }
 
 export default function EmailConfigPage() {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation(['common', 'admin'])
   const { data: session } = useSession()
   const [settings, setSettings] = useState<EmailSettings>({
     smtp: {
@@ -108,15 +108,15 @@ export default function EmailConfigPage() {
       })
       
       if (res.ok) {
-        setSuccessMessage(t('settingsSavedSuccess'))
+        setSuccessMessage(t('admin:settingsSavedSuccess'))
         setErrorMessage('')
       } else {
-        setErrorMessage(t('errorSaving'))
+        setErrorMessage(t('admin:savingError'))
         setSuccessMessage('')
       }
     } catch (error) {
       console.error('Error saving settings:', error)
-      setErrorMessage(t('errorSaving'))
+      setErrorMessage(t('admin:savingError'))
       setSuccessMessage('')
     } finally {
       setSaving(false)
@@ -134,15 +134,15 @@ export default function EmailConfigPage() {
       
       const result = await res.json()
       if (res.ok) {
-        setSuccessMessage(t('connectionTestSuccess'))
+        setSuccessMessage(t('admin:connectionSuccess'))
         setErrorMessage('')
       } else {
-        setErrorMessage(`${t('connectionError')}: ${result.error}`)
+        setErrorMessage(`${t('admin:connectionError')}: ${result.error}`)
         setSuccessMessage('')
       }
     } catch (error) {
       console.error('Error testing connection:', error)
-      setErrorMessage(t('errorTesting'))
+      setErrorMessage(t('admin:connectionError'))
       setSuccessMessage('')
     } finally {
       setTesting(false)
@@ -161,9 +161,9 @@ export default function EmailConfigPage() {
     <div className="animate-fade-in">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gradient mb-2">{t('emailConfiguration')}</h1>
+        <h1 className="text-3xl font-bold text-gradient mb-2">{t('admin:emailConfiguration')}</h1>
         <p className="text-slate-600 dark:text-slate-300">
-          {t('smtpSettingsDescription')}
+          {t('admin:smtpSettingsDescription')}
         </p>
       </div>
 
@@ -184,7 +184,7 @@ export default function EmailConfigPage() {
         <Card>
           <div className="p-6">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Paramètres SMTP</h3>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{t('admin:smtpSettings')}</h3>
               <Badge variant={settings.enabled ? 'success' : 'error'}>
                 {settings.enabled ? t('common:active') : t('common:inactive')}
               </Badge>
@@ -203,13 +203,13 @@ export default function EmailConfigPage() {
                   className="rounded border-slate-300 dark:border-slate-700"
                 />
                 <label htmlFor="emailEnabled" className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                  Activer l&apos;envoi d&apos;emails
+                  {t('admin:enableEmailSending')}
                 </label>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
-                  Serveur SMTP
+                  {t('admin:smtpServer')}
                 </label>
                 <Input
                   value={settings.smtp.host}
@@ -224,7 +224,7 @@ export default function EmailConfigPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
-                    Port
+                    {t('admin:port')}
                   </label>
                   <Input
                     type="number"
@@ -256,7 +256,7 @@ export default function EmailConfigPage() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
-                  Nom d&apos;utilisateur
+                  {t('admin:username')}
                 </label>
                 <Input
                   value={settings.smtp.username}
@@ -270,7 +270,7 @@ export default function EmailConfigPage() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
-                  Mot de passe
+                  {t('admin:password')}
                 </label>
                 <Input
                   type="password"
@@ -284,12 +284,12 @@ export default function EmailConfigPage() {
               </div>
 
               <div className="border-t pt-4">
-                <h4 className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-3">Expéditeur par défaut</h4>
+                <h4 className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-3">{t('admin:defaultSender')}</h4>
                 
                 <div className="space-y-3">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
-                      Nom
+                      {t('admin:name')}
                     </label>
                     <Input
                       value={settings.from.name}
@@ -303,7 +303,7 @@ export default function EmailConfigPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
-                      Email
+                      {t('admin:email')}
                     </label>
                     <Input
                       type="email"
@@ -341,12 +341,12 @@ export default function EmailConfigPage() {
         <Card>
           <div className="p-6">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Templates d&apos;emails</h3>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{t('admin:emailTemplates')}</h3>
               <Button onClick={() => {}}>
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
-                Nouveau template
+                {t('admin:newTemplate')}
               </Button>
             </div>
 
@@ -385,7 +385,7 @@ export default function EmailConfigPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   </div>
-                  <p className="text-sm text-slate-400 dark:text-slate-400">Aucun template configuré</p>
+                  <p className="text-sm text-slate-400 dark:text-slate-400">{t('admin:noTemplatesConfigured')}</p>
                 </div>
               )}
             </div>

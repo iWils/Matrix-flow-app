@@ -41,7 +41,7 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
   const [languageModalOpen, setLanguageModalOpen] = useState(false)
   const [twoFactorModalOpen, setTwoFactorModalOpen] = useState(false)
   const [sessionsModalOpen, setSessionsModalOpen] = useState(false)
-  const { t } = useTranslation(['dashboard', 'common', 'admin', 'workflow', 'matrices'])
+  const { t } = useTranslation(['dashboard', 'common', 'admin', 'workflow', 'matrices', 'webhooks'])
   
   // Pages qui ne doivent pas avoir la sidebar
   const isAuthPage = pathname === '/login' || pathname.startsWith('/api/auth/')
@@ -117,16 +117,6 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
       adminOnly: true
     },
     {
-      href: '/admin-auth',
-      label: t('common:authConfiguration'),
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-        </svg>
-      ),
-      adminOnly: true
-    },
-    {
       href: '/admin-email',
       label: t('common:emailConfiguration'),
       icon: (
@@ -148,31 +138,11 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
       adminOnly: true
     },
     {
-      href: '/admin-2fa',
-      label: t('common:twoFactorAuth.adminTitle'),
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-        </svg>
-      ),
-      adminOnly: true
-    },
-    {
       href: '/admin-sessions',
       label: t('common:sessions.adminTitle'),
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-      adminOnly: true
-    },
-    {
-      href: '/admin-webhooks',
-      label: 'Webhooks Avancés',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
         </svg>
       ),
       adminOnly: true
@@ -293,12 +263,9 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
                 {pathname === '/admin-users' && 'Utilisateurs & Rôles - '}
                 {pathname === '/admin-rbac' && 'RBAC - '}
                 {pathname === '/admin-audit' && t('common:audit') + ' - '}
-                {pathname === '/admin-auth' && 'Authentification - '}
                 {pathname === '/admin-email' && 'Messagerie - '}
                 {pathname === '/admin-system' && 'Système - '}
-                {pathname === '/admin-2fa' && t('common:twoFactorAuth.adminTitle') + ' - '}
                 {pathname === '/admin-sessions' && t('common:sessions.adminTitle') + ' - '}
-                {pathname === '/admin-webhooks' && 'Webhooks Avancés - '}
                 {pathname.startsWith('/admin') && t('admin:administration')}
               </h2>
             </div>

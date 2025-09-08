@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer'
 import { logger } from './logger'
 import { prisma } from './db'
-import { EMAIL_TEMPLATES, EmailTemplateType, EmailTemplateData, renderTemplate } from './email-templates'
+import { EMAIL_TEMPLATES, EmailTemplateData, renderTemplate } from './email-templates'
 
 interface EmailSettings {
   enabled: boolean
@@ -333,7 +333,7 @@ class EmailNotificationService {
 
     try {
       const recipients = Array.isArray(options.to) ? options.to : [options.to]
-      let allSent = true
+      const allSent = true
 
       for (const recipient of recipients) {
         const mailOptions = {

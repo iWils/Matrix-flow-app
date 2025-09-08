@@ -22,7 +22,7 @@ export interface HistoryEvent {
   matrixId: number
   userId?: number
   timestamp: Date
-  data: any
+  data: Record<string, unknown>
   metadata?: {
     userAgent?: string
     ip?: string
@@ -112,7 +112,7 @@ export class RealtimeHistoryManager extends EventEmitter {
             timestamp: new Date()
           })
       }
-    } catch (error) {
+    } catch {
       this.sendToClient(clientId, { 
         type: 'error', 
         message: 'Invalid message format',
@@ -126,7 +126,7 @@ export class RealtimeHistoryManager extends EventEmitter {
    */
   async subscribeToMatrix(clientId: string, matrixId: number, userId?: number): Promise<void> {
     // Vérifier les permissions (simplified - à améliorer avec RBAC complet)
-    if (userId && !await this.canAccessMatrix(userId, matrixId)) {
+    if (userId && !await this.canAccessMatrix()) {
       this.sendToClient(clientId, {
         type: 'error',
         message: 'Permission denied',
@@ -207,9 +207,14 @@ export class RealtimeHistoryManager extends EventEmitter {
    */
   notifyVersionCreated(
     matrixId: number,
-    version: any,
+    version: {
+      version: number;
+      note?: string;
+      createdBy: number;
+      snapshot?: { entries?: unknown[] };
+    },
     userId?: number,
-    metadata?: any
+    metadata?: Record<string, unknown>
   ): void {
     this.broadcast({
       type: HistoryEventType.VERSION_CREATED,
@@ -233,7 +238,12 @@ export class RealtimeHistoryManager extends EventEmitter {
     matrixId: number,
     fromVersion: number,
     toVersion: number,
-    summary: any,
+    summary: {
+      totalChanges: number;
+      additions: number;
+      deletions: number;
+      modifications: number;
+    },
     userId?: number
   ): void {
     this.broadcast({
@@ -268,7 +278,7 @@ export class RealtimeHistoryManager extends EventEmitter {
   /**
    * Envoie un message à un client spécifique
    */
-  private sendToClient(clientId: string, message: any): void {
+  private sendToClient(clientId: string, message: Record<string, unknown>): void {
     const ws = this.connections.get(clientId)
     if (ws && ws.readyState === WebSocket.OPEN) {
       try {
@@ -291,7 +301,7 @@ export class RealtimeHistoryManager extends EventEmitter {
       
       if (!currentState) {
         // Si pas en cache, récupérer depuis la base et mettre en cache
-        currentState = await this.fetchMatrixCurrentState(matrixId)
+        currentState = await this.fetchMatrixCurrentState()
         if (currentState) {
           await cache.set(cacheKey, currentState, { ttl: 300 }) // 5 minutes
         }
@@ -313,21 +323,27 @@ export class RealtimeHistoryManager extends EventEmitter {
   /**
    * Récupère l'état actuel d'une matrice
    */
-  private async fetchMatrixCurrentState(matrixId: number): Promise<any> {
+  private async fetchMatrixCurrentState(): Promise<{
+    currentVersion: number;
+    lastUpdate: Date;
+    metadata: Record<string, unknown>;
+  }> {
     // Ici, on ferait appel à Prisma pour récupérer l'état actuel
     // Pour l'instant, retournons un état fictif
     return {
       currentVersion: 1,
-      totalVersions: 1,
-      lastModified: new Date(),
-      status: 'active'
+      lastUpdate: new Date(),
+      metadata: {
+        totalVersions: 1,
+        status: 'active'
+      }
     }
   }
 
   /**
    * Vérifie si un client peut accéder à une matrice
    */
-  private async canAccessMatrix(userId: number, matrixId: number): Promise<boolean> {
+  private async canAccessMatrix(): Promise<boolean> {
     // Ici, on ferait un vrai check avec le système RBAC
     // Pour l'instant, retournons true (à améliorer)
     return true
@@ -420,6 +436,6 @@ export interface RealtimeHistoryClient {
   disconnect(): void
   subscribeToMatrix(matrixId: number): void
   unsubscribeFromMatrix(matrixId: number): void
-  onEvent(eventType: HistoryEventType, callback: (data: any) => void): void
-  removeListener(eventType: HistoryEventType, callback: (data: any) => void): void
+  onEvent(eventType: HistoryEventType, callback: (data: HistoryEvent) => void): void
+  removeListener(eventType: HistoryEventType, callback: (data: HistoryEvent) => void): void
 }

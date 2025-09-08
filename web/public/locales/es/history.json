@@ -1,5 +1,6 @@
 {
   "title": "Historial",
+  "searchPlaceholder": "Buscar en reglas...",
   "backToMatrix": "Volver a la matriz",
   "viewEvolution": "Visualice la evolución de su matriz de flujo",
   "exitComparison": "Salir de la comparación",

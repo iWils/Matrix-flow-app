@@ -58,7 +58,7 @@ export default function MatricesPage() {
         }
       }
     } catch (error) {
-      console.error('Erreur lors du chargement des matrices:', error)
+      console.error('Error loading matrices:', error)
     } finally {
       setLoading(false)
     }
@@ -80,7 +80,7 @@ export default function MatricesPage() {
         loadMatrices()
       }
     } catch (error) {
-      console.error('Erreur lors de la création:', error)
+      console.error('Error creating matrix:', error)
     }
   }
 
@@ -93,14 +93,14 @@ export default function MatricesPage() {
         loadMatrices()
       }
     } catch (error) {
-      console.error('Erreur lors de la suppression:', error)
+      console.error('Error deleting matrix:', error)
     }
   }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
-        <div className="text-slate-500 dark:text-slate-400">Chargement...</div>
+        <div className="text-slate-500 dark:text-slate-400">{t('common:loading')}</div>
       </div>
     )
   }
@@ -108,10 +108,10 @@ export default function MatricesPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-gradient mb-2">Matrices de flux</h1>
+        <h1 className="text-3xl font-bold text-gradient mb-2">{t('matrices:title')}</h1>
         {permissions.canCreateMatrix && (
           <Button onClick={() => setShowCreateModal(true)}>
-            Nouvelle matrice
+            {t('common:newMatrix')}
           </Button>
         )}
       </div>
@@ -121,7 +121,7 @@ export default function MatricesPage() {
           <div className="text-slate-500 dark:text-slate-400 mb-4">{t('matrices:noMatricesFound')}</div>
           {permissions.canCreateMatrix && (
             <Button onClick={() => setShowCreateModal(true)}>
-              Créer votre première matrice
+              {t('matrices:createFirstMatrix')}
             </Button>
           )}
         </Card>
@@ -162,16 +162,16 @@ export default function MatricesPage() {
                     v{matrix.publishedVersion.version}
                   </Badge>
                 ) : (
-                  <Badge variant="warning">Brouillon</Badge>
+                  <Badge variant="warning">{t('matrices:draft')}</Badge>
                 )}
                 
                 {matrix._count && (
                   <>
                     <Badge variant="outline">
-                      {matrix._count.entries} entrées
+                      {matrix._count.entries} {t('matrices:entries')}
                     </Badge>
                     <Badge variant="outline">
-                      {matrix._count.versions} versions
+                      {matrix._count.versions} {t('matrices:versions')}
                     </Badge>
                   </>
                 )}
@@ -182,7 +182,7 @@ export default function MatricesPage() {
                   {t('matrices:createdBy')} {matrix.owner?.fullName || matrix.owner?.username || t('matrices:unknown')}
                 </div>
                 <div>
-                  Modifié {formatShortDate(matrix.updatedAt)}
+                  {t('matrices:modified')} {formatShortDate(matrix.updatedAt)}
                 </div>
               </div>
 
@@ -191,13 +191,13 @@ export default function MatricesPage() {
                   href={`/matrices/${matrix.id}`}
                   className="btn-outline flex-1 text-center"
                 >
-                  Ouvrir
+                  {t('common:open')}
                 </Link>
                 {permissions.isAuthenticated && (
                   <Link
                     href={`/matrices/${matrix.id}/export`}
                     className="btn-outline px-3"
-                    title="Exporter CSV"
+                    title={t('common:exportCSV')}
                   >
                     ↓
                   </Link>
@@ -216,24 +216,24 @@ export default function MatricesPage() {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">
-              Nom de la matrice *
+              {t('matrices:matrixName')} *
             </label>
             <Input
               value={newMatrix.name}
               onChange={(e) => setNewMatrix(prev => ({ ...prev, name: e.target.value }))}
-              placeholder="Ex: Matrice Firewall DMZ"
+              placeholder={t('common:matrixNamePlaceholder')}
               autoFocus
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-2">
-              Description
+              {t('common:description')}
             </label>
             <textarea
               value={newMatrix.description}
               onChange={(e) => setNewMatrix(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Description optionnelle..."
+              placeholder={t('common:optionalDescription')}
               rows={3}
               className="w-full border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
@@ -245,14 +245,14 @@ export default function MatricesPage() {
               disabled={!newMatrix.name.trim()}
               className="flex-1"
             >
-              Créer
+              {t('common:create')}
             </Button>
             <Button 
               variant="outline"
               onClick={() => setShowCreateModal(false)}
               className="flex-1"
             >
-              Annuler
+              {t('common:cancel')}
             </Button>
           </div>
         </div>

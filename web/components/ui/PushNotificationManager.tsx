@@ -10,7 +10,7 @@ interface PushNotificationManagerProps {
   className?: string
 }
 
-interface PushSubscription {
+interface PushSubscriptionData {
   id: number
   deviceName?: string
   userAgent?: string
@@ -23,13 +23,13 @@ interface PushPermissionState {
   supported: boolean
   permission: NotificationPermission | 'unsupported'
   subscribed: boolean
-  subscription: any
+  subscription: PushSubscription | null
   loading: boolean
   error?: string
 }
 
 export const PushNotificationManager: React.FC<PushNotificationManagerProps> = ({ className = '' }) => {
-  const { t } = useTranslation('notifications')
+  useTranslation('notifications')
   const [state, setState] = useState<PushPermissionState>({
     supported: false,
     permission: 'default',
@@ -38,7 +38,7 @@ export const PushNotificationManager: React.FC<PushNotificationManagerProps> = (
     loading: true
   })
   
-  const [subscriptions, setSubscriptions] = useState<PushSubscription[]>([])
+  const [subscriptions, setSubscriptions] = useState<PushSubscriptionData[]>([])
   const [testing, setTesting] = useState(false)
   const [deviceName, setDeviceName] = useState('')
 
@@ -173,12 +173,12 @@ export const PushNotificationManager: React.FC<PushNotificationManagerProps> = (
         throw new Error(subscribeResult.error || 'Échec de la souscription')
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error requesting push permission:', error)
       setState(prev => ({
         ...prev,
         loading: false,
-        error: error.message || 'Erreur lors de la demande de permission'
+        error: error instanceof Error ? error.message : 'Erreur lors de la demande de permission'
       }))
     }
   }
@@ -222,12 +222,12 @@ export const PushNotificationManager: React.FC<PushNotificationManagerProps> = (
         throw new Error(result.error || 'Échec de la désinscription')
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error unsubscribing from push:', error)
       setState(prev => ({
         ...prev,
         loading: false,
-        error: error.message || 'Erreur lors de la désinscription'
+        error: error instanceof Error ? error.message : 'Erreur lors de la désinscription'
       }))
     }
   }
@@ -251,11 +251,11 @@ export const PushNotificationManager: React.FC<PushNotificationManagerProps> = (
         throw new Error(result.error || 'Échec du test')
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error testing push notification:', error)
       setState(prev => ({
         ...prev,
-        error: error.message || 'Erreur lors du test'
+        error: error instanceof Error ? error.message : 'Erreur lors du test'
       }))
     } finally {
       setTesting(false)

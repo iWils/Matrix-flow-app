@@ -1,5 +1,6 @@
 {
   "title": "History",
+  "searchPlaceholder": "Search in rules...",
   "backToMatrix": "Back to matrix",
   "viewEvolution": "View the evolution of your flow matrix",
   "exitComparison": "Exit comparison",

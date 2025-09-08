@@ -21,6 +21,9 @@ import esWorkflow from '../public/locales/es/workflow.json'
 import enMatrices from '../public/locales/en/matrices.json'
 import frMatrices from '../public/locales/fr/matrices.json'
 import esMatrices from '../public/locales/es/matrices.json'
+import enWebhooks from '../public/locales/en/webhooks.json'
+import frWebhooks from '../public/locales/fr/webhooks.json'
+import esWebhooks from '../public/locales/es/webhooks.json'
 
 i18n
   .use(LanguageDetector)
@@ -38,7 +41,8 @@ i18n
         dashboard: enDashboard,
         admin: enAdmin,
         workflow: enWorkflow,
-        matrices: enMatrices
+        matrices: enMatrices,
+        webhooks: enWebhooks
       },
       fr: {
         common: frCommon,
@@ -46,7 +50,8 @@ i18n
         dashboard: frDashboard,
         admin: frAdmin,
         workflow: frWorkflow,
-        matrices: frMatrices
+        matrices: frMatrices,
+        webhooks: frWebhooks
       },
       es: {
         common: esCommon,
@@ -54,12 +59,13 @@ i18n
         dashboard: esDashboard,
         admin: esAdmin,
         workflow: esWorkflow,
-        matrices: esMatrices
+        matrices: esMatrices,
+        webhooks: esWebhooks
       }
     },
     
     // Namespace configuration
-    ns: ['common', 'dashboard', 'admin', 'workflow', 'matrices', 'login'],
+    ns: ['common', 'dashboard', 'admin', 'workflow', 'matrices', 'login', 'webhooks'],
     defaultNS: 'common',
     
     // Load login namespace by default for unauthenticated pages

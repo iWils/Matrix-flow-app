@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { ArrowLeftIcon, DocumentArrowDownIcon, ShareIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { DiffViewer } from '@/components/ui/DiffViewer'
-import { MatrixDiff, MatrixDiffEngine } from '@/lib/matrix-diff'
+import { MatrixDiff } from '@/lib/matrix-diff'
 
 interface ImpactAnalysis {
   riskLevel: 'low' | 'medium' | 'high' | 'critical'
@@ -33,17 +33,14 @@ function CompareContent() {
   const [impact, setImpact] = useState<ImpactAnalysis | null>(null)
   const [versions, setVersions] = useState<{ from: VersionInfo; to: VersionInfo } | null>(null)
   const [loading, setLoading] = useState(true)
-  const [matrix, setMatrix] = useState<any>(null)
+  const [matrix, setMatrix] = useState<{
+    id: number;
+    name: string;
+    description?: string;
+  } | null>(null)
   const [exportLoading, setExportLoading] = useState(false)
 
-  useEffect(() => {
-    if (fromVersion && toVersion && fromVersion !== toVersion) {
-      loadMatrix()
-      loadComparison()
-    }
-  }, [matrixId, fromVersion, toVersion])
-
-  const loadMatrix = async () => {
+  const loadMatrix = useCallback(async () => {
     try {
       const response = await fetch(`/api/matrices/${matrixId}`)
       if (response.ok) {
@@ -53,9 +50,9 @@ function CompareContent() {
     } catch (error) {
       console.error('Error loading matrix:', error)
     }
-  }
+  }, [matrixId])
 
-  const loadComparison = async () => {
+  const loadComparison = useCallback(async () => {
     setLoading(true)
     try {
       const response = await fetch(
@@ -75,7 +72,14 @@ function CompareContent() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [matrixId, fromVersion, toVersion])
+
+  useEffect(() => {
+    if (fromVersion && toVersion && fromVersion !== toVersion) {
+      loadMatrix()
+      loadComparison()
+    }
+  }, [matrixId, fromVersion, toVersion, loadMatrix, loadComparison])
 
   const handleExport = async (format: 'csv' | 'markdown') => {
     if (!diff) return

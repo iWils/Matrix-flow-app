@@ -36,6 +36,35 @@ Matrix Flow est une application web complète pour gérer les matrices de flux r
 - **Import/Export** : Support CSV pour intégration avec outils existants
 - **Versioning** : Snapshots et historique des versions de matrices
 
+## 🚀 État du Projet - Phase 3 (75% Complétée)
+
+### ✅ Phase 1 - Core Platform (100%)
+- ✅ Authentification NextAuth.js avec RBAC
+- ✅ CRUD complet des matrices et entrées
+- ✅ Système de versioning et workflow
+- ✅ Import/Export CSV
+- ✅ Audit trail complet
+- ✅ Dashboard avec statistiques
+
+### ✅ Phase 2 - Performance & UX (100%)
+- ✅ **Redis Caching** : Système de cache avec fallback gracieux
+- ✅ **Batch Operations** : Opérations en lot avec confirmation
+- ✅ **Advanced Search** : Recherche multi-champs avec pagination
+- ✅ **Toast Notifications** : Système de notifications moderne
+- ✅ **Enhanced Loading** : Skeleton screens optimisés
+
+### 🔄 Phase 3 - Intégrations Avancées (75%)
+- ✅ **Push Notifications PWA** : Service Worker + API complète
+- ✅ **Webhooks Avancés** : Templates + Circuit breaker + Monitoring
+- 🔄 **Historique Visuel** : Diff viewer pour comparer versions
+- ⏳ **Tests E2E** : Suite de tests automatisés complète
+
+### 📋 Prochaines Étapes
+- Finaliser le composant DiffViewer
+- Implémenter la comparaison visuelle des versions
+- Créer la suite de tests E2E complète
+- Tests d'intégration webhooks et notifications
+
 ## ✨ Fonctionnalités
 
 ### 🔐 Authentification & Autorisation
@@ -80,12 +109,17 @@ Matrix Flow est une application web complète pour gérer les matrices de flux r
 - **Dashboard** avec statistiques en temps réel
 - **Notifications** et feedback utilisateur
 
-### 🔧 Intégrations
+### 🔧 Intégrations & Phase 2/3
 
-- **Webhooks** pour notifications externes
-- **API REST** complète
-- **Export PDF** (prévu)
-- **LDAP/AD** (prévu)
+- **Redis Caching** : Système de cache avec fallback gracieux
+- **Batch Operations** : Opérations en lot sur les entrées de flux
+- **Advanced Search** : Recherche multi-champs avec filtres avancés
+- **Toast Notifications** : Système de notifications utilisateur moderne
+- **Enhanced Loading States** : États de chargement avec skeleton screens
+- **Webhooks Avancés** : Templates configurables et circuit breaker
+- **Push Notifications PWA** : Notifications push natives
+- **Historique Visuel** : Diff viewer pour comparer les versions
+- **Tests E2E** : Suite de tests automatisés complète
 
 ## 🏗️ Architecture technique
 
@@ -104,12 +138,15 @@ Backend:
 ├── Prisma ORM 6.14
 ├── PostgreSQL 17
 ├── NextAuth.js 5.0 beta
+├── Redis (ioredis 5.4.1) - Caching
 └── bcrypt.js (hashing)
 
 Infrastructure:
 ├── Docker & Docker Compose
 ├── Node.js 22+
-└── Multi-stage builds
+├── HTTPS/SSL natif avec ACME
+├── Multi-CA support (Let's Encrypt, ZeroSSL, etc.)
+└── Multi-stage builds optimisés
 ```
 
 ### Structure du projet
@@ -120,8 +157,10 @@ matrix-flow/
 │   ├── app/                    # App Router pages
 │   │   ├── api/               # API Routes
 │   │   │   ├── auth/         # Authentification
-│   │   │   ├── matrices/     # CRUD matrices
-│   │   │   ├── dashboard/    # Statistiques
+│   │   │   ├── matrices/     # CRUD matrices & batch ops
+│   │   │   ├── dashboard/    # Statistiques (cachées)
+│   │   │   ├── admin/        # Panel admin & webhooks
+│   │   │   ├── notifications/ # Push notifications PWA
 │   │   │   └── users/        # Gestion utilisateurs
 │   │   ├── matrices/          # Pages matrices
 │   │   ├── login/             # Page connexion
@@ -130,17 +169,26 @@ matrix-flow/
 │   │   └── ui/               # Composants UI réutilisables
 │   ├── lib/                   # Utilitaires
 │   │   ├── db.ts             # Client Prisma
+│   │   ├── cache.ts          # Système de cache Redis
 │   │   ├── rbac.ts           # Contrôle d'accès
 │   │   ├── audit.ts          # Système d'audit
 │   │   ├── csv.ts            # Import/Export CSV
-│   │   └── session.ts        # Gestion sessions
+│   │   ├── session.ts        # Gestion sessions
+│   │   ├── webhooks.ts       # Service webhooks avancé
+│   │   └── security/         # Utilitaires sécurité
+│   │       ├── headers.ts    # CSP et headers
+│   │       └── rateLimit.ts  # Rate limiting
 │   ├── prisma/               # ORM
 │   │   ├── schema.prisma     # Modèle de données
 │   │   └── seed.cjs          # Données initiales
 │   └── middleware.ts          # Protection routes
 ├── docker-compose.yml         # Config développement
 ├── docker-compose.prod.yml    # Config production
-└── Makefile                   # Commandes utiles
+├── scripts/                   # Scripts utilitaires
+│   └── acme-init.sh          # ACME multi-CA setup
+├── ACME_MULTI_CA_GUIDE.md     # Guide ACME complet
+├── STEP_CA_SETUP.md           # Guide Step-CA
+└── Makefile                   # Commandes développement
 ```
 
 ### Modèle de données
@@ -156,7 +204,8 @@ Matrix (matrices de flux)
 ├── FlowEntry[] (entrées)
 ├── MatrixVersion[] (versions)
 ├── MatrixPermission[] (permissions)
-└── Webhook configuration
+├── Webhook[] (webhooks configurables)
+└── NotificationPreferences (préférences push)
 
 FlowEntry (règles de flux)
 ├── Zones source/destination
@@ -247,6 +296,22 @@ NODE_ENV="development"
 POSTGRES_USER="postgres"
 POSTGRES_PASSWORD="changeme"
 POSTGRES_DB="matrixflow"
+
+# Redis Cache (Phase 2 - Optionnel)
+REDIS_URL="redis://redis:6379"
+
+# HTTPS & SSL (Optionnel)
+ENABLE_HTTPS=false
+HTTP_PORT=3000
+HTTPS_PORT=443
+GENERATE_SELF_SIGNED=true
+SSL_CERTS_PATH=./ssl
+
+# ACME Multi-CA (Optionnel)
+ACME_CA_SERVER=letsencrypt
+ACME_EMAIL=admin@localhost
+CHALLENGE_METHOD=http
+SSL_KEY_SIZE=4096
 ```
 
 ### Configuration production
@@ -315,12 +380,27 @@ DELETE /api/matrices/:id/entries/:eid  # Supprimer une entrée
 POST   /api/matrices/:id/import  # Import CSV
 GET    /api/matrices/:id/export  # Export CSV
 
+# Opérations en lot (Phase 2)
+POST   /api/matrices/:id/entries/batch  # Batch delete/update/export
+GET    /api/matrices/:id/entries/search # Recherche avancée
+
 # Versioning
 GET    /api/matrices/:id/versions  # Liste des versions
 POST   /api/matrices/:id/versions  # Créer une version
 
-# Dashboard
-GET    /api/dashboard/stats    # Statistiques globales
+# Dashboard (avec cache)
+GET    /api/dashboard/stats        # Statistiques globales
+GET    /api/dashboard/stats-cached # Stats avec cache Redis
+
+# Notifications PWA (Phase 3)
+POST   /api/notifications/subscribe   # S'abonner aux notifications
+POST   /api/notifications/send       # Envoyer notification
+GET    /api/notifications/preferences # Préférences utilisateur
+
+# Webhooks Avancés (Phase 3)
+GET    /api/admin/webhooks        # Liste des webhooks (admin)
+POST   /api/admin/webhooks        # Créer webhook
+GET    /api/admin/webhooks/:id/deliveries # Historique livraisons
 
 # Utilisateurs
 GET    /api/users              # Liste des utilisateurs
@@ -386,22 +466,45 @@ Un Helm Chart est disponible dans `/k8s/helm` (à venir).
 
 ## 🛠️ Développement
 
-### Scripts disponibles
+### Scripts disponibles (Makefile)
 
 ```bash
-# Développement
-npm run dev           # Serveur de développement
-npm run lint          # Linter ESLint
-npm run typecheck     # Vérification TypeScript
+# Installation et démarrage rapide
+make install          # Installation complète (deps + DB)
+make dev             # Serveur de développement (local)
+make prod            # Production avec Docker Compose
 
 # Base de données
-npm run db:push       # Sync schema avec DB
-npm run db:seed       # Données de test
-npx prisma studio     # Interface GUI Prisma
+make db-push         # Appliquer le schema Prisma
+make db-seed         # Charger les données initiales
+make db-reset        # Reset DB (destructeur!)
+make db-studio       # Ouvrir Prisma Studio GUI
 
-# Production
+# HTTPS & SSL
+make https           # Démarrer avec HTTPS auto-signé
+make https-custom    # HTTPS avec certificats personnalisés
+make ssl-dev         # Générer certificats SSL développement
+
+# ACME Multi-CA
+make acme-letsencrypt # Configurer avec Let's Encrypt
+make acme-zerossl     # Configurer avec ZeroSSL
+make acme-buypass     # Configurer avec Buypass
+make acme-google      # Configurer avec Google Trust Services
+make acme-step-ca     # Configurer avec Step-CA (CA privée)
+
+# Docker
+make up              # Démarrer services Docker
+make down            # Arrêter services Docker
+make logs            # Voir tous les logs
+make logs-web        # Logs de l'application web
+make logs-db         # Logs PostgreSQL
+
+# Scripts NPM traditionnels (dans web/)
+npm run dev           # Serveur de développement
 npm run build         # Build production
-npm start            # Lancer en production
+npm run lint          # Linter ESLint
+npm run typecheck     # Vérification TypeScript
+npm test             # Tests Jest
 ```
 
 ### Structure des composants
@@ -431,11 +534,17 @@ export function Button({ variant = 'primary', children }: ButtonProps) {
 ### Tests
 
 ```bash
-# Tests unitaires (à venir)
+# Tests unitaires
 npm run test
 
-# Tests E2E (à venir)
+# Tests E2E (Phase 3)
 npm run test:e2e
+
+# Coverage
+npm run test:coverage
+
+# Tests spécifiques
+npm run test -- --testPathPattern=matrix
 ```
 
 ## 🔒 Sécurité
@@ -445,21 +554,26 @@ npm run test:e2e
 - ✅ **Hashage bcrypt** pour les mots de passe
 - ✅ **Sessions sécurisées** avec NextAuth
 - ✅ **CSRF protection** automatique
-- ✅ **Validation Zod** des entrées
+- ✅ **Validation Zod** des entrées  
 - ✅ **Prepared statements** via Prisma
 - ✅ **RBAC** multi-niveaux
 - ✅ **Audit trail** complet
 - ✅ **Secrets management** via variables d'environnement
+- ✅ **Rate Limiting** avec Redis fallback
+- ✅ **CSP Headers** configurables
+- ✅ **HTTPS natif** avec ACME multi-CA
 
 ### Recommandations production
 
-1. **HTTPS obligatoire** : Utiliser un reverse proxy avec SSL
+1. **HTTPS natif** : Support ACME intégré ou reverse proxy
 2. **Secrets forts** : Minimum 32 caractères aléatoires
-3. **Firewall** : Limiter l'accès aux ports nécessaires
-4. **Backups** : Sauvegardes régulières de PostgreSQL
+3. **Firewall** : Limiter l'accès aux ports nécessaires  
+4. **Backups** : Sauvegardes régulières PostgreSQL + Redis
 5. **Monitoring** : Logs et alertes (Prometheus, Grafana)
-6. **Rate limiting** : Protection contre le brute force
+6. **Rate limiting** : Protection intégrée avec Redis
 7. **WAF** : Web Application Firewall recommandé
+8. **Cache** : Redis pour les performances
+9. **Certificats** : Renouvellement automatique ACME
 
 ## 🤝 Contribution
 

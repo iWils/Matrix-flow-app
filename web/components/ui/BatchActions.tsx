@@ -195,13 +195,13 @@ title={t('matrices:batch.deleteConfirmTitle')}
       <Modal
         isOpen={showUpdateModal}
         onClose={() => setShowUpdateModal(false)}
-        title="Mise à jour en lot"
+        title={t('matrices:batch.batchUpdateTitle')}
         className="max-w-lg"
       >
         <div className="space-y-4">
           <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
             <p className="text-sm text-blue-800 dark:text-blue-200">
-              Mise à jour de <strong>{selectedCount}</strong> entrée(s).
+              {t('matrices:batch.batchUpdateMessage', { count: selectedCount })}
               Seuls les champs renseignés seront modifiés.
             </p>
           </div>
@@ -252,7 +252,7 @@ title={t('matrices:batch.deleteConfirmTitle')}
               <textarea
                 value={updateFields.comment}
                 onChange={(e) => setUpdateFields(prev => ({ ...prev, comment: e.target.value }))}
-                placeholder="Commentaire de mise à jour (optionnel)"
+                placeholder={t('matrices:batch.commentPlaceholder')}
                 rows={3}
                 className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700"
               />

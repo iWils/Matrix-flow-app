@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/db'
-import { emailService, EmailNotificationService } from '@/lib/email-notifications'
+import { EmailNotificationService } from '@/lib/email-notifications'
 import { EMAIL_TEMPLATES, EmailTemplateType, EmailTemplateData, renderTemplate } from '@/lib/email-templates'
 import { z } from 'zod'
 
@@ -98,7 +98,14 @@ export async function GET(request: NextRequest) {
 
         // Protection : vérifier si la table existe
         let todayCount = 0
-        let recentNotifications: any[] = []
+        let recentNotifications: {
+          id: string;
+          recipient: string;
+          subject: string;
+          status: string;
+          createdAt: Date;
+          templateType: string;
+        }[] = []
         
         try {
           const stats = await prisma.emailLog.aggregate({
@@ -111,7 +118,7 @@ export async function GET(request: NextRequest) {
           })
           todayCount = stats._count || 0
 
-          recentNotifications = await prisma.emailLog.findMany({
+          const notificationRows = await prisma.emailLog.findMany({
             take: 10,
             orderBy: { createdAt: 'desc' },
             select: {
@@ -123,8 +130,17 @@ export async function GET(request: NextRequest) {
               templateType: true
             }
           })
+
+          recentNotifications = notificationRows.map(row => ({
+            id: String(row.id),
+            recipient: row.recipient,
+            subject: row.subject,
+            status: row.status,
+            createdAt: row.createdAt,
+            templateType: row.templateType
+          }))
         } catch (dbError) {
-          console.warn('EmailLog table not found, using fallback values')
+          console.warn('EmailLog table not found, using fallback values', dbError)
         }
 
         return NextResponse.json({

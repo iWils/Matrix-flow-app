@@ -28,5 +28,5 @@ npm run db:seed || echo "Seed déjà exécuté ou erreur non critique"
 
 echo "🎉 Initialisation terminée, démarrage de l'application..."
 
-# Démarrer l'application
-exec node server.js
+# Démarrer l'application en mode HTTP uniquement
+exec npm start

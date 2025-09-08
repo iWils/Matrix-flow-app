@@ -266,8 +266,8 @@ export class DiffPaginator {
 
       switch (sortBy) {
         case 'id':
-          const idA = a.entry?.id || a.newEntry?.id || a.oldEntry?.id || 0
-          const idB = b.entry?.id || b.newEntry?.id || b.oldEntry?.id || 0
+          const idA = Number(a.entry?.id || a.newEntry?.id || a.oldEntry?.id || 0)
+          const idB = Number(b.entry?.id || b.newEntry?.id || b.oldEntry?.id || 0)
           compareValue = idA - idB
           break
 

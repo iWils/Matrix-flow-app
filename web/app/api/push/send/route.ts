@@ -10,11 +10,18 @@ const vapidKeys = {
   privateKey: process.env.VAPID_PRIVATE_KEY || 'P-8srNJXnMO0w8lVKSm9ZfOh9iMYFLdixcN5J_Zrggmo'
 }
 
-webpush.setVapidDetails(
-  `mailto:${process.env.VAPID_EMAIL || 'admin@localhost'}`,
-  vapidKeys.publicKey,
-  vapidKeys.privateKey
-)
+// Configuration lazy de webpush pour éviter les erreurs au build
+let webpushConfigured = false
+function ensureWebpushConfigured() {
+  if (!webpushConfigured) {
+    webpush.setVapidDetails(
+      `mailto:${process.env.VAPID_EMAIL || 'admin@localhost'}`,
+      vapidKeys.publicKey,
+      vapidKeys.privateKey
+    )
+    webpushConfigured = true
+  }
+}
 
 const SendNotificationSchema = z.object({
   title: z.string(),
@@ -142,6 +149,9 @@ export async function POST(request: NextRequest) {
       errors: [] as string[]
     }
 
+    // Configure webpush before use
+    ensureWebpushConfigured()
+
     // Send notifications in batches to avoid overwhelming the service
     const batchSize = 10
     for (let i = 0; i < filteredSubscriptions.length; i += batchSize) {
@@ -173,12 +183,13 @@ export async function POST(request: NextRequest) {
           })
 
           results.sent++
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error('Failed to send push notification:', error)
           results.failed++
 
           // Handle subscription errors
-          if (error.statusCode === 410 || error.statusCode === 404) {
+          const pushError = error as { statusCode?: number }
+          if (pushError?.statusCode === 410 || pushError?.statusCode === 404) {
             // Subscription is no longer valid, deactivate it
             await prisma.pushSubscription.update({
               where: { id: subscription.id },
@@ -186,7 +197,7 @@ export async function POST(request: NextRequest) {
             })
             results.errors.push(`Subscription ${subscription.id} deactivated (gone)`)
           } else {
-            results.errors.push(`Subscription ${subscription.id}: ${error.message}`)
+            results.errors.push(`Subscription ${subscription.id}: ${(error as Error).message}`)
           }
         }
       })
@@ -227,7 +238,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           error: 'Invalid notification data', 
-          details: error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`)
+          details: error.issues.map((e) => `${e.path.join('.')}: ${e.message}`)
         },
         { status: 400 }
       )
@@ -241,7 +252,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await auth()
     if (!session?.user?.id || session.user.role !== 'admin') {

@@ -1,5 +1,6 @@
 {
   "title": "Historique",
+  "searchPlaceholder": "Rechercher dans les règles...",
   "backToMatrix": "Retour à la matrice",
   "viewEvolution": "Visualisez l'évolution de votre matrice de flux",
   "exitComparison": "Quitter la comparaison",

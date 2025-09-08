@@ -37,7 +37,7 @@ export function DigestManager({ className = '' }: DigestManagerProps) {
       } else {
         throw new Error(result.error)
       }
-    } catch (err) {
+    } catch {
       error('Erreur', 'Impossible de générer l\'aperçu')
     }
     setLoading(false)
@@ -65,7 +65,7 @@ export function DigestManager({ className = '' }: DigestManagerProps) {
       } else {
         throw new Error(result.error)
       }
-    } catch (err) {
+    } catch {
       error('Erreur', 'Impossible d\'envoyer le digest')
     }
     setSending(false)

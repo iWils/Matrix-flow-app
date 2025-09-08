@@ -8,11 +8,18 @@ const vapidKeys = {
   privateKey: process.env.VAPID_PRIVATE_KEY || 'P-8srNJXnMO0w8lVKSm9ZfOh9iMYFLdixcN5J_Zrggmo'
 }
 
-webpush.setVapidDetails(
-  `mailto:${process.env.VAPID_EMAIL || 'admin@localhost'}`,
-  vapidKeys.publicKey,
-  vapidKeys.privateKey
-)
+// Configuration lazy de webpush pour éviter les erreurs au build
+let webpushConfigured = false
+function ensureWebpushConfigured() {
+  if (!webpushConfigured) {
+    webpush.setVapidDetails(
+      `mailto:${process.env.VAPID_EMAIL || 'admin@localhost'}`,
+      vapidKeys.publicKey,
+      vapidKeys.privateKey
+    )
+    webpushConfigured = true
+  }
+}
 
 export interface PushNotificationPayload {
   title: string
@@ -118,6 +125,9 @@ export class PushNotificationService {
       data: payload.data || {},
       actions: payload.actions || this.getDefaultActions(payload.type)
     }
+
+    // Configure webpush before use
+    ensureWebpushConfigured()
 
     // Send notifications
     const batchSize = 10

@@ -4,7 +4,7 @@
 services:
   # Base de données PostgreSQL
   db:
-    image: postgres:17
+    image: postgres:17-alpine
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -14,11 +14,15 @@ services:
       - "5432:5432"
     volumes:
       - dbdata:/var/lib/postgresql/data
+      # Configuration PostgreSQL optimisée
+      - ./config/postgres.conf:/etc/postgresql/postgresql.conf:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      interval: 3s
+      timeout: 3s
+      retries: 3
+    # Optimisations mémoire
+    shm_size: 256m
 
   # Application Next.js (Frontend + Backend API)
   web:
@@ -37,62 +41,38 @@ services:
       - NODE_ENV=${NODE_ENV:-production}
       # Redis cache (optionnel)
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
-      # Configuration HTTPS
-      - ENABLE_HTTPS=${ENABLE_HTTPS:-false}
-      - HTTPS_PORT=${HTTPS_PORT:-443}
-      - GENERATE_SELF_SIGNED=${GENERATE_SELF_SIGNED:-true}
-      - FORCE_HTTPS=${FORCE_HTTPS:-true}
-      # Configuration ACME multi-CA
-      - ACME_CA_SERVER=${ACME_CA_SERVER:-letsencrypt}
-      - ACME_EMAIL=${ACME_EMAIL:-admin@localhost}
-      - ACME_CLIENT=${ACME_CLIENT:-acme.sh}
-      - CHALLENGE_METHOD=${CHALLENGE_METHOD:-http}
-      - DNS_PROVIDER=${DNS_PROVIDER:-}
-      - SSL_KEY_SIZE=${SSL_KEY_SIZE:-4096}
-      # Clés d'API pour CAs commerciaux
-      - ZEROSSL_API_KEY=${ZEROSSL_API_KEY:-}
-      - SSLCOM_API_KEY=${SSLCOM_API_KEY:-}
-      # Configuration Step-CA
-      - STEP_CA_URL=${STEP_CA_URL:-}
-      - STEP_CA_ROOT=${STEP_CA_ROOT:-}
-      - STEP_CA_PROVISIONER=${STEP_CA_PROVISIONER:-}
-      - STEP_CA_PASSWORD=${STEP_CA_PASSWORD:-}
+      # HTTPS désactivé pour simplification
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
     ports:
-      - "${HTTP_PORT:-3000}:3000"    # Port HTTP
-      - "${HTTPS_PORT:-443}:443"     # Port HTTPS (si ENABLE_HTTPS=true)
+      - "${HTTP_PORT:-3000}:3000"    # Port HTTP uniquement
     volumes:
       - /srv/backups:/backups
-      # Certificats SSL personnalisés
-      - ${SSL_CERTS_PATH:-./ssl}:/app/ssl:rw
-      # Support Let's Encrypt
-      - ${LETSENCRYPT_PATH:-/etc/letsencrypt}:/etc/letsencrypt:ro
-      # Support acme.sh (tous les CAs)
-      - ${ACME_HOME:-./acme}:/root/.acme.sh:rw
-      # Support ZeroSSL
-      - ${ZEROSSL_PATH:-./zerossl}:/etc/ssl/zerossl:ro
-      # Support Buypass
-      - ${BUYPASS_PATH:-./buypass}:/etc/ssl/buypass:ro
-      # Support certificats génériques
-      - ${CUSTOM_CERTS_PATH:-./custom-certs}:/etc/ssl/custom:ro
+    # Configuration production avec healthcheck
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # Cache Redis (Phase 2 - Optionnel)
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     ports:
       - "6379:6379"
     volumes:
       - redisdata:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
+      interval: 3s
+      timeout: 2s
+      retries: 3
 
 volumes:
   dbdata:

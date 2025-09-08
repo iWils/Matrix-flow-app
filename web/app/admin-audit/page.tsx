@@ -77,16 +77,16 @@ export default function AuditPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gradient mb-2">Logs d&apos;audit</h1>
+          <h1 className="text-3xl font-bold text-gradient mb-2">{t('admin:auditLogs')}</h1>
           <p className="text-slate-600 dark:text-slate-300">
-            Historique complet des actions effectuées dans l&apos;application
+            {t('admin:auditDescription')}
           </p>
         </div>
         <div className="flex items-center gap-3 text-sm text-slate-400 dark:text-slate-400">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          {auditLogs.length} entrées
+          {auditLogs.length} {t('admin:entries')}
         </div>
       </div>
 
@@ -107,17 +107,17 @@ export default function AuditPage() {
                   <div className="flex items-center justify-between mb-2">
                     <div className="text-sm">
                       <span className="font-medium text-slate-900 dark:text-white">
-                        {log.user?.fullName || log.user?.username || t('system')}
+                        {log.user?.fullName || log.user?.username || t('admin:system')}
                       </span>
                       <span className="text-slate-300">
                         {' '}
-                        {log.action === 'create' && t('created')}
-                        {log.action === 'update' && t('updated')}
-                        {log.action === 'delete' && t('deleted')}
+                        {log.action === 'create' && t('admin:created')}
+                        {log.action === 'update' && t('admin:updated')}
+                        {log.action === 'delete' && t('admin:deleted')}
                         {' '}
-                        {log.entity === 'Matrix' && t('matrixEntity')}
-                        {log.entity === 'FlowEntry' && t('entryEntity')}
-                        {log.entity === 'User' && t('userEntity')}
+                        {log.entity === 'Matrix' && t('admin:matrixEntity')}
+                        {log.entity === 'FlowEntry' && t('admin:entryEntity')}
+                        {log.entity === 'User' && t('admin:userEntity')}
                       </span>
                     </div>
                     <Badge variant={
@@ -147,8 +147,8 @@ export default function AuditPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <div className="text-lg font-medium text-slate-900 dark:text-white mb-2">Aucun log d&apos;audit</div>
-              <div className="text-slate-400 dark:text-slate-400">Les actions effectuées dans l&apos;application apparaîtront ici</div>
+              <div className="text-lg font-medium text-slate-900 dark:text-white mb-2">{t('admin:noAuditLogs')}</div>
+              <div className="text-slate-400 dark:text-slate-400">{t('admin:auditLogsDescription')}</div>
             </div>
           )}
         </div>

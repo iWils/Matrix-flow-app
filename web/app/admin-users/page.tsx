@@ -190,7 +190,7 @@ export default function AdminUsersPage(){
               className="ml-4"
               onClick={() => router.push('/')}
             >
-              Retour au dashboard
+              {t('admin:returnToDashboard')}
             </Button>
           )}
         </Alert>
@@ -208,7 +208,7 @@ export default function AdminUsersPage(){
             className="ml-4"
             onClick={() => router.push('/')}
           >
-            Retour au dashboard
+            {t('admin:returnToDashboard')}
           </Button>
         </Alert>
       </div>

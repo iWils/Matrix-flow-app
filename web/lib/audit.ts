@@ -10,7 +10,7 @@ export interface AuditLogOptions {
   entity: string
   entityId: number
   action: AuditAction
-  changes: Record<string, unknown>
+  changes: Record<string, unknown> | null
   ip?: string
   userAgent?: string
 }

@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           error: 'Invalid subscription data', 
-          details: error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`)
+          details: error.issues.map((e) => `${e.path.join('.')}: ${e.message}`)
         },
         { status: 400 }
       )
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await auth()
     if (!session?.user?.id) {
@@ -174,7 +174,7 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    let whereClause: any = { userId }
+    const whereClause: any = { userId }
     
     if (subscriptionId) {
       whereClause.id = parseInt(subscriptionId)

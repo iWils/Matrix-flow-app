@@ -35,7 +35,7 @@ interface SessionsStats {
 export default function AdminSessionsPage() {
   const { data: session } = useSession();
   const router = useRouter();
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(['common', 'admin']);
   const [sessions, setSessions] = useState<SessionInfo[]>([]);
   const [stats, setStats] = useState<SessionsStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -162,7 +162,7 @@ export default function AdminSessionsPage() {
       <div className="flex items-center justify-center min-h-64">
         <LoadingSpinner size="lg" />
         <span className="ml-3 text-slate-600 dark:text-slate-400">
-          {t('sessions.loading')}
+          {t('admin:loading')}
         </span>
       </div>
     );
@@ -173,10 +173,10 @@ export default function AdminSessionsPage() {
       {/* En-tête */}
       <div>
         <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-          📊 {t('sessions.adminTitle')}
+          📊 {t('admin:adminTitle')}
         </h1>
         <p className="text-slate-600 dark:text-slate-400">
-          {t('sessions.adminDescription')}
+          {t('admin:adminDescription')}
         </p>
       </div>
 
@@ -193,7 +193,7 @@ export default function AdminSessionsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                  {t('sessions.admin.stats.activeSessions')}
+                  {t('admin:activeSessions')}
                 </p>
                 <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                   {stats.totalActiveSessions}
@@ -209,7 +209,7 @@ export default function AdminSessionsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                  {t('sessions.admin.stats.connectedUsers')}
+                  {t('admin:connectedUsers')}
                 </p>
                 <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                   {stats.uniqueUsers}
@@ -225,7 +225,7 @@ export default function AdminSessionsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                  {t('sessions.admin.stats.mobileDevices')}
+                  {t('admin:mobileDevices')}
                 </p>
                 <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                   {stats.mobileDevices}
@@ -241,7 +241,7 @@ export default function AdminSessionsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                  {t('sessions.admin.stats.expiringSoon')}
+                  {t('admin:expiringSoon')}
                 </p>
                 <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                   {stats.expiringSoon}
@@ -259,14 +259,14 @@ export default function AdminSessionsPage() {
       <Card className="p-6">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-            {t('twoFactorAuth.admin.quickActions')}
+            {t('admin:quickActions')}
           </h2>
           <Button
             variant="secondary"
             onClick={loadSessions}
             disabled={loading}
           >
-            {loading ? <LoadingSpinner size="sm" /> : `🔄 ${t('sessions.refresh')}`}
+            {loading ? <LoadingSpinner size="sm" /> : `🔄 ${t('admin:refreshSessions')}`}
           </Button>
         </div>
       </Card>
@@ -274,7 +274,7 @@ export default function AdminSessionsPage() {
       {/* Liste des sessions */}
       <Card className="p-6">
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">
-          {t('sessions.count', { count: sessions.length })} - Détails
+          {t('admin:sessions')} ({sessions.length}) - {t('admin:sessionDetails')}
         </h2>
 
         <div className="space-y-4">
@@ -293,14 +293,14 @@ export default function AdminSessionsPage() {
                           {sessionInfo.userName} ({sessionInfo.userEmail})
                         </h3>
                         <Badge variant={sessionInfo.isActive ? 'success' : 'warning'}>
-                          {sessionInfo.isActive ? t('active') : 'Expiré'}
+                          {sessionInfo.isActive ? t('common:active') : t('common:expired')}
                         </Badge>
                         {isExpiringSoon(sessionInfo.expiresAt) && (
-                          <Badge variant="warning">{t('sessions.admin.stats.expiringSoon')}</Badge>
+                          <Badge variant="warning">{t('admin:expiringSoon')}</Badge>
                         )}
                       </div>
                       <p className="text-sm text-slate-500 dark:text-slate-400">
-                        {sessionInfo.browser || t('sessions.unknownBrowser')} sur {sessionInfo.os || t('sessions.unknownOS')}
+                        {sessionInfo.browser || t('admin:unknownBrowser')} sur {sessionInfo.os || t('admin:unknownOS')}
                         {sessionInfo.ipAddress && ` • IP: ${sessionInfo.ipAddress}`}
                       </p>
                     </div>
@@ -308,13 +308,13 @@ export default function AdminSessionsPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-slate-600 dark:text-slate-400">
                     <div>
-                      <span className="font-medium">{t('sessions.createdOn')}</span> {formatDate(sessionInfo.createdAt)}
+                      <span className="font-medium">{t('admin:createdOn')}</span> {formatDate(sessionInfo.createdAt)}
                     </div>
                     <div>
-                      <span className="font-medium">{t('sessions.lastActivity')}</span> {formatDate(sessionInfo.lastActiveAt)}
+                      <span className="font-medium">{t('admin:lastActivity')}</span> {formatDate(sessionInfo.lastActiveAt)}
                     </div>
                     <div>
-                      <span className="font-medium">{t('sessions.expiresOn')}</span> {formatDate(sessionInfo.expiresAt)}
+                      <span className="font-medium">{t('admin:expiresOn')}</span> {formatDate(sessionInfo.expiresAt)}
                     </div>
                   </div>
                 </div>
@@ -325,14 +325,14 @@ export default function AdminSessionsPage() {
                     size="sm"
                     onClick={() => invalidateSession(sessionInfo.id)}
                   >
-                    🚫 {t('sessions.close')}
+                    🚫 {t('admin:closeSession')}
                   </Button>
                   <Button
                     variant="secondary"
                     size="sm"
                     onClick={() => invalidateUserSessions()}
                   >
-                    🚫 {t('sessions.closeAll')}
+                    🚫 {t('admin:closeAllSessions')}
                   </Button>
                 </div>
               </div>
@@ -343,7 +343,7 @@ export default function AdminSessionsPage() {
             <div className="text-center py-8">
               <div className="text-4xl mb-4">🔍</div>
               <p className="text-slate-600 dark:text-slate-400">
-                {t('sessions.noSessions')}
+                {t('admin:noSessions')}
               </p>
             </div>
           )}
@@ -354,13 +354,13 @@ export default function AdminSessionsPage() {
       <Card className="p-6">
         <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
           <h3 className="font-medium text-blue-800 dark:text-blue-200 mb-2">
-            💡 {t('sessions.admin.securityInfo.title')}
+            💡 {t('admin:securityInfoTitle')}
           </h3>
           <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-            <li>• {t('sessions.admin.securityInfo.autoExpire')}</li>
-            <li>• {t('sessions.admin.securityInfo.monitorSuspicious')}</li>
-            <li>• {t('sessions.admin.securityInfo.userManagement')}</li>
-            <li>• {t('sessions.admin.securityInfo.noGeolocation')}</li>
+            <li>• {t('admin:autoExpire')}</li>
+            <li>• {t('admin:monitorSuspicious')}</li>
+            <li>• {t('admin:userManagementSecurity')}</li>
+            <li>• {t('admin:noGeolocation')}</li>
           </ul>
         </div>
       </Card>

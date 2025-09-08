@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
@@ -102,11 +102,7 @@ export default function NotificationsPage() {
   const [saving, setSaving] = useState(false)
   const [testing, setTesting] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchPreferences()
-  }, [])
-
-  const fetchPreferences = async () => {
+  const fetchPreferences = useCallback(async () => {
     try {
       const response = await fetch('/api/user/notifications')
       const result = await response.json()
@@ -117,11 +113,16 @@ export default function NotificationsPage() {
         error('Erreur', t('messages.errorLoading'))
       }
     } catch (err) {
+      console.error('Failed to fetch preferences:', err)
       error('Erreur', t('messages.errorConnection'))
     } finally {
       setLoading(false)
     }
-  }
+  }, [error, t])
+
+  useEffect(() => {
+    fetchPreferences()
+  }, [fetchPreferences])
 
   const savePreferences = async () => {
     if (!preferences) return
@@ -143,6 +144,7 @@ export default function NotificationsPage() {
         error('Erreur', result.error || t('messages.errorSaving'))
       }
     } catch (err) {
+      console.error('Failed to fetch preferences:', err)
       error('Erreur', t('messages.errorConnection'))
     } finally {
       setSaving(false)
@@ -166,6 +168,7 @@ export default function NotificationsPage() {
         error(t(`messages.test${type === 'email' ? 'Email' : 'Webhook'}Failed`), result.error)
       }
     } catch (err) {
+      console.error('Failed to fetch preferences:', err)
       error('Erreur', t('messages.errorConnection'))
     } finally {
       setTesting(null)
@@ -192,13 +195,14 @@ export default function NotificationsPage() {
         error('Erreur', result.error || t('messages.errorSaving'))
       }
     } catch (err) {
+      console.error('Failed to fetch preferences:', err)
       error('Erreur', t('messages.errorConnection'))
     } finally {
       setSaving(false)
     }
   }
 
-  const updatePreference = (key: keyof NotificationPreference, value: any) => {
+  const updatePreference = (key: keyof NotificationPreference, value: string | boolean) => {
     if (!preferences) return
     setPreferences(prev => ({ ...prev!, [key]: value }))
   }

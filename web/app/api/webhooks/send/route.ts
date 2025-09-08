@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       }
 
       let webhookUrl = webhookData.webhookUrl
-      let templateOptions: any = {}
+      let templateOptions: Record<string, unknown> = {}
 
       // If using template, fetch template configuration
       if (webhookData.templateId) {
@@ -127,10 +127,10 @@ export async function POST(request: NextRequest) {
         webhookData.data,
         {
           userId,
-          retryPolicy: webhookData.retryPolicy || templateOptions.retryPolicy,
-          headers: webhookData.headers || templateOptions.headers,
-          transform: webhookData.transform || templateOptions.transform,
-          secret: templateOptions.secret
+          retryPolicy: webhookData.retryPolicy || (templateOptions.retryPolicy as any),
+          headers: webhookData.headers || (templateOptions.headers as Record<string, string>),
+          transform: webhookData.transform || (templateOptions.transform as string),
+          secret: (templateOptions.secret as string)
         }
       )
 

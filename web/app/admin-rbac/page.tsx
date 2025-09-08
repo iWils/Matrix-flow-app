@@ -25,7 +25,7 @@ type RolePermission = {
 }
 
 export default function RBACPage() {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation(['common', 'admin'])
   const { data: session } = useSession()
   const [userGroups, setUserGroups] = useState<UserGroup[]>([])
   const [loading, setLoading] = useState(true)
@@ -169,10 +169,10 @@ export default function RBACPage() {
         <div className="text-center">
           <div className="text-red-500 text-6xl mb-4">🚫</div>
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-            Accès refusé
+            {t('admin:accessDenied')}
           </h2>
           <p className="text-slate-600 dark:text-slate-300">
-            Vous devez avoir le rôle administrateur pour accéder à cette page.
+            {t('admin:accessDeniedAdmin')}
           </p>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
             {t('admin:currentRole')}: {session?.user?.role || t('admin:notConnected')}
@@ -187,7 +187,7 @@ export default function RBACPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gradient mb-2">Gestion RBAC</h1>
+          <h1 className="text-3xl font-bold text-gradient mb-2">{t('admin:rbacManagement')}</h1>
           <p className="text-slate-600 dark:text-slate-300">
             {t('admin:rbacDescription')}
           </p>
@@ -196,7 +196,7 @@ export default function RBACPage() {
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
-          Créer un groupe
+          {t('admin:createGroup')}
         </Button>
       </div>
 
@@ -215,7 +215,7 @@ export default function RBACPage() {
                   </div>
                   <p className="text-sm text-slate-600 dark:text-slate-300">{group.description}</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    {group.memberCount} membre{group.memberCount !== 1 ? 's' : ''}
+                    {group.memberCount} {group.memberCount !== 1 ? 'membres' : 'membre'}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -240,7 +240,7 @@ export default function RBACPage() {
 
               {/* Permissions */}
               <div className="space-y-3">
-                <h4 className="text-sm font-medium text-slate-700 dark:text-slate-200">Permissions</h4>
+                <h4 className="text-sm font-medium text-slate-700 dark:text-slate-200">{t('admin:permissions')}</h4>
                 <div className="space-y-2">
                   {Object.entries(group.permissions || {}).map(([resource, actions]) => (
                     <div key={resource} className="flex items-center justify-between p-2 bg-slate-100 dark:bg-slate-700 rounded-lg">
@@ -273,18 +273,18 @@ export default function RBACPage() {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
-              Nom du groupe
+              {t('admin:groupName')}
             </label>
             <Input
               value={newGroup.name}
               onChange={(e) => setNewGroup({ ...newGroup, name: e.target.value })}
-              placeholder="Ex: Éditeurs de matrices"
+              placeholder={t('common:groupNamePlaceholder')}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
-              Description
+              {t('admin:description')}
             </label>
             <Input
               value={newGroup.description}
@@ -295,7 +295,7 @@ export default function RBACPage() {
 
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-3">
-              Permissions
+              {t('admin:permissions')}
             </label>
             <div className="space-y-4">
               {availablePermissions.map(perm => (
@@ -321,10 +321,10 @@ export default function RBACPage() {
 
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="outline" onClick={() => setShowCreateGroup(false)}>
-              Annuler
+              {t('admin:cancel')}
             </Button>
             <Button onClick={createGroup} disabled={!newGroup.name.trim()}>
-              Créer le groupe
+              {t('admin:createGroupBtn')}
             </Button>
           </div>
         </div>
@@ -335,23 +335,23 @@ export default function RBACPage() {
         <Modal
           isOpen={!!showEditGroup}
           onClose={() => setShowEditGroup(null)}
-          title={`Modifier le groupe: ${showEditGroup.name}`}
+          title={`${t('admin:editGroup')}: ${showEditGroup.name}`}
         >
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
-                Nom du groupe
+                {t('admin:groupName')}
               </label>
               <Input
                 value={showEditGroup.name}
                 onChange={(e) => setShowEditGroup({ ...showEditGroup, name: e.target.value })}
-                placeholder="Ex: Éditeurs de matrices"
+                placeholder={t('common:groupNamePlaceholder')}
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
-                Description
+                {t('admin:description')}
               </label>
               <Input
                 value={showEditGroup.description}
@@ -362,7 +362,7 @@ export default function RBACPage() {
 
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
-                Statut
+                {t('admin:groupStatus')}
               </label>
               <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
                 <input
@@ -371,13 +371,13 @@ export default function RBACPage() {
                   onChange={(e) => setShowEditGroup({ ...showEditGroup, isActive: e.target.checked })}
                   className="rounded border-slate-300 dark:border-slate-600"
                 />
-                Groupe actif
+                {t('admin:activeGroup')}
               </label>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-3">
-                Permissions
+                {t('admin:permissions')}
               </label>
               <div className="space-y-4">
                 {availablePermissions.map(perm => (
@@ -421,7 +421,7 @@ export default function RBACPage() {
 
             <div className="flex justify-end gap-3 pt-4">
               <Button variant="outline" onClick={() => setShowEditGroup(null)}>
-                Annuler
+                {t('admin:cancel')}
               </Button>
               <Button onClick={() => updateGroup(showEditGroup)} disabled={!showEditGroup.name.trim()}>
                 {t('common:save')}

@@ -1,5 +1,4 @@
 import { cache } from '@/lib/cache'
-import { createHash } from 'crypto'
 
 /**
  * Types pour l'indexation de recherche
@@ -583,7 +582,7 @@ export class SearchIndexEngine {
       size += ids.size * 4 // 4 bytes per int
     }
     
-    for (const [id, doc] of index.documents) {
+    for (const [, doc] of index.documents) {
       size += 4 // ID
       size += doc.searchableText.length * 2 // UTF-16
       size += Object.values(doc.fields).join('').length * 2

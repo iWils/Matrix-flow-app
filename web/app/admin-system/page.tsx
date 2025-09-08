@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Badge } from '@/components/ui/Badge'
+import { WebhookManager } from '@/components/ui/WebhookManager'
+import { Alert } from '@/components/ui/Alert'
 
 type SystemSettings = {
   general: {
@@ -88,15 +90,94 @@ export default function SystemPage() {
   }[]>([])
   const [selectedBackup, setSelectedBackup] = useState<string>('')
   const [showRestoreConfirm, setShowRestoreConfirm] = useState(false)
-  const [activeTab, setActiveTab] = useState<'general' | 'security' | 'audit' | 'backup'>('general')
+  const [activeTab, setActiveTab] = useState<'general' | 'security' | 'auth-providers' | 'audit' | 'backup' | 'webhooks' | '2fa'>('general')
+  // États pour 2FA
+  const [users2FA, setUsers2FA] = useState<{
+    id: number
+    name: string
+    email: string
+    role: string
+    twoFactorEnabled: boolean
+    backupCodesCount?: number
+    lastTwoFactorAt?: string
+    createdAt: string
+  }[]>([])
+  const [stats2FA, setStats2FA] = useState<{
+    totalUsers: number
+    users2FAEnabled: number
+    users2FADisabled: number
+    percentage: number
+  } | null>(null)
+  const [loading2FA, setLoading2FA] = useState(false)
+  const [error2FA, setError2FA] = useState<string>()
+  
+  // États pour les fournisseurs d'authentification
+  const [authProviders, setAuthProviders] = useState<{
+    id: number
+    name: string
+    type: 'ldap' | 'oidc' | 'saml'
+    config: Record<string, unknown>
+    isActive: boolean
+    priority: number
+  }[]>([])
+  const [ldapConfig, setLdapConfig] = useState<{
+    server: string
+    port: number
+    bindDN: string
+    bindPassword: string
+    searchBase: string
+    searchFilter: string
+    useTLS: boolean
+    userAttributes: {
+      username: string
+      email: string
+      fullName: string
+    }
+  }>({
+    server: '',
+    port: 389,
+    bindDN: '',
+    bindPassword: '',
+    searchBase: '',
+    searchFilter: '(uid={username})',
+    useTLS: false,
+    userAttributes: {
+      username: 'uid',
+      email: 'mail',
+      fullName: 'cn'
+    }
+  })
+  const [oidcConfig, setOidcConfig] = useState<{
+    issuer: string
+    clientId: string
+    clientSecret: string
+    scopes: string[]
+    usernameClaim: string
+    emailClaim: string
+    fullNameClaim: string
+  }>({
+    issuer: '',
+    clientId: '',
+    clientSecret: '',
+    scopes: ['openid', 'profile', 'email'],
+    usernameClaim: 'preferred_username',
+    emailClaim: 'email',
+    fullNameClaim: 'name'
+  })
+  const [authTab, setAuthTab] = useState<'ldap' | 'oidc'>('ldap')
 
   useEffect(() => {
     if (session?.user?.role === 'admin') {
       loadSystemSettings()
       loadSchedulerStatus()
       loadBackupList()
+      if (activeTab === '2fa') {
+        loadUsers2FA()
+      } else if (activeTab === 'auth-providers') {
+        loadAuthProviders()
+      }
     }
-  }, [session])
+  }, [session, activeTab])
 
   async function loadSystemSettings() {
     try {
@@ -272,6 +353,185 @@ export default function SystemPage() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 
+  // Fonctions pour 2FA
+  async function loadUsers2FA() {
+    setLoading2FA(true)
+    try {
+      const response = await fetch('/api/admin/2fa')
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to load 2FA data')
+      }
+
+      setUsers2FA(data.users)
+      setStats2FA(data.stats)
+      setError2FA(undefined)
+    } catch (err) {
+      setError2FA(err instanceof Error ? err.message : 'Failed to load 2FA data')
+    } finally {
+      setLoading2FA(false)
+    }
+  }
+
+  async function force2FADisable(userId: number) {
+    if (!confirm('Confirmer la désactivation de 2FA pour cet utilisateur ?')) {
+      return
+    }
+
+    try {
+      const response = await fetch('/api/admin/2fa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'disable',
+          userId
+        })
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to disable 2FA')
+      }
+
+      await loadUsers2FA()
+      setMessage({ type: 'success', text: '2FA désactivé avec succès' })
+    } catch (err) {
+      setError2FA(err instanceof Error ? err.message : 'Failed to disable 2FA')
+    }
+  }
+
+  async function regenerateBackupCodes(userId: number) {
+    if (!confirm('Confirmer la régénération des codes de sauvegarde ?')) {
+      return
+    }
+
+    try {
+      const response = await fetch('/api/admin/2fa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'regenerate-backup-codes',
+          userId
+        })
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to regenerate backup codes')
+      }
+
+      const result = await response.json()
+      setMessage({ type: 'success', text: `Codes de sauvegarde régénérés (${result.codesCount} codes)` })
+      await loadUsers2FA()
+    } catch (err) {
+      setError2FA(err instanceof Error ? err.message : 'Failed to regenerate backup codes')
+    }
+  }
+
+  function formatDate(dateString: string) {
+    return new Date(dateString).toLocaleString('fr-FR')
+  }
+
+  // Fonctions pour les fournisseurs d'authentification
+  async function loadAuthProviders() {
+    try {
+      const res = await fetch('/api/admin/auth/providers')
+      if (res.ok) {
+        const response = await res.json()
+        if (response.success && response.data) {
+          setAuthProviders(response.data)
+          
+          // Charger les configurations existantes
+          const ldapProvider = response.data.find((p: any) => p.type === 'ldap')
+          if (ldapProvider) {
+            setLdapConfig(ldapProvider.config)
+          }
+          
+          const oidcProvider = response.data.find((p: any) => p.type === 'oidc')
+          if (oidcProvider) {
+            setOidcConfig(oidcProvider.config)
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading auth providers:', error)
+    }
+  }
+
+  async function saveLDAPConfig() {
+    try {
+      const res = await fetch('/api/admin/auth/providers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'LDAP/Active Directory',
+          type: 'ldap',
+          config: ldapConfig,
+          isActive: true
+        })
+      })
+      
+      if (res.ok) {
+        setMessage({ type: 'success', text: 'Configuration LDAP sauvegardée' })
+        loadAuthProviders()
+      } else {
+        const response = await res.json()
+        setMessage({ type: 'error', text: response.message || 'Erreur lors de la sauvegarde LDAP' })
+      }
+    } catch (error) {
+      console.error('Error saving LDAP config:', error)
+      setMessage({ type: 'error', text: 'Erreur de connexion lors de la sauvegarde LDAP' })
+    }
+  }
+
+  async function saveOIDCConfig() {
+    try {
+      const res = await fetch('/api/admin/auth/providers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'OIDC Provider',
+          type: 'oidc',
+          config: oidcConfig,
+          isActive: true
+        })
+      })
+      
+      if (res.ok) {
+        setMessage({ type: 'success', text: 'Configuration OIDC sauvegardée' })
+        loadAuthProviders()
+      } else {
+        const response = await res.json()
+        setMessage({ type: 'error', text: response.message || 'Erreur lors de la sauvegarde OIDC' })
+      }
+    } catch (error) {
+      console.error('Error saving OIDC config:', error)
+      setMessage({ type: 'error', text: 'Erreur de connexion lors de la sauvegarde OIDC' })
+    }
+  }
+
+  async function testAuthConnection(type: 'ldap' | 'oidc') {
+    try {
+      const config = type === 'ldap' ? ldapConfig : oidcConfig
+      const res = await fetch(`/api/admin/auth/test/${type}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config)
+      })
+      
+      const result = await res.json()
+      if (res.ok) {
+        setMessage({ type: 'success', text: 'Test de connexion réussi !' })
+      } else {
+        setMessage({ type: 'error', text: `Erreur de connexion: ${result.error}` })
+      }
+    } catch (error) {
+      console.error('Error testing connection:', error)
+      setMessage({ type: 'error', text: 'Erreur lors du test de connexion' })
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
@@ -297,12 +557,15 @@ export default function SystemPage() {
             {[
               { key: 'general', label: t('admin:general') },
               { key: 'security', label: t('admin:security') },
+              { key: 'auth-providers', label: t('admin:authProviders') },
               { key: 'audit', label: t('admin:audit') },
-              { key: 'backup', label: t('admin:backup') }
+              { key: 'backup', label: t('admin:backup') },
+              { key: 'webhooks', label: t('admin:webhooks') },
+              { key: '2fa', label: t('admin:twoFactorManagement') }
             ].map(tab => (
               <button
                 key={tab.key}
-                onClick={() => setActiveTab(tab.key as 'general' | 'security' | 'audit' | 'backup')}
+                onClick={() => setActiveTab(tab.key as 'general' | 'security' | 'auth-providers' | 'audit' | 'backup' | 'webhooks' | '2fa')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === tab.key
                     ? 'border-blue-500 text-blue-400'
@@ -532,6 +795,383 @@ export default function SystemPage() {
             </div>
           </div>
         </Card>
+      )}
+
+      {/* Auth Providers Settings */}
+      {activeTab === 'auth-providers' && (
+        <div className="space-y-6">
+          {/* Providers Status */}
+          <Card>
+            <div className="p-6">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">{t('admin:authProviders')}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {authProviders.map(provider => (
+                  <div key={provider.id} className="flex items-center justify-between p-3 bg-slate-100 dark:bg-slate-700 rounded-lg">
+                    <div>
+                      <h4 className="text-sm font-medium text-slate-900 dark:text-white">{provider.name}</h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 uppercase">{provider.type}</p>
+                    </div>
+                    <Badge variant={provider.isActive ? 'success' : 'warning'}>
+                      {provider.isActive ? t('common:active') : t('common:inactive')}
+                    </Badge>
+                  </div>
+                ))}
+                {authProviders.length === 0 && (
+                  <div className="col-span-3 text-center py-4">
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Aucun fournisseur configuré</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+
+          {/* Configuration Tabs */}
+          <div className="mb-6">
+            <div className="border-b border-slate-600">
+              <nav className="-mb-px flex space-x-8">
+                <button
+                  onClick={() => setAuthTab('ldap')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    authTab === 'ldap'
+                      ? 'border-blue-500 text-blue-400'
+                      : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600'
+                  }`}
+                >
+                  LDAP / Active Directory
+                </button>
+                <button
+                  onClick={() => setAuthTab('oidc')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    authTab === 'oidc'
+                      ? 'border-blue-500 text-blue-400'
+                      : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600'
+                  }`}
+                >
+                  OIDC
+                </button>
+              </nav>
+            </div>
+          </div>
+
+          {/* LDAP Configuration */}
+          {authTab === 'ldap' && (
+            <Card>
+              <div className="p-6">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">{t('admin:ldapConfiguration')}</h3>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+                        Serveur LDAP
+                      </label>
+                      <Input
+                        value={ldapConfig.server}
+                        onChange={(e) => setLdapConfig({
+                          ...ldapConfig,
+                          server: e.target.value
+                        })}
+                        placeholder="ldap://dc.example.com"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+                        Port
+                      </label>
+                      <Input
+                        type="number"
+                        value={ldapConfig.port}
+                        onChange={(e) => setLdapConfig({
+                          ...ldapConfig,
+                          port: parseInt(e.target.value) || 389
+                        })}
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="useTLS"
+                        checked={ldapConfig.useTLS}
+                        onChange={(e) => setLdapConfig({
+                          ...ldapConfig,
+                          useTLS: e.target.checked
+                        })}
+                        className="rounded border-slate-300 dark:border-slate-700"
+                      />
+                      <label htmlFor="useTLS" className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                        Utiliser TLS/SSL
+                      </label>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+                        Bind DN
+                      </label>
+                      <Input
+                        value={ldapConfig.bindDN}
+                        onChange={(e) => setLdapConfig({
+                          ...ldapConfig,
+                          bindDN: e.target.value
+                        })}
+                        placeholder="cn=admin,dc=example,dc=com"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+                        Mot de passe Bind
+                      </label>
+                      <Input
+                        type="password"
+                        value={ldapConfig.bindPassword}
+                        onChange={(e) => setLdapConfig({
+                          ...ldapConfig,
+                          bindPassword: e.target.value
+                        })}
+                        placeholder="••••••••"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+                        Base de recherche
+                      </label>
+                      <Input
+                        value={ldapConfig.searchBase}
+                        onChange={(e) => setLdapConfig({
+                          ...ldapConfig,
+                          searchBase: e.target.value
+                        })}
+                        placeholder="ou=users,dc=example,dc=com"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+                        Filtre de recherche
+                      </label>
+                      <Input
+                        value={ldapConfig.searchFilter}
+                        onChange={(e) => setLdapConfig({
+                          ...ldapConfig,
+                          searchFilter: e.target.value
+                        })}
+                        placeholder="(uid={username})"
+                      />
+                    </div>
+
+                    <div className="border-t pt-4">
+                      <h4 className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-3">Mapping des attributs</h4>
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">
+                            Nom d&apos;utilisateur
+                          </label>
+                          <Input
+                            value={ldapConfig.userAttributes.username}
+                            onChange={(e) => setLdapConfig({
+                              ...ldapConfig,
+                              userAttributes: {
+                                ...ldapConfig.userAttributes,
+                                username: e.target.value
+                              }
+                            })}
+                            placeholder="uid"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">
+                            Email
+                          </label>
+                          <Input
+                            value={ldapConfig.userAttributes.email}
+                            onChange={(e) => setLdapConfig({
+                              ...ldapConfig,
+                              userAttributes: {
+                                ...ldapConfig.userAttributes,
+                                email: e.target.value
+                              }
+                            })}
+                            placeholder="mail"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">
+                            Nom complet
+                          </label>
+                          <Input
+                            value={ldapConfig.userAttributes.fullName}
+                            onChange={(e) => setLdapConfig({
+                              ...ldapConfig,
+                              userAttributes: {
+                                ...ldapConfig.userAttributes,
+                                fullName: e.target.value
+                              }
+                            })}
+                            placeholder="cn"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-6 border-t">
+                  <Button
+                    onClick={() => testAuthConnection('ldap')}
+                    variant="outline"
+                    disabled={!ldapConfig.server}
+                  >
+                    Tester la connexion
+                  </Button>
+                  <Button onClick={saveLDAPConfig}>
+                    Sauvegarder la configuration
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* OIDC Configuration */}
+          {authTab === 'oidc' && (
+            <Card>
+              <div className="p-6">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">{t('admin:oidcConfiguration')}</h3>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+                        Issuer URL
+                      </label>
+                      <Input
+                        value={oidcConfig.issuer}
+                        onChange={(e) => setOidcConfig({
+                          ...oidcConfig,
+                          issuer: e.target.value
+                        })}
+                        placeholder="https://auth.example.com"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+                        Client ID
+                      </label>
+                      <Input
+                        value={oidcConfig.clientId}
+                        onChange={(e) => setOidcConfig({
+                          ...oidcConfig,
+                          clientId: e.target.value
+                        })}
+                        placeholder="matrix-flow-client"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+                        Client Secret
+                      </label>
+                      <Input
+                        type="password"
+                        value={oidcConfig.clientSecret}
+                        onChange={(e) => setOidcConfig({
+                          ...oidcConfig,
+                          clientSecret: e.target.value
+                        })}
+                        placeholder="••••••••"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+                        Scopes (séparés par des espaces)
+                      </label>
+                      <Input
+                        value={oidcConfig.scopes.join(' ')}
+                        onChange={(e) => setOidcConfig({
+                          ...oidcConfig,
+                          scopes: e.target.value.split(' ').filter(s => s.trim())
+                        })}
+                        placeholder="openid profile email"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="border-t lg:border-t-0 pt-4 lg:pt-0">
+                      <h4 className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-3">Mapping des claims</h4>
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">
+                            Nom d&apos;utilisateur
+                          </label>
+                          <Input
+                            value={oidcConfig.usernameClaim}
+                            onChange={(e) => setOidcConfig({
+                              ...oidcConfig,
+                              usernameClaim: e.target.value
+                            })}
+                            placeholder="preferred_username"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">
+                            Email
+                          </label>
+                          <Input
+                            value={oidcConfig.emailClaim}
+                            onChange={(e) => setOidcConfig({
+                              ...oidcConfig,
+                              emailClaim: e.target.value
+                            })}
+                            placeholder="email"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">
+                            Nom complet
+                          </label>
+                          <Input
+                            value={oidcConfig.fullNameClaim}
+                            onChange={(e) => setOidcConfig({
+                              ...oidcConfig,
+                              fullNameClaim: e.target.value
+                            })}
+                            placeholder="name"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-6 border-t">
+                  <Button
+                    onClick={() => testAuthConnection('oidc')}
+                    variant="outline"
+                    disabled={!oidcConfig.issuer || !oidcConfig.clientId}
+                  >
+                    Tester la configuration
+                  </Button>
+                  <Button onClick={saveOIDCConfig}>
+                    Sauvegarder la configuration
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )}
+        </div>
       )}
 
       {/* Audit Settings */}
@@ -882,6 +1522,219 @@ export default function SystemPage() {
               </Button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Webhooks Settings */}
+      {activeTab === 'webhooks' && (
+        <div>
+          <WebhookManager />
+        </div>
+      )}
+
+      {/* 2FA Settings */}
+      {activeTab === '2fa' && (
+        <div className="space-y-6">
+          {error2FA && (
+            <Alert variant="error">
+              {error2FA}
+            </Alert>
+          )}
+
+          {/* Statistiques 2FA */}
+          {stats2FA && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                      Total utilisateurs
+                    </p>
+                    <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                      {stats2FA.totalUsers}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                    <span className="text-2xl">👥</span>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                      2FA Activé
+                    </p>
+                    <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                      {stats2FA.users2FAEnabled}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
+                    <span className="text-2xl">✅</span>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                      2FA Désactivé
+                    </p>
+                    <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                      {stats2FA.users2FADisabled}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-red-100 dark:bg-red-900 rounded-lg">
+                    <span className="text-2xl">❌</span>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                      Taux d&apos;adoption
+                    </p>
+                    <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                      {stats2FA.percentage}%
+                    </p>
+                  </div>
+                  <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                    <span className="text-2xl">📊</span>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {/* Actions rapides 2FA */}
+          <Card className="p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                Actions rapides 2FA
+              </h2>
+              <Button
+                variant="secondary"
+                onClick={loadUsers2FA}
+                disabled={loading2FA}
+              >
+                {loading2FA ? <LoadingSpinner size="sm" /> : `🔄 Actualiser`}
+              </Button>
+            </div>
+          </Card>
+
+          {/* Liste des utilisateurs 2FA */}
+          <Card className="p-6">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">
+              État 2FA des utilisateurs ({users2FA.length})
+            </h2>
+
+            {loading2FA ? (
+              <div className="flex items-center justify-center min-h-64">
+                <LoadingSpinner size="lg" />
+                <span className="ml-3 text-slate-600 dark:text-slate-400">
+                  Chargement des données 2FA...
+                </span>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {users2FA.map((user) => (
+                  <div
+                    key={user.id}
+                    className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg">
+                            <span className="text-lg">
+                              {user.twoFactorEnabled ? '🔐' : '🔓'}
+                            </span>
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-medium text-slate-900 dark:text-slate-100">
+                                {user.name} ({user.email})
+                              </h3>
+                              <Badge variant={user.role === 'admin' ? 'success' : 'default'}>
+                                {user.role}
+                              </Badge>
+                              <Badge variant={user.twoFactorEnabled ? 'success' : 'warning'}>
+                                {user.twoFactorEnabled ? 'Activé' : 'Désactivé'}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                              Membre depuis {formatDate(user.createdAt)}
+                              {user.lastTwoFactorAt && 
+                                ` • Dernière auth 2FA ${formatDate(user.lastTwoFactorAt)}`
+                              }
+                              {user.twoFactorEnabled && user.backupCodesCount !== undefined && 
+                                ` • ${user.backupCodesCount} codes de sauvegarde`
+                              }
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="ml-4 flex gap-2">
+                        {user.twoFactorEnabled && (
+                          <>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => regenerateBackupCodes(user.id)}
+                            >
+                              🔄 Régénérer codes
+                            </Button>
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              onClick={() => force2FADisable(user.id)}
+                            >
+                              ❌ Désactiver
+                            </Button>
+                          </>
+                        )}
+                        {!user.twoFactorEnabled && (
+                          <Badge variant="warning">
+                            L&apos;utilisateur doit activer 2FA
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {users2FA.length === 0 && !loading2FA && (
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-4">👤</div>
+                    <p className="text-slate-600 dark:text-slate-400">
+                      Aucun utilisateur trouvé
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </Card>
+
+          {/* Informations de sécurité 2FA */}
+          <Card className="p-6">
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+              <h3 className="font-medium text-blue-800 dark:text-blue-200 mb-2">
+                💡 Informations de sécurité
+              </h3>
+              <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                <li>• Les utilisateurs peuvent uniquement activer 2FA eux-mêmes</li>
+                <li>• Les administrateurs peuvent désactiver 2FA en cas d&apos;urgence</li>
+                <li>• Les codes de sauvegarde sont chiffrés en base de données</li>
+                <li>• Chaque utilisateur dispose de 10 codes de sauvegarde</li>
+                <li>• La régénération des codes invalide les anciens codes</li>
+              </ul>
+            </div>
+          </Card>
         </div>
       )}
 

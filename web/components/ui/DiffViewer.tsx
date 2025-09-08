@@ -85,11 +85,11 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
         </span>
         <div className="flex items-center gap-2 min-w-0">
           <span className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300 px-2 py-1 rounded text-xs font-mono truncate">
-            {change.oldValue || '(vide)'}
+            {String(change.oldValue) || '(vide)'}
           </span>
           <span className="text-gray-400">→</span>
           <span className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300 px-2 py-1 rounded text-xs font-mono truncate">
-            {change.newValue || '(vide)'}
+            {String(change.newValue) || '(vide)'}
           </span>
         </div>
       </div>
@@ -131,7 +131,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
           </div>
           {!compact && (
             <div className="text-xs text-slate-500 dark:text-slate-400">
-              ID: {entry.id}
+              ID: {String(entry.id)}
             </div>
           )}
         </div>
@@ -278,7 +278,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
         <div className="flex-1 max-w-md">
           <input
             type="text"
-            placeholder="Rechercher dans les règles..."
+            placeholder={t('searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full px-3 py-1 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm"
@@ -289,7 +289,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
           <input
             type="checkbox"
             checked={showUnchanged}
-            onChange={(e) => {/* setShowUnchanged is handled by parent */}}
+            onChange={() => {/* setShowUnchanged is handled by parent */}}
             className="rounded"
           />
           <span className="text-sm text-slate-600 dark:text-slate-400">

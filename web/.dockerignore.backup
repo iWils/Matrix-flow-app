@@ -1,0 +1,64 @@
+# Ignore development files
+.git
+.gitignore
+README.md
+CHANGELOG.md
+.env*
+!.env.example
+
+# Dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Build artifacts
+.next
+out
+dist
+build
+
+# Testing
+coverage
+.nyc_output
+*.test.*
+*.spec.*
+__tests__
+test
+tests
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp
+temp
+*.tmp
+*.log
+
+# Development tools
+.eslintcache
+.tsbuildinfo
+
+# Documentation (disabled temporarily for debugging)
+# docs
+# *.md
+# !README.md
+
+# Backup files
+*.backup
+*.bak
+
+# Cache directories
+.cache
+.parcel-cache
+
+# Prisma migrations during development
+prisma/migrations
