@@ -33,6 +33,7 @@ type EmailTemplate = {
   textContent: string
   variables: string[]
   isActive: boolean
+  isDefault?: boolean
 }
 
 export default function EmailConfigPage() {
@@ -58,6 +59,8 @@ export default function EmailConfigPage() {
   const [testing, setTesting] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
+  const [testEmail, setTestEmail] = useState('')
+  const [testTemplateType, setTestTemplateType] = useState('test')
   // const [showTemplateModal, setShowTemplateModal] = useState(false)
   // const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null)
 
@@ -91,6 +94,9 @@ export default function EmailConfigPage() {
         const response = await res.json()
         if (response.success && response.data) {
           setTemplates(response.data)
+        } else if (res.ok && Array.isArray(response)) {
+          // Fallback pour l'ancienne format de réponse
+          setTemplates(response)
         }
       }
     } catch (error) {
@@ -124,25 +130,34 @@ export default function EmailConfigPage() {
   }
 
   async function testConnection() {
+    if (!testEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(testEmail)) {
+      setErrorMessage('Veuillez saisir une adresse email valide pour le test')
+      setSuccessMessage('')
+      return
+    }
+
     setTesting(true)
     try {
       const res = await fetch('/api/admin/email/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings)
+        body: JSON.stringify({ 
+          testEmail,
+          templateType: testTemplateType
+        })
       })
       
       const result = await res.json()
-      if (res.ok) {
-        setSuccessMessage(t('admin:connectionSuccess'))
+      if (res.ok && result.success) {
+        setSuccessMessage(result.message || 'Email de test envoyé avec succès')
         setErrorMessage('')
       } else {
-        setErrorMessage(`${t('admin:connectionError')}: ${result.error}`)
+        setErrorMessage(result.message || 'Échec du test d\'email')
         setSuccessMessage('')
       }
     } catch (error) {
-      console.error('Error testing connection:', error)
-      setErrorMessage(t('admin:connectionError'))
+      console.error('Error testing email:', error)
+      setErrorMessage('Erreur lors du test d\'email')
       setSuccessMessage('')
     } finally {
       setTesting(false)
@@ -318,13 +333,48 @@ export default function EmailConfigPage() {
                 </div>
               </div>
 
+              <div className="border-t pt-4">
+                <h4 className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-3">{t('admin:testEmailSection')}</h4>
+                
+                <div className="space-y-3 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+                      {t('admin:testEmail')}
+                    </label>
+                    <Input
+                      type="email"
+                      value={testEmail}
+                      onChange={(e) => setTestEmail(e.target.value)}
+                      placeholder={t('admin:testEmailPlaceholder')}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+                      {t('admin:templateType')}
+                    </label>
+                    <select
+                      value={testTemplateType}
+                      onChange={(e) => setTestTemplateType(e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                    >
+                      <option value="test">{t('admin:testBasic')}</option>
+                      <option value="change_approval">{t('admin:testChangeApproval')}</option>
+                      <option value="change_notification">{t('admin:testChangeNotification')}</option>
+                      <option value="security_alert">{t('admin:testSecurityAlert')}</option>
+                      <option value="daily_digest">{t('admin:testDailyDigest')}</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex gap-3 pt-4">
                 <Button
                   onClick={testConnection}
                   variant="outline"
-                  disabled={testing || !settings.smtp.host}
+                  disabled={testing || !settings.smtp.host || !testEmail}
                 >
-                  {testing ? t('admin:testing') : t('admin:testConnection')}
+                  {testing ? t('admin:testInProgress') : t('admin:testEmailButton')}
                 </Button>
                 <Button
                   onClick={saveSettings}
@@ -352,26 +402,44 @@ export default function EmailConfigPage() {
 
             <div className="space-y-3">
               {templates.map(template => (
-                <div key={template.id} className="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
-                  <div>
+                <div key={template.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600">
+                  <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <h4 className="text-sm font-medium text-slate-900 dark:text-white">{template.name}</h4>
                       <Badge variant={template.isActive ? 'success' : 'error'}>
                         {template.isActive ? t('common:active') : t('common:inactive')}
                       </Badge>
+                      {template.isDefault && (
+                        <Badge variant="default" className="text-xs">
+                          {t('admin:defaultTemplate')}
+                        </Badge>
+                      )}
                     </div>
-                    <p className="text-xs text-slate-600 dark:text-slate-300">{template.subject}</p>
-                    <p className="text-xs text-slate-400 dark:text-slate-400">
-                      {t('admin:variables')}: {template.variables.join(', ') || t('admin:none')}
+                    <p className="text-xs text-slate-600 dark:text-slate-300 mb-1">{template.subject}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {t('admin:variables')}: {Array.isArray(template.variables) ? template.variables.join(', ') : t('admin:none')}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
+                    {!template.isDefault && (
+                      <button
+                        onClick={() => {}}
+                        className="p-2 text-slate-400 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg transition-colors"
+                        title={t('admin:editTemplate')}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                    )}
                     <button
                       onClick={() => {}}
-                      className="p-2 text-slate-400 dark:text-slate-400 hover:text-slate-200 hover:bg-slate-600 rounded-lg transition-colors"
+                      className="p-2 text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-lg transition-colors"
+                      title={t('admin:previewTemplate')}
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
                     </button>
                   </div>

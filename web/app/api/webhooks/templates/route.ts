@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/db'
 import { auditLog } from '@/lib/audit'
+import { detectLanguage, getMessage } from '@/lib/i18n-messages'
 import { z } from 'zod'
 
 const WebhookTemplateSchema = z.object({
@@ -77,10 +78,12 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    const userLang = detectLanguage(request)
+    
     return NextResponse.json({
       success: true,
       data: template,
-      message: 'Webhook template created successfully'
+      message: getMessage('webhookTemplateCreated', userLang)
     })
 
   } catch (error) {

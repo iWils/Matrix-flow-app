@@ -72,7 +72,7 @@ export default function AdminNotificationsPage() {
       error(t('common:error'), t('admin:loading'))
     })
     .finally(() => setLoading(false))
-  }, [error])
+  }, [error, t])
 
   // Sauvegarder les paramètres
   const saveSettings = async () => {

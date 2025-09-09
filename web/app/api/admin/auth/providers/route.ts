@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/db'
+import { detectLanguage, getMessage } from '@/lib/i18n-messages'
 
 export async function GET() {
   try {
@@ -68,7 +69,13 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    return NextResponse.json(provider)
+    const userLang = detectLanguage(request)
+    
+    return NextResponse.json({
+      success: true,
+      data: provider,
+      message: getMessage('authProviderSaved', userLang)
+    })
   } catch (error) {
     console.error('Error saving auth provider:', error)
     return NextResponse.json(

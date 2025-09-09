@@ -6,6 +6,35 @@ import { auditLog } from '@/lib/audit'
 import { SystemSettingsSchema } from '@/lib/validate'
 import { ApiResponse } from '@/types'
 
+// Messages internationalisés pour les paramètres système
+const SYSTEM_SETTINGS_MESSAGES = {
+  updated: {
+    fr: 'Paramètres système mis à jour avec succès',
+    en: 'System settings updated successfully',
+    es: 'Configuración del sistema actualizada exitosamente'
+  },
+  retrieved: {
+    fr: 'Paramètres système récupérés avec succès',
+    en: 'System settings retrieved successfully',
+    es: 'Configuración del sistema recuperada exitosamente'
+  },
+  updateError: {
+    fr: 'Erreur lors de la mise à jour des paramètres système',
+    en: 'Error updating system settings',
+    es: 'Error al actualizar la configuración del sistema'
+  },
+  fetchError: {
+    fr: 'Erreur lors de la récupération des paramètres système',
+    en: 'Failed to fetch system settings',
+    es: 'Error al recuperar la configuración del sistema'
+  }
+}
+
+function getSystemSettingsMessage(type: keyof typeof SYSTEM_SETTINGS_MESSAGES, lang: string = 'fr') {
+  const normalizedLang = lang.toLowerCase().substring(0, 2) as 'fr' | 'en' | 'es'
+  return SYSTEM_SETTINGS_MESSAGES[type][normalizedLang] || SYSTEM_SETTINGS_MESSAGES[type].fr
+}
+
 interface SystemSettings {
   general: {
     appName: string
@@ -135,10 +164,14 @@ export async function GET(request: NextRequest) {
       categoriesCount: Object.keys(organizedSettings).length
     })
 
+    // Détecter la langue depuis les headers
+    const acceptLanguage = request.headers.get('accept-language') || 'fr'
+    const userLang = acceptLanguage.split(',')[0] || 'fr'
+    
     return NextResponse.json<ApiResponse<SystemSettings>>({
       success: true,
       data: organizedSettings,
-      message: 'System settings retrieved successfully'
+      message: getSystemSettingsMessage('retrieved', userLang)
     })
 
   } catch (error) {
@@ -148,9 +181,13 @@ export async function GET(request: NextRequest) {
       method: 'GET'
     })
 
+    // Détecter la langue depuis les headers pour les erreurs aussi
+    const acceptLanguage = request.headers.get('accept-language') || 'fr'
+    const userLang = acceptLanguage.split(',')[0] || 'fr'
+    
     return NextResponse.json<ApiResponse<null>>({
       success: false,
-      message: 'Failed to fetch system settings'
+      message: getSystemSettingsMessage('fetchError', userLang)
     }, { status: 500 })
   }
 }
@@ -280,9 +317,16 @@ export async function POST(request: NextRequest) {
       hasSecurityChanges: changes.some(c => c.key.startsWith('security.'))
     })
 
+    // Détecter la langue depuis les headers
+    const acceptLanguage = request.headers.get('accept-language') || 'fr'
+    const userLang = acceptLanguage.split(',')[0] || 'fr'
+    
+    const baseMessage = getSystemSettingsMessage('updated', userLang)
+    const detailedMessage = changes.length > 0 ? `${baseMessage} (${changes.length} ${changes.length > 1 ? 'modifications' : 'modification'})` : baseMessage
+    
     return NextResponse.json<ApiResponse<null>>({
       success: true,
-      message: `System settings updated successfully (${changes.length} changes)`
+      message: detailedMessage
     })
 
   } catch (error) {
@@ -292,9 +336,13 @@ export async function POST(request: NextRequest) {
       method: 'POST'
     })
 
+    // Détecter la langue depuis les headers pour les erreurs aussi
+    const acceptLanguage = request.headers.get('accept-language') || 'fr'
+    const userLang = acceptLanguage.split(',')[0] || 'fr'
+    
     return NextResponse.json<ApiResponse<null>>({
       success: false,
-      message: 'Failed to update system settings'
+      message: getSystemSettingsMessage('updateError', userLang)
     }, { status: 500 })
   }
 }

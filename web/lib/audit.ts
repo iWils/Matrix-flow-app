@@ -1,7 +1,7 @@
 
 import { prisma } from './db'
 // Types pour l'audit
-type AuditAction = 'create' | 'update' | 'delete'
+type AuditAction = 'create' | 'update' | 'delete' | 'test'
 import { logger } from './logger'
 
 export interface AuditLogOptions {

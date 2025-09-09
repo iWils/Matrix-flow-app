@@ -31,6 +31,7 @@ enum AuditAction {
   create
   update
   delete
+  test
 }
 
 enum ChangeRequestType {

@@ -298,12 +298,16 @@ export default function SystemPage() {
         const response = await res.json()
         if (response.success) {
           setSchedulerStatus(response.data)
-          setMessage({ type: 'success', text: `Scheduler ${action} completed successfully` })
+          // Utiliser le message personnalisé du serveur
+          setMessage({ type: 'success', text: response.message || `Scheduler ${action} completed successfully` })
         }
       }
     } catch (error) {
       console.error(`Error ${action} scheduler:`, error)
-      setMessage({ type: 'error', text: `Error ${action} scheduler` })
+      const errorMessage = action === 'start' ? t('admin:schedulerActionError') 
+        : action === 'stop' ? t('admin:schedulerActionError')
+        : t('admin:schedulerActionError')
+      setMessage({ type: 'error', text: errorMessage })
     }
   }
 

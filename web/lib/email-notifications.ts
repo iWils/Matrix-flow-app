@@ -2,6 +2,7 @@ import nodemailer from 'nodemailer'
 import { logger } from './logger'
 import { prisma } from './db'
 import { EMAIL_TEMPLATES, EmailTemplateData, renderTemplate } from './email-templates'
+import { getI18nTemplate, renderI18nTemplate } from './email-templates-i18n'
 
 interface EmailSettings {
   enabled: boolean
@@ -481,6 +482,7 @@ class EmailNotificationService {
     changes?: string
     changeRequestId: number
     ipAddress?: string
+    lang?: 'fr' | 'en' | 'es'
   }): Promise<boolean> {
     if (!this.settings?.enabled || !this.settings.adminEmails.length) {
       return false
@@ -489,13 +491,32 @@ class EmailNotificationService {
     const templateData: EmailTemplateData = {
       ...data,
       url: `${process.env.NEXTAUTH_URL}/admin/workflow/${data.changeRequestId}`,
-      timestamp: new Date().toLocaleString('fr-FR')
+      timestamp: new Date().toLocaleString(data.lang === 'en' ? 'en-US' : data.lang === 'es' ? 'es-ES' : 'fr-FR')
     }
 
-    const template = EMAIL_TEMPLATES.CHANGE_APPROVAL
-    const subject = renderTemplate(template.subject, templateData)
-    const html = renderTemplate(template.html, templateData)
-    const text = renderTemplate(template.text, templateData)
+    // Utiliser le template I18N si une langue est spécifiée
+    let subject: string, html: string, text: string
+
+    if (data.lang && data.lang !== 'fr') {
+      try {
+        const i18nTemplate = getI18nTemplate('CHANGE_APPROVAL', data.lang)
+        subject = renderI18nTemplate(i18nTemplate.subject, templateData)
+        html = renderI18nTemplate(i18nTemplate.html, templateData)
+        text = renderI18nTemplate(i18nTemplate.text, templateData)
+      } catch {
+        // Fallback vers le template français par défaut
+        const template = EMAIL_TEMPLATES.CHANGE_APPROVAL
+        subject = renderTemplate(template.subject, templateData)
+        html = renderTemplate(template.html, templateData)
+        text = renderTemplate(template.text, templateData)
+      }
+    } else {
+      // Template français par défaut
+      const template = EMAIL_TEMPLATES.CHANGE_APPROVAL
+      subject = renderTemplate(template.subject, templateData)
+      html = renderTemplate(template.html, templateData)
+      text = renderTemplate(template.text, templateData)
+    }
 
     let allSent = true
     for (const adminEmail of this.settings.adminEmails) {
@@ -569,6 +590,7 @@ class EmailNotificationService {
     userName: string
     actionType: string
     ipAddress: string
+    lang?: 'fr' | 'en' | 'es'
   }): Promise<boolean> {
     if (!this.settings?.enabled || !this.settings.adminEmails.length) {
       return false
@@ -577,13 +599,32 @@ class EmailNotificationService {
     const templateData: EmailTemplateData = {
       ...data,
       url: `${process.env.NEXTAUTH_URL}/admin/audit`,
-      timestamp: new Date().toLocaleString('fr-FR')
+      timestamp: new Date().toLocaleString(data.lang === 'en' ? 'en-US' : data.lang === 'es' ? 'es-ES' : 'fr-FR')
     }
 
-    const template = EMAIL_TEMPLATES.SECURITY_ALERT
-    const subject = renderTemplate(template.subject, templateData)
-    const html = renderTemplate(template.html, templateData)
-    const text = renderTemplate(template.text, templateData)
+    // Utiliser le template I18N si une langue est spécifiée
+    let subject: string, html: string, text: string
+
+    if (data.lang && data.lang !== 'fr') {
+      try {
+        const i18nTemplate = getI18nTemplate('SECURITY_ALERT', data.lang)
+        subject = renderI18nTemplate(i18nTemplate.subject, templateData)
+        html = renderI18nTemplate(i18nTemplate.html, templateData)
+        text = renderI18nTemplate(i18nTemplate.text, templateData)
+      } catch {
+        // Fallback vers le template français par défaut
+        const template = EMAIL_TEMPLATES.SECURITY_ALERT
+        subject = renderTemplate(template.subject, templateData)
+        html = renderTemplate(template.html, templateData)
+        text = renderTemplate(template.text, templateData)
+      }
+    } else {
+      // Template français par défaut
+      const template = EMAIL_TEMPLATES.SECURITY_ALERT
+      subject = renderTemplate(template.subject, templateData)
+      html = renderTemplate(template.html, templateData)
+      text = renderTemplate(template.text, templateData)
+    }
 
     let allSent = true
     for (const adminEmail of this.settings.adminEmails) {

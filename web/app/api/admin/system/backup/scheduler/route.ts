@@ -4,6 +4,30 @@ import { logger } from '@/lib/logger'
 import { backupScheduler } from '@/lib/backup-scheduler'
 import { ApiResponse } from '@/types'
 
+// Messages personnalisés pour les actions du scheduler
+const SCHEDULER_MESSAGES = {
+  start: {
+    fr: 'Planificateur de sauvegarde démarré avec succès',
+    en: 'Backup scheduler started successfully',
+    es: 'Programador de respaldos iniciado exitosamente'
+  },
+  stop: {
+    fr: 'Planificateur de sauvegarde arrêté avec succès',
+    en: 'Backup scheduler stopped successfully',
+    es: 'Programador de respaldos detenido exitosamente'
+  },
+  restart: {
+    fr: 'Planificateur de sauvegarde redémarré avec succès',
+    en: 'Backup scheduler restarted successfully',
+    es: 'Programador de respaldos reiniciado exitosamente'
+  }
+}
+
+function getSchedulerMessage(action: 'start' | 'stop' | 'restart', lang: string = 'fr') {
+  const normalizedLang = lang.toLowerCase().substring(0, 2) as 'fr' | 'en' | 'es'
+  return SCHEDULER_MESSAGES[action][normalizedLang] || SCHEDULER_MESSAGES[action].fr
+}
+
 // GET: Get scheduler status
 export async function GET() {
   const session = await auth()
@@ -92,10 +116,14 @@ export async function POST(request: NextRequest) {
 
     const status = await backupScheduler.getStatus()
 
+    // Détecter la langue depuis les headers
+    const acceptLanguage = request.headers.get('accept-language') || 'fr'
+    const userLang = acceptLanguage.split(',')[0] || 'fr'
+    
     return NextResponse.json<ApiResponse<typeof status>>({
       success: true,
       data: status,
-      message: `Scheduler ${action} completed successfully`
+      message: getSchedulerMessage(action as 'start' | 'stop' | 'restart', userLang)
     })
 
   } catch (error) {

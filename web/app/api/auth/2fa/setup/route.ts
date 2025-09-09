@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/db';
 import { TwoFactorAuth } from '@/lib/auth/2fa';
+import { detectLanguage, getMessage } from '@/lib/i18n-messages';
 import { z } from 'zod';
 
 const SetupSchema = z.object({
@@ -78,10 +79,12 @@ export async function POST(request: NextRequest) {
           }
         });
 
+        const userLang = detectLanguage(request)
+        
         return NextResponse.json({
           success: true,
           backupCodes, // Return plain codes once for user to save
-          message: '2FA enabled successfully'
+          message: getMessage('twoFactorEnabled', userLang)
         });
       }
 
@@ -110,7 +113,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(request: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -129,9 +132,11 @@ export async function DELETE() {
       }
     });
 
+    const userLang = detectLanguage(request)
+
     return NextResponse.json({
       success: true,
-      message: '2FA disabled successfully'
+      message: getMessage('twoFactorDisabled', userLang)
     });
 
   } catch (error) {
